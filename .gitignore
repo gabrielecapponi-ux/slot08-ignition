@@ -1,0 +1,14 @@
+# Generated distributables; rebuild with npm run build / npm run standalone.
+dist/
+SLOT08.html
+SLOT08-Progetto.zip
+node_modules/
+.DS_Store
+*.blend1
+*.blend2
+__pycache__/
+*.pyc
+blender/export_local.py
+.env
+.env.*
+*.log
