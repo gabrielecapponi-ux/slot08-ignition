@@ -53,3 +53,12 @@ Prova reale nel browser integrato, con viewport desktop, 390×844 e 844×390 (no
 Segni delle gomme e fumo usano due pool a dimensione fissa (320 segni, 96 particelle), due draw call, senza geometrie create per frame. Nessun effetto modifica la simulazione.
 
 Le auto non collidono fra loro in questa versione. La pendenza dei ponti è visiva; la dinamica laterale usa la proiezione orizzontale. Progressi locali, nessun multiplayer o salvataggio condiviso fra dispositivi. Nessuna garanzia di frame rate su hardware non provato.
+
+## Verifica della pubblicazione
+
+Distribuzione GitHub Pages completata con successo sulla revisione `ddbbf86`.
+URL verificato: https://gabrielecapponi-ux.github.io/slot08-ignition/
+
+Ricaricando la scheda che aveva già aperto Ignition 2.0 sono stati caricati titolo Rivalry Update, footer RIVALRY 3.0, Club/manuale e la nuova classifica. Prova pubblica con gas continuo: uscita del giocatore alla prima curva (circa 3,5 s), entrambi i rivali indicati in sbandata, gas disattivato al deragliamento e rientro di tre secondi. Nessun errore/warning di console. La pagina è stata lasciata al menu, senza eliminare progressi.
+
+![Nuova fisica verificata sul sito pubblico](docs/qa-rivalry-live.jpg)
