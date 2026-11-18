@@ -38,3 +38,11 @@ Musica ed effetti sono sintesi Web Audio originale, non un brano Suno. Il catalo
 Nessun multiplayer online, collisioni fra auto o sincronizzazione del profilo. Pendenza visiva, con forze laterali calcolate sulla proiezione orizzontale. In gara locale il coach testuale è individuale; l’avviso audio di frenata e il marcatore 3D fanno riferimento a P1. Le auto condividono difficoltà, assistenza e potenziamenti. La gara locale non attribuisce crediti per evitare premi con avversari fermi. Su alcune tastiere il gas a interruttore evita i limiti dei tasti premuti simultaneamente.
 
 Il fallback 2D resta giocabile; gli effetti tridimensionali, le bandiere e il marcatore di frenata sulla pista richiedono WebGL. Nessuna garanzia di frame rate su hardware non provato.
+
+## Pubblicazione verificata
+
+GitHub Pages ha distribuito con successo la revisione `8b11d06f517ea57e0db7168a51b8114ce47744be` (run `44393970045`). Sul sito pubblico, ricaricando una scheda che aveva Rivalry 3.0, sono comparsi Overdrive, 15 circuiti, il mixer e le modalità locali. Crediti (850 CR), medaglie e potenziamenti precedenti conservati.
+
+Prova pubblica su Coast Run, Club/manuale: audio acceso, accelerazione fino a circa 237 km/h equivalenti, preavviso «FRENA TRA 4.0 M · 138 KM/H», marcatori e rilascio funzionanti. Nessun errore o warning di console. Pagina lasciata al menu su Coast Run con audio e gas disattivati.
+
+![Verifica della versione pubblica](docs/qa-overdrive-live.jpg)
