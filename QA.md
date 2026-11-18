@@ -1,48 +1,55 @@
-# Verifica SLOT 08 — Ignition
-18 novembre 2026. Verifiche sul progetto e sulla build, non una certificazione per ogni dispositivo.
+# Verifica SLOT 08 — Rivalry 3.0
 
-## Automazione
-34 test Node superati. Inclusi: chiusura e tangenti delle piste; metrica e curvatura delle corsie; forza centripeta e deragliamento; inerzia e frenata; recupero di tre secondi senza doppia penalità; conteggio giri; pausa; indipendenza dal frame rate; scambio richiesto fuori X, esecuzione e annullamento; tutorial con azioni reali; premi non duplicati; sblocco e modifiche dei parametri fisici dopo l'acquisto; storage assente/corrotto. L'assistenza completa tutte le combinazioni 3 piste × 3 difficoltà con uno scambio e zero deragliamenti nella simulazione. In Pro manuale, tenere sempre il gas provoca un deragliamento.
+18 novembre 2026. Questa verifica sostituisce quella della versione Ignition 2.0.
 
-## Browser reale
-Anteprima desktop 1280×720 e viewport 390×844 nel browser integrato:
-- Modelli Blender caricati, nessun errore/warning di console durante le gare 3D.
-- Tutorial completato tramite Spazio, rilascio e Invio; cambiata realmente corsia.
-- Gara Sunset completata: tre giri, secondo posto, zero uscite, 155 CR; sbloccata Skyline.
-- Acquistato motore livello 1: saldo 155 → 55 CR e acquisto successivo disabilitato senza fondi.
-- Gara Skyline completata: primo posto, zero uscite, 180 CR; sbloccata Neon Harbor.
-- Gara Neon Harbor completata anche durante la verifica mobile: primo posto, zero uscite, 180 CR.
-- Dopo il ricaricamento: crediti, potenziamento e circuiti sbloccati conservati.
-- Camera drone, bordo pista e dall'alto azionabili; controlli principali leggibili sul layout mobile.
-- In Pro manuale osservato il messaggio FUORI PISTA e il conto alla rovescia di rientro; il gas a interruttore si è disattivato all’uscita.
-- Canvas2D forzato: circuito tecnico caricato, conto alla rovescia e HUD funzionanti, nessun errore di console.
-- File unico SLOT08.html aperto via HTTP locale: caricamento del GLB incorporato riuscito, impostazioni e avvio gara funzionanti.
+## Regressione riprodotta
 
-## Versione pubblicata su GitHub Pages
+Prima dell'aggiornamento, sull'ovale in Rookie manuale, tenere il gas fisso concludeva la gara in circa 30,2 s: primo posto, zero uscite. I rivali erano regolatori ideali senza tempo di reazione e senza errori di stima.
 
-URL: https://gabrielecapponi-ux.github.io/slot08-ignition/
+## Test automatici
 
-Verifica del 18 novembre 2026 sulla versione HTTPS pubblicata, con viewport 390×844 e 844×390 nel browser integrato:
+**52 test Node superati** (`npm test`). I controlli comprendono:
 
-- Modello 3D e moduli locali caricati dal percorso del repository; nessun errore/warning di console.
-- Tutorial completato usando esclusivamente i pulsanti a schermo: gas a interruttore, rilascio e scambio effettivo alla X.
-- Gara Sunset da tre giri completata: primo posto, 31,233 s, zero uscite, 180 CR, Skyline sbloccata.
-- Rotazione della viewport durante la gara: telemetria, gas, scambio e pulsanti camera restano visibili.
-- Modalità gas a pressione: pressione di due secondi sul pulsante ACCELERA produce velocità; al rilascio il gas si spegne e la macchina si ferma.
-- Guida apribile anche in formato telefono; apertura mette in pausa la gara.
-- Ricaricamento: 180 CR, stelle, tutorial completato e secondo circuito sbloccato conservati.
-- Pubblicazione GitHub Pages completata con HTTPS attivo; sorgente `main`, cartella `/`, `.nojekyll` presente.
+- Nove combinazioni pista/difficoltà: gas costante provoca un'uscita già nel primo giro, anche con magneti potenziati al massimo.
+- Sbandata recuperabile al rilascio; nello stesso scenario, continuare ad accelerare causa l'uscita.
+- Giocatore e bot con gli stessi input: identici avanzamento, velocità, angolo di sbandata, instabilità, uscite e tre secondi di recupero.
+- Componenti e potenziamenti uguali per tutta la griglia.
+- Rivali con semi deterministici: sbandate e uscite prodotte dalla fisica, senza eventi di deragliamento imposti dall'IA.
+- Assistenza completa le tre piste alle tre difficoltà, con scambio di corsia e senza uscite del giocatore.
+- Guide pin fermo sullo slot durante la rotazione del corpo macchina; segno corretto nelle due direzioni.
+- Giri, scambi, recupero, tutorial, progressione e protezione dai premi duplicati.
+- Classifica calcolata dopo aver aggiornato tutti gli attraversamenti del traguardo nello stesso passo di simulazione.
+- Risultati indipendenti dal frame rate e nuovi record separati dalla fisica precedente.
 
-![Gara sul sito pubblicato, viewport orizzontale](docs/qa-mobile.jpg)
+### Confronto deterministico
 
-Questa prova riguarda il browser con viewport mobile, non un telefono iOS/Android fisico. Lo screenshot usa un puntatore desktop, quindi in orizzontale mostra le scorciatoie da tastiera; su dispositivi con puntatore touch vengono mostrate le etichette touch. I progressi rimangono distinti per browser e dispositivo.
+Sunset, Club, auto base, seme 808, passo 1/120 s. È un benchmark software, non una prova di abilità umana.
 
-## Asset e prestazioni
-Scena 3D Jutsu revisione 3: tre radici LEVEL, 70 parti della GT, 406 oggetti mesh, 19.674 poligoni sorgente e nessuna immagine esterna mancante. Il file locale è stato rigenerato con gli stessi script in Blender 5.2.1 e importato nel gioco.
+| Comandi del giocatore | Tempo | Uscite | Posizione |
+| --- | ---: | ---: | ---: |
+| Gas sempre premuto | 93,967 s | 18 | 3° |
+| Regolatore manuale vicino al limite (pace 0,98) | 36,633 s | 0 | 2° |
+| Guida assistita prudente | 40,975 s | 0 | 3° |
 
-La geometria viene raggruppata per materiale al caricamento. Osservazione durante un'inquadratura drone del porto: 21 chiamate di disegno, 35.714 triangoli visibili, 34 geometrie residenti. Numeri dipendenti da camera e frustum; non sono un massimo garantito. Non si promette uno specifico frame rate su dispositivi non provati.
+Nel secondo scenario Apex chiude in 36,613 s: il distacco è di circa 20 ms. Gli errori dei rivali variano fra gare e traiettorie; non ogni bot deve uscire in ogni gara. Nessuna correzione di velocità, forza magnetica o progresso in base al piazzamento.
 
-## Limiti dichiarati
-Non verificato l'avvio diretto file:// in questa sessione: la politica del browser di verifica non consente quella navigazione. Il packaging usa Blob ES modules e asset data URI e offre anche il server locale incluso. Non sono state provate tutte le combinazioni di browser, GPU, potenziamenti e preferenze di sistema.
+## Browser e comandi
 
-Le IA non collidono fra loro o con il giocatore. Il ponte modifica l'altezza del modello, non la dinamica longitudinale o il carico verticale. Il recupero avviene al punto dell'uscita. Camera e introduzione rispettano prefers-reduced-motion tramite percorso di codice; la preferenza del sistema non è stata modificata nella prova.
+Prova reale nel browser integrato, con viewport desktop, 390×844 e 844×390 (non dispositivi mobili fisici):
+
+- Club/manuale e assistenza disattivata presenti come predefiniti.
+- Gas continuo: visualizzati SGOMMA, ALZA IL GAS e successivamente FUORI PISTA con conto alla rovescia.
+- Sbandata recuperata premendo nuovamente il gas a interruttore per rilasciarlo: nessuna nuova uscita.
+- Nella gara manuale osservate due uscite di Apex nella classifica; Volt ha concluso senza uscite.
+- Gara assistita con scambio completata in 39,199 s: terzo posto, zero uscite, 130 CR (profilo locale con motore livello 1).
+- Gomme segnate sull'asfalto, rotazione del retrotreno e fumo; modelli Blender caricati.
+- Audio attivato e disattivato senza errori di console. La qualità sonora non è stata misurata.
+- Comandi e classifica visibili in verticale e orizzontale. Il traverso della partenza viene nascosto vicino all'auto nelle visuali drone/bordo pista per non coprire la guida.
+- Fallback Canvas2D: gara e uscita di pista funzionanti, nessun errore di console.
+- Grafo JavaScript e CSS versionati per impedire il riuso dei moduli 2.0 dopo l'aggiornamento.
+
+## Prestazioni e limiti
+
+Segni delle gomme e fumo usano due pool a dimensione fissa (320 segni, 96 particelle), due draw call, senza geometrie create per frame. Nessun effetto modifica la simulazione.
+
+Le auto non collidono fra loro in questa versione. La pendenza dei ponti è visiva; la dinamica laterale usa la proiezione orizzontale. Progressi locali, nessun multiplayer o salvataggio condiviso fra dispositivi. Nessuna garanzia di frame rate su hardware non provato.

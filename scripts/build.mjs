@@ -1,3 +1,4 @@
+import './version-assets.mjs';
 import { cp, mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

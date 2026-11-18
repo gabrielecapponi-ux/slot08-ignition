@@ -1,6 +1,14 @@
-# SLOT 08 — IGNITION
+# SLOT 08 — IGNITION / RIVALRY 3.0
 
 Gioco slot-car 3D originale per browser, senza account, dipendenze CDN o servizi a pagamento. Three.js 0.180.0 è incluso. Auto, piste e scenografie sono modellate in Blender; progetto Higgsfield 3D Jutsu incluso nei riferimenti.
+
+## Aggiornamento Rivalry 3.0
+
+La gara parte in **Club / manuale**. Tenere il gas premuto non basta: il retrotreno sgomma in curva, il pattino accumula instabilità e si stacca se non alleggerisci. Alzare il gas in tempo permette di salvare la sbandata. Segni delle gomme, fumo e stridio (con audio attivo) rendono leggibile il limite.
+
+**Stesse condizioni per tutta la griglia:** giocatore e bot hanno identico motore, magneti, freno, potenziamenti, modello di sbandata e recupero di tre secondi. I rivali hanno tempi di reazione, valutazioni imperfette delle curve e scambi di corsia; non ricevono velocità extra in base alla tua posizione. La classifica mostra chi sta sgommando, le uscite e i rientri.
+
+La guida assistita resta un'opzione di allenamento: frena con più margine e tende a essere più lenta. Il tutorial usa questa protezione. Rookie offre più tenuta a tutti, Pro riduce il margine per tutta la griglia e avvicina i bot al limite. Crediti, sblocchi e potenziamenti esistenti restano disponibili; i record della nuova fisica sono separati dai precedenti.
 
 ## Gioca online
 
@@ -25,7 +33,7 @@ Apri http://127.0.0.1:4173. Non occorre `npm install`; serve Node 20 o superiore
 
 Il sito usa il ramo **main**, cartella **/(root)**. Tutti i percorsi sono relativi, incluso l'import map di Three.js, quindi funziona anche sotto `/slot08-ignition/`. Il file `.nojekyll` disabilita l'elaborazione Jekyll. Non servono chiavi API, CDN o un server applicativo.
 
-Per aggiornare il sito: esegui `npm test`, verifica il gioco con `npm start`, poi pubblica le modifiche su `main`. GitHub Pages distribuisce automaticamente l'ultima revisione. Il sorgente, il GLB e la scena Blender sono inclusi nel repository; i pacchetti generati sono esclusi dal versionamento.
+Per aggiornare il sito: incrementa la versione in `package.json`, esegui `npm test` e `npm run build`, verifica il gioco con `npm start`, poi pubblica le modifiche su `main`. Il build aggiorna in `index.html` gli URL di CSS, ingresso JavaScript e ogni modulo applicativo, evitando che il browser conservi parti della vecchia fisica. GitHub Pages distribuisce automaticamente l'ultima revisione. Il sorgente, il GLB e la scena Blender sono inclusi nel repository; i pacchetti generati sono esclusi dal versionamento.
 
 ## Comandi
 
@@ -47,19 +55,19 @@ Rookie aumenta il margine di tenuta; Club usa la taratura base; Pro riduce il ma
 
 ## Motore e scelte tecniche
 - Passo fisso 120 Hz; rendering indipendente con interpolazione. Recupero frame limitato per evitare grandi salti dopo una sospensione.
-- Domanda laterale `F = m v² |κ|`; deragliamento se supera la tenuta magnetica. Frenata al rilascio e resistenza aerodinamica.
+- Domanda laterale `F = m v² |κ|`; il gas riduce del 16% la tenuta disponibile a piena apertura. Sbandata progressiva attorno al pattino anteriore e instabilità che cresce durante il sovraccarico. Il rilascio ripristina tenuta e stabilità; sovraccarico prolungato o estremo provoca il deragliamento. Frenata al rilascio, resistenza aerodinamica e attrito durante la sbandata. È un modello arcade, non una simulazione certificata di un prodotto reale.
 - Velocità misurata lungo la corsia effettiva: la metrica corregge corsie interne/esterne e scambi quintici. L'ovale e l'otto sono analitici; il porto usa Catmull-Rom con tabella di lunghezza precalcolata e derivate analitiche.
 - L'auto deragliata scivola lungo la tangente con attrito e gravità, mentre il progresso sul giro resta fermo. Ritorna nello stesso punto dopo tre secondi. Il timer continua: nessuna seconda penalità duplicata.
 - Enter prenota un cambio persistente; l'esecuzione avviene esclusivamente nella sezione X. Le IA e l'assistenza percorrono la stessa fisica, compresa la curva dello scambio.
-- I record sono distinti per pista, modalità, difficoltà, assistenza e potenziamenti.
+- I record sono distinti per versione della fisica, pista, modalità, difficoltà, assistenza e potenziamenti.
 - Una sola camera e un solo renderer; Canvas2D è il fallback per dispositivi senza WebGL. Audio sintetico opt-in. Asset statici raggruppati per materiale; pixel ratio limitato.
 
 ## Struttura
 ```
 src/core/       configurazione, matematica, ciclo a passo fisso
 src/track/      geometria e catalogo circuiti
-src/physics/    stato auto, accelerazione, tenuta, deragliamento
-src/ai/         previsione curve e controllo del gas
+src/physics/    stato auto, accelerazione, sbandata, tenuta, deragliamento
+src/ai/         previsione curve, reazioni, errori e controllo del gas
 src/game/       gare, tutorial, progressione e tarature
 src/input/      tastiera, mouse, pulsanti e gas a interruttore
 src/camera/     regia, inseguimento e accessibilità del movimento

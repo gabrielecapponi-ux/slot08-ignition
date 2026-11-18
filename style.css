@@ -45,3 +45,25 @@
   .center-panel{padding:18px 28px;max-height:92svh;overflow:auto}.center-panel h2{font-size:29px;margin:12px 0}.center-panel p{margin:8px 0}.finish-actions{margin-top:12px}
   .countdown{font-size:70px;top:35%}
 }
+
+/* Competitive telemetry: visible slides and the same recovery clock for rivals. */
+.race-mode{position:absolute;right:3.2%;top:243px;font-size:8px;letter-spacing:1.4px;color:#dce5ef;text-shadow:0 1px 5px #000}
+.rivals{position:absolute;right:3.2%;top:264px;display:flex;flex-direction:column;gap:5px;width:218px;pointer-events:none}
+.rival{padding:9px 11px;background:#111924e8;border:1px solid #ffffff25;border-radius:8px;display:grid;grid-template-columns:1fr auto;gap:5px}
+.rival-name{font-size:11px;font-weight:800}.rival-name:before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--car-color);margin-right:6px}
+.rival b{font-size:8px;color:#b4ccdf;align-self:center}.rival small{grid-column:1/-1;font-size:8px;color:#afbac9;letter-spacing:.5px}
+.rival[data-state=skidding]{border-color:#ffac62a0}.rival[data-state=skidding] b{color:#ffac62}
+.rival[data-state=crashed]{border-color:#ff5369}.rival[data-state=crashed] b{color:#ff7d87}
+#app[data-driving=skidding] .speed-panel{color:#ffd1a7}#app[data-driving=crashed] .speed-panel{color:#ff7d87}
+@media(max-width:650px){
+  .race-mode{top:calc(207px + env(safe-area-inset-top,0px));left:16px;right:16px;text-align:center;font-size:7px}
+  .rivals{top:calc(228px + env(safe-area-inset-top,0px));left:14px;right:14px;width:auto;flex-direction:row;gap:5px}
+  .rival{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;padding:8px}.rival-name{font-size:10px}.rival b{font-size:8px;align-self:flex-start}.rival small{font-size:7px;letter-spacing:0}
+  .notice{top:calc(309px + env(safe-area-inset-top,0px))}
+}
+@media(orientation:landscape) and (max-height:550px){
+  .race-mode{top:108px;left:auto;right:max(18px,env(safe-area-inset-right));font-size:7px}
+  .rivals{top:126px;left:auto;right:max(18px,env(safe-area-inset-right));width:290px;flex-direction:row;gap:4px}
+  .rival{display:flex;flex:1;flex-direction:column;min-width:0;padding:7px;gap:4px}.rival-name{font-size:9px}.rival b{font-size:7px;align-self:flex-start}.rival small{font-size:7px;letter-spacing:0}
+  .notice{top:113px;left:18px;transform:none;max-width:45%;font-size:8px}
+}

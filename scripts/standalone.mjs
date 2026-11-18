@@ -12,7 +12,7 @@ const css=await fs.readFile(path.join(root,'style.css'),'utf8');
 const poster='data:image/png;base64,'+(await fs.readFile(path.join(root,'assets/poster.png'))).toString('base64');
 const readme='data:text/plain;base64,'+Buffer.from(await fs.readFile(path.join(root,'README.md'),'utf8')).toString('base64');
 html=html.replace('href="./"','href="#"');
-html=html.replace('<link rel="stylesheet" href="style.css">',`<style>${css}</style>`).replace(/<script type="importmap">[\s\S]*?<\/script>/,'').replace('src="assets/poster.png"',`src="${poster}"`).replace('href="README.md"',`href="${readme}" download="SLOT08_README.txt"`);
+html=html.replace(/<link rel="stylesheet" href="style\.css(?:\?v=[^"]*)?">/,`<style>${css}</style>`).replace(/<script type="importmap">[\s\S]*?<\/script>/,'').replace('src="assets/poster.png"',`src="${poster}"`).replace('href="README.md"',`href="${readme}" download="SLOT08_README.txt"`);
 // Build Blob ES modules in dependency order. Original module scopes are preserved;
 // this is packaging, not a second implementation or a string-eval module loader.
 const boot=`
@@ -32,6 +32,6 @@ function compile(id){
 }
 await import(compile('src/main.js'));
 `;
-html=html.replace('<script type="module" src="src/main.js"></script>',()=>`<script type="module">${boot}</script>`);
+html=html.replace(/<script type="module" src="src\/main\.js(?:\?v=[^"]*)?"><\/script>/,()=>`<script type="module">${boot}</script>`);
 await fs.writeFile(path.join(root,'SLOT08.html'),html);
 console.log(`Standalone ready: SLOT08.html (${Buffer.byteLength(html)} bytes, all assets embedded).`);

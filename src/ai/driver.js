@@ -1,20 +1,51 @@
-import { safeSpeed } from '../physics/engine.js';
+import { planSpeed } from './line-planner.js';
 import { PHYSICS } from '../core/config.js';
 import { clamp } from '../core/math.js';
-/** Same finite grip and motor physics for assistance, opponents and player. */
+
+function seededRandom(seed) {
+  let state = seed >>> 0;
+  return () => { state = (Math.imul(1664525, state) + 1013904223) >>> 0; return state / 4294967296; };
+}
+
+/** Rivals only produce the same throttle/lane inputs as the human.
+ * No teleporting, rank-dependent speed, extra grip, or scripted crashes.
+ * Reactions and mistaken corner estimates are seeded for reproducible races. */
 export class AIDriver {
-  constructor(track,pace=.88){this.track=track;this.pace=pace;}
-  input(car){
-    if(car.state!=='slotted')return{throttle:0,switchLane:false};
-    const cfg=car.setup||PHYSICS,braking=(cfg.engineBrake+cfg.rollingResistance)/cfg.mass;
-    let target=cfg.maxSpeed*.92;
-    const lookahead=Math.max(2,car.speed**2/(2*braking)+1);
-    // Plan the queued physical crossover too, before the guide pin reaches it.
-    let change=car.change;
-    if(!change&&car.switchQueued){const ahead=this.track.nextSwitchDistance(car.distance),gate=this.track.switches.find(g=>Math.abs(((g.start-this.track.sample(car.distance).s+this.track.length)%this.track.length)-ahead)<.001);if(gate)change={from:car.lane,to:1-car.lane,start:car.distance+ahead,length:gate.end-gate.start};}
-    for(let ahead=0;ahead<=lookahead;ahead+=.08){const p=this.track.pose(car.distance+ahead,car.lane,change);const limit=safeSpeed(p.curvature,car.maxGrip)*this.pace;target=Math.min(target,Math.sqrt(limit**2+2*braking*ahead*.75));}
-    car.targetSpeed=target;
-    const throttle=car.speed<target-.10?1:car.speed>target?0:clamp(.52+(target-car.speed)*3,0,1);
-    return{throttle,switchLane:false};
+  constructor(track, pace = .88, { reaction = 0, errorRate = 0, seed = 8, tactical = false } = {}) {
+    this.track = track; this.pace = pace; this.reaction = reaction; this.errorRate = errorRate;
+    this.random = seededRandom(seed); this.tactical = tactical;
+    this.throttle = 0; this.thinkIn = 0; this.errorTime = 0; this.errorBoost = 0;
+    this.inCorner = false; this.lastGate = -1;
+  }
+  input(car, dt = PHYSICS.fixedStep, cars = []) {
+    if (car.state !== 'slotted') { this.throttle = 0; this.thinkIn = this.reaction; this.errorTime = 0; return { throttle: 0, switchLane: false }; }
+    const corner = Math.abs(car.pose?.curvature || 0) > .13;
+    if (corner && !this.inCorner && this.random() < this.errorRate) {
+      // An optimistic estimate lasts until the driver recognises the slide.
+      this.errorTime = .65 + this.random() * .55;
+      this.errorBoost = .18 + this.random() * .22;
+    }
+    this.inCorner = corner; this.errorTime = Math.max(0, this.errorTime - dt);
+    this.thinkIn -= dt;
+    let switchLane = false;
+    if (this.thinkIn <= 0) {
+      this.thinkIn = this.reaction * (.8 + this.random() * .4);
+      const pace = this.pace + (this.errorTime > 0 ? this.errorBoost : 0);
+      const target = planSpeed(this.track, car, pace);
+      car.targetSpeed = target;
+      this.throttle = car.speed < target - .06 ? 1 : car.speed > target + .03 ? 0 : clamp(.48 + (target - car.speed) * 4, 0, 1);
+      // Recovery is a throttle decision, never an override of the physics.
+      if (car.instability > .92) this.throttle = 0;
+      if (this.tactical && !car.change && !car.switchQueued) {
+        const ahead = this.track.nextSwitchDistance(car.distance);
+        const gateKey = Math.round((car.distance + ahead) * 10);
+        if (ahead < 1.8 && gateKey !== this.lastGate) {
+          this.lastGate = gateKey;
+          const nearby = cars.some(other => other !== car && other.lane === car.lane && other.state === 'slotted' && other.distance - car.distance > 0 && other.distance - car.distance < 1.2);
+          switchLane = nearby || this.random() < .25;
+        }
+      }
+    }
+    return { throttle: this.throttle, switchLane };
   }
 }

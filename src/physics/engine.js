@@ -1,5 +1,6 @@
 import { PHYSICS } from '../core/config.js';
 import { clamp } from '../core/math.js';
+import { updateGrip, bodyPose } from './grip.js';
 
 export const lateralDemand = (speed, curvature, mass = PHYSICS.mass) => mass * speed * speed * Math.abs(curvature);
 export const safeSpeed = (curvature, force = PHYSICS.gripForce) => Math.abs(curvature) < 1e-9
@@ -18,13 +19,14 @@ export class PhysicsEngine {
   }
 
   derail(car, pose) {
+    const body = bodyPose(pose, car.driftAngle);
     car.state = 'derailed'; car.recoverIn = PHYSICS.recoverySeconds; car.crashes++;
-    car.crash = { x: pose.x, y: pose.y, z: pose.z + 0.077, vx: pose.tx * car.speed,
-      vy: pose.ty * car.speed, vz: 0.42, angle: pose.angle,
+    car.crash = { x: body.x, y: body.y, z: pose.z + 0.077, vx: pose.tx * car.speed,
+      vy: pose.ty * car.speed, vz: 0.42, angle: body.angle,
       spin: -Math.sign(pose.curvature || 1) * car.speed * 1.6, bridge: pose.bridge };
     // Keep centreline distance fixed: a crash cannot advance checkpoint/lap progress.
     // A crash in a switch returns to its original lane at the SAME position.
-    car.change = null; car.switchQueued = false; car.speed = 0; car.throttle = 0;
+    car.change = null; car.switchQueued = false; car.speed = 0; car.throttle = 0; car.skid = 0;
   }
 
   step(car, throttle, dt) {
@@ -38,8 +40,8 @@ export class PhysicsEngine {
       c.vz -= 9.81 * dt; c.z = Math.max(0, c.z + c.vz * dt);
       car.recoverIn = Math.max(0, car.recoverIn - dt);
       if (car.recoverIn <= 1e-8) {
-        car.state = 'slotted'; car.crash = null; car.recoverIn = 0; car.gripRatio = 0;
-        car.pose = this.track.pose(car.distance, car.lane);
+        car.state = 'slotted'; car.crash = null; car.recoverIn = 0; car.gripRatio = 0; car.instability = 0; car.driftAngle = 0; car.previousDrift = 0;
+        car.pose = this.track.pose(car.distance, car.lane); car.previousPose = car.pose;
         return 'respawn';
       }
       return null;
@@ -49,7 +51,7 @@ export class PhysicsEngine {
     const v = car.speed;
     const drive = cfg.motorForce * car.throttle * Math.max(0, 1 - v / cfg.maxSpeed);
     const resistance = cfg.rollingResistance + cfg.aerodynamicDrag * v * v
-      + cfg.engineBrake * (1 - car.throttle);
+      + cfg.engineBrake * (1 - car.throttle) + cfg.skidDrag * car.skid;
     car.speed = Math.max(0, v + (drive - resistance) / PHYSICS.mass * dt);
     const before = this.track.pose(car.distance, car.lane, car.change);
     car.distance += ((v + car.speed) * 0.5 * dt) / before.metric;
@@ -59,8 +61,7 @@ export class PhysicsEngine {
     const pose = this.track.pose(car.distance, car.lane, car.change);
     car.pose = pose;
     car.lateralForce = lateralDemand(car.speed, pose.curvature);
-    car.gripRatio = car.lateralForce / car.maxGrip;
-    if (car.gripRatio > 1) { this.derail(car, pose); return 'derail'; }
+    if (updateGrip(car, pose.curvature, dt)) { this.derail(car, pose); return 'derail'; }
     return null;
   }
 }
