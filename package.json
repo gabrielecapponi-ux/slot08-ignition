@@ -1,9 +1,9 @@
 {
   "name": "slot-08",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": true,
   "type": "module",
-  "description": "SLOT08 Ignition: three-world 3D slot-car racing, assisted driving, progression and Blender assets.",
+  "description": "SLOT08 Overdrive: 15 circuits, adaptive original audio, braking coach and 3-player local racing.",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",

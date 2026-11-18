@@ -21,7 +21,8 @@ export class CameraRig {
       if(this.track.index===1&&Math.abs(p.x)<1.5&&ground<.25)pos.y=Math.max(pos.y,1.3);
     }else if(moving&&this.mode==='rail'){
       pos.set(p.x-tx*.65-ty*1.5,ground+.62,p.y-ty*.65+tx*1.5);look.set(p.x+tx*.75,ground+.05,p.y+ty*.75);fov=52;
-    }else if(this.mode==='top'&&moving){pos.set(0,Math.max(width/aspect,height)*1.28,.001);look.set(0,0,0);}
+    }else if(this.mode==='top'&&moving){pos.set((b.minX+b.maxX)/2,Math.max(width/aspect,height)*1.38,(b.minY+b.maxY)/2+.001);look.set((b.minX+b.maxX)/2,0,(b.minY+b.maxY)/2);}
+    if(moving&&session.isLocal&&['top','iso'].includes(this.mode)){const ps=session.players.map(car=>car.crash??car.pose),xs=ps.map(q=>q.x),ys=ps.map(q=>q.y),loX=Math.min(...xs),hiX=Math.max(...xs),loY=Math.min(...ys),hiY=Math.max(...ys),cx=(loX+hiX)/2,cy=(loY+hiY)/2;const framing=Math.max((hiX-loX+9)/aspect,hiY-loY+8);pos.set(cx,framing*1.42,cy+(this.mode==='iso'?framing*.5:.001));look.set(cx,0,cy);}
     const t=this.initial||this.motion.matches?1:1-Math.exp(-dt*(moving?6:3.8));c.position.lerp(pos,t);this.focus.lerp(look,t);c.lookAt(this.focus);c.fov=THREE.MathUtils.lerp(c.fov,fov,t);c.updateProjectionMatrix();this.initial=false;
     return intro||moving;
   }

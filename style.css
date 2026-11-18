@@ -67,3 +67,37 @@
   .rival{display:flex;flex:1;flex-direction:column;min-width:0;padding:7px;gap:4px}.rival-name{font-size:9px}.rival b{font-size:7px;align-self:flex-start}.rival small{font-size:7px;letter-spacing:0}
   .notice{top:113px;left:18px;transform:none;max-width:45%;font-size:8px}
 }
+
+/* Overdrive: a browsable circuit collection, braking coach and shared controls. */
+#app[data-state=ready]{height:auto;min-height:100svh;overflow:visible}
+#app[data-state=ready] #viewport{position:fixed;height:100svh}
+.lobby{position:relative;inset:auto;margin:0 3.2%;padding:114px 0 72px;grid-template-rows:auto auto auto;row-gap:22px;min-height:100svh}
+.hero-copy{margin-bottom:0}.circuits-heading{grid-column:1/-1;display:flex;justify-content:space-between;font-size:10px;letter-spacing:1.5px;border-top:1px solid var(--line);padding-top:22px;color:#dde4ed}.circuits-heading span{color:var(--lime);font-size:9px}.level-list{grid-template-columns:repeat(3,1fr)}.level-card{min-height:82px}
+.coach-select{display:block;font-size:10px;color:var(--muted);padding-top:16px}.coach-select select{margin-top:7px}.race-setup #local-help{color:#d7e8ae;line-height:1.6;font-size:10px}
+.brake-coach{position:absolute;top:196px;left:3.2%;width:min(390px,42vw);padding:14px 18px;background:#12211de8;border:1px solid #c6f56885;border-left:4px solid var(--lime);border-radius:10px;box-shadow:0 6px 28px #0004}
+.brake-coach strong{display:block;font-size:14px;letter-spacing:.5px;color:var(--lime)}.brake-coach small{display:block;font-size:10px;color:#d3dce5;margin-top:7px;line-height:1.4}
+.brake-coach[data-action=prepare]{border-color:#ffcf72;background:#2a2418ef}.brake-coach[data-action=prepare] strong{color:#ffcf72}.brake-coach[data-action=brake]{border-color:#ff715b;background:#301b1bee}.brake-coach[data-action=brake] strong{color:#ff917b}
+#all-controls{display:flex;gap:14px}.pilot-telemetry{display:none}#finish-summary{white-space:pre-line}
+#app[data-local=true] .bottom-hud{flex-wrap:wrap}#app[data-local=true] .speed-panel,#app[data-local=true] .minimap-wrap{display:none}
+#app[data-local=true] #all-controls{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+#app[data-local=true][data-players='2'] #all-controls{grid-template-columns:repeat(2,1fr)}
+#app[data-local=true] .pilot-controls{border:1px solid var(--pilot);border-radius:12px;padding:12px;background:#111924e8;min-width:0}
+#app[data-local=true] .pilot-telemetry{display:grid;grid-template-columns:1fr auto;color:var(--pilot);gap:7px;margin-bottom:9px;font-size:12px}
+.pilot-telemetry small{grid-column:1/-1;color:#cbd4de;font-size:9px;min-height:12px}
+#app[data-local=true] .drive-controls{gap:7px}#app[data-local=true] .drive-controls button{min-width:0;width:50%;min-height:68px;font-size:10px}
+#app[data-local=true] .throttle-button{background:var(--pilot)}#app[data-local=true] .throttle-button.active{background:#fff}
+#app[data-local=true] .pilot-controls[data-action=brake] .pilot-telemetry small{color:#ff947e}
+.mixer-label{display:flex;justify-content:space-between;margin:24px 0 12px;font-size:13px}.mixer-label output{color:var(--lime)}#audio-mixer input[type=range]{width:100%;min-height:38px;accent-color:var(--lime)}
+@media(max-width:1000px){.lobby{grid-template-columns:1fr 320px}.level-list{grid-template-columns:repeat(2,1fr)}.brake-coach{top:180px;width:40vw}.brake-coach strong{font-size:11px}.top-actions{gap:4px}.top-actions button{padding:10px}}
+@media(max-width:650px){
+  .lobby{margin:0 18px;padding:95px 0 65px;gap:24px}.level-list{display:grid;grid-template-columns:1fr}.circuits-heading{font-size:8px;gap:12px}.circuits-heading span{font-size:8px;text-align:right}.brand-suffix{display:none}.topbar{padding:0 12px}.top-actions button{padding:8px;font-size:9px}.top-actions #wallet{font-size:9px}.brand{font-size:0;gap:0}.brand-icon{font-size:22px}
+  #all-controls{width:100%}.pilot-controls{width:100%}.brake-coach{top:calc(325px + env(safe-area-inset-top,0px));left:14px;right:14px;width:auto;padding:12px}.brake-coach strong{font-size:12px}.brake-coach small{font-size:9px}.notice{top:calc(411px + env(safe-area-inset-top,0px));font-size:9px}
+  #app[data-local=true] #all-controls{gap:5px}#app[data-local=true] .bottom-hud{left:8px;right:8px}
+  #app[data-local=true] .pilot-controls{padding:7px 5px;border-radius:9px}#app[data-local=true] .drive-controls{flex-direction:column;gap:6px}#app[data-local=true] .drive-controls button{width:100%;min-height:49px;font-size:9px;gap:5px;padding:7px 3px}
+  #app[data-local=true] .drive-controls kbd{font-size:8px;letter-spacing:.3px}#app[data-local=true] .pilot-telemetry{font-size:10px;gap:5px}.pilot-telemetry small{font-size:7px;min-height:28px;line-height:1.3}#app[data-local=true] .notice{top:315px}
+}
+@media(orientation:landscape) and (max-height:550px){
+  .lobby{padding-top:76px}.brake-coach{top:112px;left:18px;width:44%;padding:8px 12px}.brake-coach strong{font-size:10px}.brake-coach small{font-size:8px;margin-top:4px}.notice{top:178px;font-size:8px}
+  #app[data-local=true] .pilot-controls{padding:6px 8px}#app[data-local=true] .pilot-telemetry{margin-bottom:4px;font-size:10px;gap:4px}.pilot-telemetry small{font-size:8px;min-height:10px}#app[data-local=true] .drive-controls button{min-height:46px;gap:4px;padding:6px;font-size:9px}#app[data-local=true] #all-controls{gap:8px}
+  #app[data-local=true] .bottom-hud{bottom:30px}#app[data-local=true] .notice{top:118px}
+}
