@@ -10,6 +10,8 @@ Sul telefono, tieni premuto **ACCELERA** per dare gas e tocca **SCAMBIO** per pr
 
 Progressi e crediti si salvano nel browser del dispositivo: non sono sincronizzati fra telefono e Mac. Non serve un account GitHub per giocare.
 
+![Gara 3D dal sito pubblicato](docs/qa-mobile.jpg)
+
 ## Avvio e sviluppo locali
 
 ```sh

@@ -18,6 +18,25 @@ Anteprima desktop 1280×720 e viewport 390×844 nel browser integrato:
 - Canvas2D forzato: circuito tecnico caricato, conto alla rovescia e HUD funzionanti, nessun errore di console.
 - File unico SLOT08.html aperto via HTTP locale: caricamento del GLB incorporato riuscito, impostazioni e avvio gara funzionanti.
 
+## Versione pubblicata su GitHub Pages
+
+URL: https://gabrielecapponi-ux.github.io/slot08-ignition/
+
+Verifica del 18 novembre 2026 sulla versione HTTPS pubblicata, con viewport 390×844 e 844×390 nel browser integrato:
+
+- Modello 3D e moduli locali caricati dal percorso del repository; nessun errore/warning di console.
+- Tutorial completato usando esclusivamente i pulsanti a schermo: gas a interruttore, rilascio e scambio effettivo alla X.
+- Gara Sunset da tre giri completata: primo posto, 31,233 s, zero uscite, 180 CR, Skyline sbloccata.
+- Rotazione della viewport durante la gara: telemetria, gas, scambio e pulsanti camera restano visibili.
+- Modalità gas a pressione: pressione di due secondi sul pulsante ACCELERA produce velocità; al rilascio il gas si spegne e la macchina si ferma.
+- Guida apribile anche in formato telefono; apertura mette in pausa la gara.
+- Ricaricamento: 180 CR, stelle, tutorial completato e secondo circuito sbloccato conservati.
+- Pubblicazione GitHub Pages completata con HTTPS attivo; sorgente `main`, cartella `/`, `.nojekyll` presente.
+
+![Gara sul sito pubblicato, viewport orizzontale](docs/qa-mobile.jpg)
+
+Questa prova riguarda il browser con viewport mobile, non un telefono iOS/Android fisico. Lo screenshot usa un puntatore desktop, quindi in orizzontale mostra le scorciatoie da tastiera; su dispositivi con puntatore touch vengono mostrate le etichette touch. I progressi rimangono distinti per browser e dispositivo.
+
 ## Asset e prestazioni
 Scena 3D Jutsu revisione 3: tre radici LEVEL, 70 parti della GT, 406 oggetti mesh, 19.674 poligoni sorgente e nessuna immagine esterna mancante. Il file locale è stato rigenerato con gli stessi script in Blender 5.2.1 e importato nel gioco.
 
