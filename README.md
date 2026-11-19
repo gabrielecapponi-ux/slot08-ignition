@@ -13,6 +13,10 @@
 
 Restano il tutorial pratico, il coach di frenata, quattro telecamere, gare contro due bot, Time Attack e gare locali per due/tre persone sullo stesso dispositivo. La musica originale a 136 BPM e i suoni di motore, rilascio, gomme e impatto sono sintetizzati dal gioco. Premi Attiva audio; il mixer separa musica ed effetti. Nessun autoplay.
 
+![Bosco delle Volpi, versione pubblica](docs/qa-worlds-live-forest.jpg)
+
+![Garage con componenti Blender](docs/qa-worlds-live-garage.jpg)
+
 ## Comandi
 
 | Comando | Azione |

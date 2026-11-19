@@ -42,4 +42,11 @@ Screenshot:
 
 Fisica arcade, senza gravità longitudinale o carico verticale dinamico. Nessun urto tra auto, multiplayer online, sincronizzazione tra dispositivi, editor delle piste, loop verticali o salti guidati. Nei dispositivi senza WebGL resta la modalità 2D, senza anteprima delle parti 3D. Non è stata certificata una frequenza minima su telefoni reali.
 
-Il link pubblico viene verificato dopo la distribuzione GitHub Pages.
+## Pubblicazione verificata
+
+GitHub Pages ha distribuito con successo il commit applicativo `be1c7a6c0aa262b89825f4acdbb7b1dd38bebf97` (run `44523930387`). Sul link pubblico verificati titolo Worlds, footer 5.0, carico dei modelli Blender, garage a 12 livelli, anteprima Doppio piano, guida in Bosco delle Volpi e coach. Nessun errore di console. Non sono stati acquistati componenti sul profilo pubblico.
+
+- `docs/qa-worlds-live-garage.jpg`: garage pubblicato, anteprima di un alettone non acquistato.
+- `docs/qa-worlds-live-forest.jpg`: guida e coach nel nuovo bosco dal link GitHub Pages.
+
+Il gioco pubblico è stato lasciato al menu, audio spento e gas disattivato. Il viewport di prova è stato ripristinato; le schede locali sono state chiuse.
