@@ -1,9 +1,10 @@
+import { ScenicTrack, SpiralTrack } from './scenic.js';
 import { EnduranceTrack, ENDURANCE_LAYOUTS } from './endurance.js';
 import { SlotTrack } from './base.js';
 import { FigureEight } from './figure-eight.js';
 import { mod } from '../core/math.js';
 
-export const LEVELS = Object.freeze([
+const BASE_LEVELS = Object.freeze([
   {id:'sunset',name:'Sunset Speedway',tag:'01 / IMPARA IL RITMO',subtitle:'Rettilinei lunghi. Il tuo primo podio.',color:'#ff733e',sky:'#e8c399',board:'#aa7651'},
   {id:'skyline',name:'Skyline Eight',tag:'02 / CONQUISTA IL PONTE',subtitle:'Due direzioni. Un incrocio sopra la città.',color:'#73d8dc',sky:'#adc7cc',board:'#47616b'},
   {id:'neon',name:'Neon Harbor',tag:'03 / TROVA IL LIMITE',subtitle:'Curve tecniche, banchine e luci elettriche.',color:'#b59bff',sky:'#333751',board:'#343c57'},
@@ -50,12 +51,40 @@ export class HarborTrack extends SlotTrack {
   at(s){let lo=0,hi=this.table.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(this.table[m].s<=s)lo=m;else hi=m;}const a=this.table[lo],b=this.table[hi];return this.curve(a.t+(b.t-a.t)*(s-a.s)/(b.s-a.s));}
   sample(distance){const s=mod(distance,this.length),p=this.at(s);const z=s>15&&s<23?.42*Math.sin(Math.PI*(s-15)/8)**2:0;return{...p,s,z,nx:-p.ty,ny:p.tx,bridge:z>.05,section:0,curvatureDerivative:(this.at(mod(s+.01,this.length)).curvature-this.at(mod(s-.01,this.length)).curvature)/.02};}
 }
+const WORLDS=[
+  ['forest','Bosco delle Volpi','Tra pini, animali e una galleria di pietra.',.12],
+  ['alpine','Passo dei Cervi','Due rami incrociati, ponte alto e galleria.',.23],
+  ['harbor','Porto delle Lanterne','Banchine, fari e curve sul lungomare.',.16],
+  ['coast','Palm Coast','Un lungo allungo tra palme e case sul mare.',.24],
+  ['canyon','Red Rock Canyon','Mesas, galleria nel canyon e curve opposte.',.29],
+  ['forest','Spirale del Bosco','Una vera spirale sopraelevata tra gli alberi.',.48],
+  ['alpine','Alpine Crossing','Doppio senso di curva, incrocio a due quote.',.28],
+  ['desert','Dune Paraboliche','Curve inclinate e un rettilineo nel deserto.',.53],
+  ['harbor','Harbor Flyover','Un cavalcavia attraversa il porto illuminato.',.30],
+  ['canyon','Copper Spiral','Un giro elicoidale fra pareti di roccia.',.46],
+  ['night','Neon Junction','Ponte incrociato, gallerie e insegne notturne.',.35],
+  ['alpine','Glacier Summit','Rampe, tunnel e rifugi nel paesaggio alpino.',.38],
+  ['coast','Coastal Switchback','Doppio tracciato incrociato lungo la costa.',.28],
+  ['forest','Grand Forest Tour','Il grande circuito tra mulini e villaggi.',.31],
+  ['night','Double Helix','Due giri di spirale, 5,2 metri di dislivello.',.52],
+];
+export const LEVELS=Object.freeze(BASE_LEVELS.map((l,i)=>Object.freeze({...l,name:WORLDS[i][1],subtitle:WORLDS[i][2],tag:String(i+1).padStart(2,'0')+' / '+(['forest','alpine'].includes(WORLDS[i][0])?'NATURA IN MINIATURA':'MONDO DA ESPLORARE')})));
 export function createTrack(index=0){
   index=Math.max(0,Math.min(LEVELS.length-1,Math.floor(Number(index)||0)));
-  const track=index>=3?new EnduranceTrack(ENDURANCE_LAYOUTS[index-3]):index===0?new OvalTrack():index===1?new FigureEight({radius:2.2,halfSpacing:4.2,elevation:.62}):new HarborTrack();
-  if(index===1)track.switches=[0,track.halfLength].map((s,id)=>({id,start:s+.65,activationEnd:s+1.15,end:s+3.85}));
-  track.level=LEVELS[index];track.index=index;
-  const pts=Array.from({length:500},(_,i)=>track.sample(i/500*track.length));
-  track.bounds={minX:Math.min(...pts.map(p=>p.x))-1.1,maxX:Math.max(...pts.map(p=>p.x))+1.1,minY:Math.min(...pts.map(p=>p.y))-1.2,maxY:Math.max(...pts.map(p=>p.y))+1.2};
-  return track;
+  let base;
+  if(index===0){base=new OvalTrack();}
+  else if([1,6,8,10,12].includes(index)){
+    const size={1:[2.8,6],6:[3,10],8:[3,13],10:[3,15],12:[3,17]}[index];
+    base=new FigureEight({radius:size[0],halfSpacing:size[1],elevation:1.65});
+    base.switches=[0,base.halfLength].map((s,id)=>({id,start:s+.65,activationEnd:s+1.15,end:s+3.85}));
+  }else if([5,9,14].includes(index))base=new SpiralTrack(index===14?{radius:4,turns:2,width:22,height:9,lift:5.2}:index===9?{radius:3.6,width:17,height:8,lift:2.6}:{radius:3.2,width:11,height:6,lift:2.2});
+  else if(index===2)base=new EnduranceTrack({points:[[-10,-6],[10,-6],[10,6],[2,6],[2,0],[-10,0]],radius:2.2});
+  else base=new EnduranceTrack(ENDURANCE_LAYOUTS[index-3]);
+  const [theme,name,subtitle,bank]=WORLDS[index];
+  const track=new ScenicTrack(base,{theme,bank,tunnelCount:index<3?1:2,feature:subtitle});
+  track.level={...LEVELS[index],name,subtitle};track.index=index;
+  const pts=Array.from({length:1000},(_,i)=>track.sample(i/1000*track.length));
+  track.bounds={minX:Math.min(...pts.map(p=>p.x))-2,maxX:Math.max(...pts.map(p=>p.x))+2,minY:Math.min(...pts.map(p=>p.y))-2,maxY:Math.max(...pts.map(p=>p.y))+2};
+  track.maxElevation=Math.max(...pts.map(p=>p.z));return track;
 }
+export const WORLD_NAMES=WORLDS.map(w=>w[1]);

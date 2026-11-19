@@ -11,7 +11,7 @@ export class EnduranceTrack extends SlotTrack {
       const a = Math.hypot(p[0] - prev[0], p[1] - prev[1]), b = Math.hypot(next[0] - p[0], next[1] - p[1]);
       const u = [(p[0] - prev[0]) / a, (p[1] - prev[1]) / a], v = [(next[0] - p[0]) / b, (next[1] - p[1]) / b];
       const turn = Math.atan2(u[0] * v[1] - u[1] * v[0], u[0] * v[0] + u[1] * v[1]);
-      const tan = Math.tan(Math.abs(turn) / 2), cut = Math.min(radius * tan, a * .38, b * .38), r = cut / tan;
+      const tan = Math.tan(Math.abs(turn) / 2), cut = Math.min((Array.isArray(radius)?radius[i]:radius) * tan, a * .38, b * .38), r = cut / tan;
       const entry = [p[0] - u[0] * cut, p[1] - u[1] * cut], exit = [p[0] + v[0] * cut, p[1] + v[1] * cut];
       return { entry, exit, u, v, turn, radius: r };
     });

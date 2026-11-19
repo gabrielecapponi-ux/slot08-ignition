@@ -9,9 +9,9 @@ export const DIFFICULTIES = Object.freeze({
 export function carSetup(difficulty = 'club', upgrades = {}) {
   const d = DIFFICULTIES[difficulty] || DIFFICULTIES.club;
   return { ...PHYSICS,
-    motorForce: PHYSICS.motorForce * (1 + .10 * (upgrades.motor || 0)),
-    maxSpeed: PHYSICS.maxSpeed * (1 + .07 * (upgrades.motor || 0)),
-    gripForce: PHYSICS.gripForce * d.grip * (1 + .05 * (upgrades.grip || 0)),
-    engineBrake: PHYSICS.engineBrake * (1 + .15 * (upgrades.brake || 0)),
+    motorForce: PHYSICS.motorForce * (1 + .045 * (upgrades.motor || 0)),
+    maxSpeed: PHYSICS.maxSpeed * (1 + .025 * (upgrades.motor || 0)),
+    gripForce: PHYSICS.gripForce * d.grip * (1 + .018 * (upgrades.grip || 0)),
+    engineBrake: PHYSICS.engineBrake * (1 + .065 * (upgrades.brake || 0)),
   };
 }

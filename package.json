@@ -1,9 +1,9 @@
 {
   "name": "slot-08",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "private": true,
   "type": "module",
-  "description": "SLOT08 Overdrive: 15 circuits, adaptive original audio, braking coach and 3-player local racing.",
+  "description": "SLOT08 Worlds: 15 miniature circuits, Blender scenery, visible GT workshop and progressive grip.",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",

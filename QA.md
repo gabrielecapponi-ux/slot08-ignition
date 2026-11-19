@@ -1,48 +1,45 @@
-# Verifica SLOT 08 — Overdrive 4.0
+# Worlds 5.0 — verifica del 19 novembre 2026
 
-18 novembre 2026. La fisica di Rivalry 3.0 resta invariata: scivolamento, perdita del pattino, rientro di tre secondi e hardware identico per umani e bot.
+## Simulazione automatica
 
-## Test automatici
+`npm test`: **95 test superati**. Sono inclusi audio, clock fisso, input, gare, profili e i nuovi casi Worlds.
 
-**86 test Node superati** (`npm test`). Build statico e standalone completati.
+- Tutte le 15 piste: chiusura e continuità, pose finite, scambi su rettilinei, due corsie sopra il terreno, curve inclinate e gallerie.
+- Su tutte le piste, il 100% continuato porta al deragliamento; l'assistenza conclude tre giri senza uscite, anche con uno scambio prenotato. Questo test è riferito alla configurazione Club di serie, non a ogni combinazione possibile di potenziamenti.
+- Sbandata di riferimento: dopo 0,5 s l'auto è ancora agganciata, con scivolamento visibile. Il rilascio recupera stabilità; continuare ad accelerare porta fuori pista. Il margine effettivo varia con velocità, raggio e hardware.
+- Deragliamento estremo, traiettoria tangente, progresso congelato e recupero di esattamente 3 secondi. Nessuna penalità aggiunta due volte.
+- Le spirali condividono le coordinate orizzontali ma mantengono oltre 1,8 m di separazione tra passaggi; la pendenza modifica la distanza reale della corsia.
+- La sopraelevazione inclina le corsie e aumenta il limite di velocità. La superficie inclinata resta sopra il terreno.
+- Giocatore, bot e tre piloti locali usano hardware identico anche al livello 12. Gas 65/85/100 produce accelerazioni distinte. I bot possono uscire attraverso la stessa fisica, senza incidenti imposti.
+- Migrazione del profilo, 12 livelli meccanici, vernici/livree, pagamento dei componenti una sola volta, componenti automatici e selezioni manuali.
+- Il GLB contiene tutte le 30 varianti e gli elementi ambientali richiesti, sotto 2,5 MB.
 
-- Tutte le 12 nuove piste: chiusura geometrica, continuità delle tangenti fra moduli, curvature finite in entrambe le corsie, scambi interamente sui rettilinei.
-- Su tutte le nuove piste in Club: il gas fisso provoca un deragliamento; l’assistenza completa tre giri e uno scambio senza uscite. Restano i test precedenti su tre difficoltà e sulle prime tre piste.
-- Coach su Coast Run: un controllo manuale che rilascia quando indicato completa un giro senza uscite. Il coach non modifica il comando; migliorare il freno sposta in avanti il punto consigliato.
-- Tre giocatori: comandi indipendenti, scambi e uscite separati, stesso hardware; classifica per tempi reali. La gara aspetta gli altri e termina all’ultimo arrivo oppure 30 secondi dopo il primo.
-- Gas a interruttore isolato per pilota; recuperare un’auto non cancella il gas delle altre.
-- Migrazione da tre a quindici medaglie senza perdere crediti, record o potenziamenti. Premi assegnati una sola volta e solo nelle gare contro i bot.
-- Audio: test del controllo del grafo con un dispositivo simulato. Motore, rilascio e gomme seguono lo stato; pausa e rimozione di un rivale azzerano le sue voci. Volumi separati e limitati a 0–100%. Lo scheduler non duplica battiti durante frame ripetuti e non accumula raffiche dopo un ritardo.
-- Rimangono le regressioni su fisica a 120 Hz, recupero sbandata, errori dei bot, attraversamento del traguardo nello stesso tick, tutorial e parità della griglia.
+## Prove nel browser
 
-## Verifiche nel browser
+Browser integrato sul Mac, 1280×720 e viewport simulato 390×844. Queste verifiche del layout non sostituiscono prove su hardware iPhone/Android reale.
 
-Browser integrato desktop, viewport 390×844 e 844×390. Sono prove responsive, non test su telefoni fisici.
+- Tutte le 15 piste selezionate dall'interfaccia senza errori. Bosco, animali, gallerie, guardrail, segnaletica e doppia spirale verificati visivamente.
+- Tutte le 30 varianti del garage provate in anteprima. Acquistati nel profilo locale di test un alettone GT3 e cerchi Oro Sport: 95 + 60 CR; 545 → 390 CR. Vernice arancione e livrea Tricolore applicate gratuitamente. Componenti e colori ancora presenti dopo il ricaricamento.
+- Garage mobile: macchina interamente visibile, tre inquadrature, pannello scorrevole e pulsanti di acquisto. Corretto lo zoom troppo ravvicinato della prima iterazione.
+- Selettore 65% e scambio touch verificati; tre gas indipendenti attivati via Spazio/W/I. Tutti e tre i piloti sono usciti di pista e rientrati, con gas spento e una uscita ciascuno.
+- Blocco dei controlli durante il primo caricamento: evita che una selezione venga sovrascritta dalla configurazione iniziale.
+- Pacchetto standalone aperto nel browser, entrambi i GLB caricati, nessun errore di URL relativo ai moduli Blob.
+- Fallback Canvas2D verificato, con avviso che i componenti 3D non sono visibili.
+- Nessun errore o warning di console durante i cambi di circuito o le 30 anteprime. Il fallback 2D deliberato emette il suo avviso previsto.
+- Campione della doppia spirale: 128 draw call, 130.790 triangoli e 134 geometrie dopo aver selezionato tutti i circuiti. Circa 120 fps nel campione su questo Mac; non è una promessa di prestazioni sui telefoni. Un solo renderer, DPR massimo 1,5, props istanziati e risorse condivise.
 
-- Selezione delle 15 piste e avvio locale in tre; P1 Spazio, P2 W e P3 I accelerano in modo indipendente.
-- Gara locale assistita conclusa: P2 40,199 s, P1 41,125 s, P3 41,775 s; tutti senza uscite, classifica e pulsante rivincita corretti. Nessun premio accreditato.
-- Tre uscite reali al primo tornante di Coast Run dopo aver lasciato acceso il gas. Recuperi e comandi separati.
-- Su touch simulato, P2 e P3 accelerano mentre P1 rimane fermo. Tutti i pannelli restano visibili in verticale e orizzontale.
-- Camera condivisa insegue il gruppo, allargando quando i piloti si separano. Etichette colorate P1/P2/P3 distinguono le auto.
-- Coast Run in manuale: avviso ambra «FRENA TRA 4.0 M · 138 KM/H» a circa 237 km/h equivalenti. Strisce sulla pista prima del tornante.
-- Audio attivabile; mixer modifica e conserva musica/effetti separatamente. Apertura mixer mette in pausa. Test di sintesi e browser senza misurazione acustica né prova con altoparlanti di telefoni fisici.
-- Circuito finale Endless Summit caricato in 3D, con il rettilineo lungo e minimappa corretta. Fallback 2D provato sullo stesso circuito in tre: solo P2 accelera con W, senza errori di console.
-- Un errore iniziale del marcatore prima del primo aggiornamento fisico è stato riprodotto e corretto con una guardia sul dato assente.
+## Artifact e riproducibilità
 
-## Architettura e limiti
+`npm run build` e `npm run standalone` completati. Il file autonomo pesa circa 10,8 MB, inclusi motore, codice, poster e modelli. Gli URL di tutti i moduli applicativi e del CSS riportano la versione 5.0.0.
 
-GT e primi tre diorami provengono dal progetto Blender/Higgsfield esistente. Le dodici nuove piste vengono costruite direttamente dai moduli geometrici usati dalla fisica: rail, slot, cordoli, moduli a X, supporti e bandiere. Nessuna immagine generata viene usata come sostituto della pista giocabile.
+Blender 5.2.1 LTS eseguito realmente in background: 49 radici esportate in `assets/worldkit.glb`, scena editabile `blender/worldkit.blend` e contact sheet. Materiali sRGB convertiti in lineare, gomma separata dal metallo. Nessun nuovo modello remoto o placeholder non esportato.
 
-Musica ed effetti sono sintesi Web Audio originale, non un brano Suno. Il catalogo collegato non esponeva il modello Suno. Funzionano senza rete dopo il caricamento del gioco; per iniziare è necessaria l’attivazione audio dell’utente.
+Screenshot:
+- `docs/qa-worlds-garage-mobile.jpg` — officina mobile e configurazione acquistata;
+- `docs/qa-worlds-helix.jpg` — doppia spirale completa e gallerie.
 
-Nessun multiplayer online, collisioni fra auto o sincronizzazione del profilo. Pendenza visiva, con forze laterali calcolate sulla proiezione orizzontale. In gara locale il coach testuale è individuale; l’avviso audio di frenata e il marcatore 3D fanno riferimento a P1. Le auto condividono difficoltà, assistenza e potenziamenti. La gara locale non attribuisce crediti per evitare premi con avversari fermi. Su alcune tastiere il gas a interruttore evita i limiti dei tasti premuti simultaneamente.
+## Limiti dichiarati
 
-Il fallback 2D resta giocabile; gli effetti tridimensionali, le bandiere e il marcatore di frenata sulla pista richiedono WebGL. Nessuna garanzia di frame rate su hardware non provato.
+Fisica arcade, senza gravità longitudinale o carico verticale dinamico. Nessun urto tra auto, multiplayer online, sincronizzazione tra dispositivi, editor delle piste, loop verticali o salti guidati. Nei dispositivi senza WebGL resta la modalità 2D, senza anteprima delle parti 3D. Non è stata certificata una frequenza minima su telefoni reali.
 
-## Pubblicazione verificata
-
-GitHub Pages ha distribuito con successo la revisione `8b11d06f517ea57e0db7168a51b8114ce47744be` (run `44393970045`). Sul sito pubblico, ricaricando una scheda che aveva Rivalry 3.0, sono comparsi Overdrive, 15 circuiti, il mixer e le modalità locali. Crediti (850 CR), medaglie e potenziamenti precedenti conservati.
-
-Prova pubblica su Coast Run, Club/manuale: audio acceso, accelerazione fino a circa 237 km/h equivalenti, preavviso «FRENA TRA 4.0 M · 138 KM/H», marcatori e rilascio funzionanti. Nessun errore o warning di console. Pagina lasciata al menu su Coast Run con audio e gas disattivati.
-
-![Verifica della versione pubblica](docs/qa-overdrive-live.jpg)
+Il link pubblico viene verificato dopo la distribuzione GitHub Pages.

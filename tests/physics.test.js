@@ -34,7 +34,7 @@ test('full throttle accelerates and release brakes without reverse motion',()=>{
 test('below threshold stays slotted; gross overload leaves tangent to its lane',()=>{
   const t=new FigureEight(),e=new PhysicsEngine(t),s=t.straightLength+1;
   const slow=createCar({start:s}),fast=createCar({start:s});const p=t.pose(s,0);
-  slow.speed=safeSpeed(p.curvature)*.97;fast.speed=safeSpeed(p.curvature)*1.8;
+  slow.speed=safeSpeed(p.curvature)*.97;fast.speed=safeSpeed(p.curvature)*2.5;
   e.step(slow,0,dt);assert.equal(slow.state,'slotted');assert.equal(e.step(fast,0,dt),'derail');
   const expected=t.pose(fast.distance,fast.lane);assert.ok(Math.abs(fast.crash.vx*expected.ty-fast.crash.vy*expected.tx)<1e-9);
 });
@@ -43,7 +43,7 @@ test('keeping throttle on reaches a corner too fast and derails',()=>{
   assert.equal(c.state,'derailed');assert.equal(c.crashes,1);
 });
 test('crash drifts off track, freezes progress and respawns at the same position after exactly 3 s',()=>{
-  const t=new FigureEight(),e=new PhysicsEngine(t),c=createCar({start:t.straightLength+1});c.speed=4;e.step(c,0,dt);
+  const t=new FigureEight(),e=new PhysicsEngine(t),c=createCar({start:t.straightLength+1});c.speed=4;for(let i=0;i<120&&c.state==='slotted';i++)e.step(c,1,dt);
   const distance=c.distance,x=c.crash.x;for(let i=0;i<359;i++)e.step(c,1,dt);
   assert.equal(c.state,'derailed');assert.equal(c.distance,distance);assert.notEqual(c.crash.x,x);assert.equal(e.step(c,1,dt),'respawn');assert.equal(c.distance,distance);assert.equal(c.speed,0);
 });

@@ -3,8 +3,8 @@ import { clamp } from '../core/math.js';
 import { updateGrip, bodyPose } from './grip.js';
 
 export const lateralDemand = (speed, curvature, mass = PHYSICS.mass) => mass * speed * speed * Math.abs(curvature);
-export const safeSpeed = (curvature, force = PHYSICS.gripForce) => Math.abs(curvature) < 1e-9
-  ? Infinity : Math.sqrt(force / (PHYSICS.mass * Math.abs(curvature)));
+export const safeSpeed = (curvature, force = PHYSICS.gripForce, bank = 0) => Math.abs(curvature) < 1e-9
+  ? Infinity : Math.sqrt((force + PHYSICS.mass * 9.81 * Math.sin(Math.abs(bank))) / (PHYSICS.mass * Math.abs(curvature) * Math.cos(bank)));
 
 /** Pure simulation service: no DOM, renderer, clock or persistence dependency. */
 export class PhysicsEngine {
@@ -46,8 +46,9 @@ export class PhysicsEngine {
       }
       return null;
     }
-    car.throttle = clamp(throttle, 0, 1);
     const cfg = car.setup || PHYSICS;
+    const requested=clamp(throttle,0,1),response=requested>car.throttle?cfg.throttleRise:cfg.throttleFall;
+    car.throttle+=(requested-car.throttle)*(1-Math.exp(-dt/response));
     const v = car.speed;
     const drive = cfg.motorForce * car.throttle * Math.max(0, 1 - v / cfg.maxSpeed);
     const resistance = cfg.rollingResistance + cfg.aerodynamicDrag * v * v
@@ -60,7 +61,8 @@ export class PhysicsEngine {
     }
     const pose = this.track.pose(car.distance, car.lane, car.change);
     car.pose = pose;
-    car.lateralForce = lateralDemand(car.speed, pose.curvature);
+    const horizontalSpeed=car.speed*(pose.horizontalMetric??pose.metric)/pose.metric,bank=Math.abs(pose.bank||0);
+    car.lateralForce = Math.max(0,lateralDemand(horizontalSpeed, pose.curvature)*Math.cos(bank)-cfg.mass*9.81*Math.sin(bank));
     if (updateGrip(car, pose.curvature, dt)) { this.derail(car, pose); return 'derail'; }
     return null;
   }

@@ -15,7 +15,7 @@ export function planSpeed(track, car, pace = .88) {
   }
   for (let ahead = 0; ahead <= lookahead; ahead += .10) {
     const p = track.pose(car.distance + ahead, car.lane, change);
-    const limit = safeSpeed(p.curvature, car.maxGrip * (1 - cfg.powerGripLoss * .55)) * pace;
+    const limit = safeSpeed(p.curvature, car.maxGrip * (1 - cfg.powerGripLoss * .55),p.bank||0) * pace;
     target = Math.min(target, Math.sqrt(limit ** 2 + 2 * braking * ahead * .78));
   }
   return target;

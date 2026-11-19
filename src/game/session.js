@@ -8,7 +8,7 @@ import { RACE, COLORS } from '../core/config.js';
 
 export class RaceSession {
   constructor({ onEvent = () => {}, seed = 808 } = {}) {
-    this.guidance='auto';this.seed = seed; this.raceNumber = 0; this.level = 0; this.difficulty = 'club'; this.assisted = false; this.upgrades = {}; this.track = createTrack(0); this.physics = new PhysicsEngine(this.track);
+    this.appearance={};this.guidance='auto';this.seed = seed; this.raceNumber = 0; this.level = 0; this.difficulty = 'club'; this.assisted = false; this.upgrades = {}; this.track = createTrack(0); this.physics = new PhysicsEngine(this.track);
     this.onEvent = onEvent; this.mode = 'race'; this.reset();
   }
   reset(mode = this.mode) {
@@ -32,13 +32,13 @@ export class RaceSession {
       if(mode==='local3')this.cars.push(createCar({id:'p3',name:'Pilota 3',color:COLORS.blue,lane:0,start:RACE.startDistance-.40,setup:carSetup(this.difficulty,this.upgrades)}));
     }
     this.localFinishAt=null;this.coachTick=0;
-    this.cars.forEach(c => { c.pose = this.track.pose(c.distance, c.lane); });
+    this.cars.forEach(c => {c.upgrades={...this.upgrades};c.appearance={...this.appearance};if(c===this.cars[0]&&this.appearance.paint)c.color=this.appearance.paint; c.pose = this.track.pose(c.distance, c.lane); });
     this.onEvent({ type: 'reset' });
   }
-  configure({ level=this.level, difficulty=this.difficulty, assisted=this.assisted, upgrades=this.upgrades }={}) {
-    this.level=level; this.difficulty=difficulty; this.assisted=assisted; this.upgrades={...upgrades}; this.reset();
+  configure({ level=this.level, difficulty=this.difficulty, assisted=this.assisted, upgrades=this.upgrades, appearance=this.appearance }={}) {
+    this.appearance={...appearance};this.level=level; this.difficulty=difficulty; this.assisted=assisted; this.upgrades={...upgrades}; this.reset();
   }
-  get recordKey() { return ['rivalry-3',this.level,this.mode,this.difficulty,this.assisted?'assist':'manual',...Object.values(this.upgrades)].join(':'); }
+  get recordKey() { return ['worlds-5',this.level,this.mode,this.difficulty,this.assisted?'assist':'manual',...Object.values(this.upgrades)].join(':'); }
   beginTutorial() { this.level=0; this.reset('time'); this.tutorial={step:0,initialLane:0}; this.status='running'; }
   get isLocal() { return this.mode==='local2'||this.mode==='local3'; }
   get players() { return this.cars.filter(c=>!c.ai); }

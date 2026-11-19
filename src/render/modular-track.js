@@ -4,18 +4,20 @@ import { PHYSICS } from '../core/config.js';
 /** Longer circuits reuse the Blender GT while building their modular toy road
  * from the exact simulation path. Geometry is constructed only on track change. */
 export function buildModularTrack(track) {
-  const root = new THREE.Group(), n = Math.ceil(track.length / .12);
+  const root = new THREE.Group(), n = Math.ceil(track.length / .09);
+  const position=(p,d,h)=>[p.x+p.nx*d*Math.cos(p.bank||0),p.z-d*Math.sin(p.bank||0)+h,p.y+p.ny*d*Math.cos(p.bank||0)];
+  const orient=(object,p)=>{object.rotation.order='YZX';object.rotation.set(p.bank||0,-Math.atan2(p.ty,p.tx),Math.atan(p.grade||0));};
   const mat = (color, metalness = 0) => new THREE.MeshStandardMaterial({ color, metalness, roughness: metalness ? .32 : .83, side: THREE.DoubleSide });
   const asphalt = mat('#292e35'), rail = mat('#b8c1c3', .85), slot = mat('#090e14'), red = mat('#e86249'), white = mat('#f4e8cf');
   function ribbon(left, right, height, material, sample = s => track.sample(s), start = 0, length = track.length, steps = n) {
     const vertices = [], indices = [];
     for (let i = 0; i <= steps; i++) {
       const p = sample(start + i / steps * length);
-      for (const d of [left,right]) vertices.push(p.x + p.nx * d, p.z + height, p.y + p.ny * d);
+      for (const d of [left,right]) vertices.push(...position(p,d,height));
       if (i < steps) { const a = i * 2; indices.push(a,a+2,a+1,a+1,a+2,a+3); }
     }
     const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices,3)); geometry.setIndex(indices); geometry.computeVertexNormals();
-    const mesh = new THREE.Mesh(geometry,material); mesh.receiveShadow = true; root.add(mesh);
+    const mesh = new THREE.Mesh(geometry,material); mesh.receiveShadow = true;mesh.castShadow=material===asphalt;root.add(mesh);
   }
   ribbon(-.38,.38,.058,slot); ribbon(-.35,.35,.075,asphalt);
   for (const lane of [-PHYSICS.laneOffset,PHYSICS.laneOffset]) {
@@ -27,11 +29,11 @@ export function buildModularTrack(track) {
   const box = new THREE.BoxGeometry(.22,.034,.065), transform = new THREE.Object3D();
   for (let phase=0; phase<2; phase++) {
     const cells=curves.filter((_,i)=>i%2===phase), mesh=new THREE.InstancedMesh(box,phase?white:red,cells.length*2); let j=0;
-    for (const s of cells) { const p=track.sample(s); for(const side of [-1,1]) {transform.position.set(p.x+p.nx*side*.35,p.z+.085,p.y+p.ny*side*.35);transform.rotation.set(0,-Math.atan2(p.ty,p.tx),0);transform.updateMatrix();mesh.setMatrixAt(j++,transform.matrix);} }
+    for (const s of cells) { const p=track.sample(s); for(const side of [-1,1]) {transform.position.set(...position(p,side*.35,.085));orient(transform,p);transform.updateMatrix();mesh.setMatrixAt(j++,transform.matrix);} }
     mesh.receiveShadow=true;root.add(mesh);
   }
   const seamCount=Math.floor(track.length/1.2), seams=new THREE.InstancedMesh(new THREE.BoxGeometry(.009,.002,.68),slot,seamCount);
-  for(let i=0;i<seamCount;i++){const p=track.sample(i*1.2);transform.position.set(p.x,p.z+.079,p.y);transform.rotation.set(0,-Math.atan2(p.ty,p.tx),0);transform.updateMatrix();seams.setMatrixAt(i,transform.matrix);} root.add(seams);
+  for(let i=0;i<seamCount;i++){const p=track.sample(i*1.2);transform.position.set(p.x,p.z+.079,p.y);orient(transform,p);transform.updateMatrix();seams.setMatrixAt(i,transform.matrix);} root.add(seams);
   for(const gate of track.switches) for(const lane of [0,1]) {
     const change={from:lane,to:1-lane,start:gate.start,length:gate.end-gate.start};
     const sample=s=>{const p=track.pose(s,lane,change);return {...p,nx:-p.ty,ny:p.tx};};
@@ -40,17 +42,23 @@ export function buildModularTrack(track) {
   }
   const p=track.sample(.08), checker=new THREE.InstancedMesh(new THREE.BoxGeometry(.09,.003,.0875),white,8);
   for(let i=0;i<8;i++){const d=(i-3.5)*.0875,along=i%2*.09;transform.position.set(p.x+p.nx*d+p.tx*along,p.z+.082,p.y+p.ny*d+p.ty*along);transform.rotation.set(0,-Math.atan2(p.ty,p.tx),0);transform.updateMatrix();checker.setMatrixAt(i,transform.matrix);}root.add(checker);
-  const b=track.bounds,board=new THREE.Mesh(new THREE.BoxGeometry(b.maxX-b.minX+.8,.32,b.maxY-b.minY+.8),mat(track.level.board));
-  board.position.set((b.minX+b.maxX)/2,-.17,(b.minY+b.maxY)/2);board.receiveShadow=true;root.add(board);
-  // Trackside objects provide optic flow on the long straights. Instancing keeps
-  // draw calls constant even on the 196 m finale; every prop stays outside the slot.
-  const posts=[];for(let s=3;s<track.length;s+=4){const p=track.sample(s);for(const side of [-1,1])posts.push({...p,side});}
-  const poles=new THREE.InstancedMesh(new THREE.CylinderGeometry(.018,.025,.64,6),rail,posts.length);
-  const flags=new THREE.InstancedMesh(new THREE.BoxGeometry(.26,.16,.012),new THREE.MeshStandardMaterial({color:track.level.color,emissive:track.level.color,emissiveIntensity:.12,roughness:.6}),posts.length);
-  transform.scale.set(1,1,1);
-  posts.forEach((p,i)=>{const x=p.x+p.nx*p.side*.72,y=p.y+p.ny*p.side*.72;transform.rotation.set(0,-Math.atan2(p.ty,p.tx),0);transform.position.set(x,p.z+.32,y);transform.updateMatrix();poles.setMatrixAt(i,transform.matrix);transform.position.set(x+p.tx*.1,p.z+.57,y+p.ty*.1);transform.updateMatrix();flags.setMatrixAt(i,transform.matrix);});root.add(poles,flags);
-  // Bridge trestles stay underneath the road, out of the driver's sightline.
-  const supports=[];for(let s=0;s<track.length;s+=1.8){const p=track.sample(s);if(p.z>.12)supports.push(p);}
-  if(supports.length){const mesh=new THREE.InstancedMesh(new THREE.BoxGeometry(.16,1,.58),mat('#e87842'),supports.length);supports.forEach((p,i)=>{transform.position.set(p.x,p.z/2,p.y);transform.scale.set(1,p.z,1);transform.rotation.set(0,-Math.atan2(p.ty,p.tx),0);transform.updateMatrix();mesh.setMatrixAt(i,transform.matrix);});mesh.castShadow=true;root.add(mesh);}
+  // Safety rails and bridge columns follow the actual banked, elevated surface.
+  const posts=[];for(let s=0;s<track.length;s+=.65){const p=track.sample(s);if(Math.abs(p.curvature)>.06||p.z>.18)for(const side of [-1,1])posts.push({p,side});}
+  const stanchions=new THREE.InstancedMesh(new THREE.CylinderGeometry(.012,.014,.16,6),rail,posts.length);
+  posts.forEach(({p,side},i)=>{transform.position.set(...position(p,side*.415,.15));transform.rotation.set(0,0,0);transform.scale.set(1,1,1);transform.updateMatrix();stanchions.setMatrixAt(i,transform.matrix);});root.add(stanchions);
+  for(const side of [-1,1])ribbon(side*.415-.017,side*.415+.017,.23,rail);
+  const roadPoints=Array.from({length:Math.ceil(track.length/.2)},(_,i)=>track.sample(i*.2));
+  const supports=[];for(let s=0;s<track.length;s+=1.6){const p=track.sample(s);if(p.z>.25)for(const side of [-1,1]){const x=p.x+p.nx*side*.53,y=p.y+p.ny*side*.53;if(!roadPoints.some(q=>q.z<p.z-.4&&Math.hypot(q.x-x,q.y-y)<.55))supports.push({p,side});}}
+  const supportsMesh=new THREE.InstancedMesh(new THREE.CylinderGeometry(.055,.07,1,8),mat('#a99c83'),supports.length);
+  supports.forEach(({p,side},i)=>{transform.position.set(p.x+p.nx*side*.53,p.z/2,p.y+p.ny*side*.53);transform.scale.set(1,p.z,1);transform.rotation.set(0,0,0);transform.updateMatrix();supportsMesh.setMatrixAt(i,transform.matrix);});supportsMesh.castShadow=true;supportsMesh.receiveShadow=true;root.add(supportsMesh);
+  // A readable start gantry and illuminated edge markers give every circuit its own identity.
+  const labelCanvas=document.createElement('canvas');labelCanvas.width=768;labelCanvas.height=160;
+  const ctx=labelCanvas.getContext('2d');ctx.fillStyle=track.theme==='night'?'#162f44':'#183c34';ctx.fillRect(0,0,768,160);ctx.fillStyle='#d9f1a5';ctx.font='bold 28px sans-serif';ctx.textAlign='center';ctx.fillText('SLOT 08 / WORLDS',384,46);ctx.fillStyle='#ffffff';ctx.font='bold 37px sans-serif';ctx.fillText(track.level.name.toUpperCase(),384,110,710);
+  const texture=new THREE.CanvasTexture(labelCanvas);texture.colorSpace=THREE.SRGBColorSpace;
+  const gate=track.sample(4.4),angle=-Math.atan2(gate.ty,gate.tx),sign=new THREE.Mesh(new THREE.PlaneGeometry(1.5,.31),new THREE.MeshStandardMaterial({map:texture,emissiveMap:texture,emissive:'#ffffff',emissiveIntensity:.25,side:THREE.DoubleSide,roughness:.7}));sign.position.set(gate.x,gate.z+1.36,gate.y);sign.rotation.y=angle-Math.PI/2;sign.userData.ownTexture=true;root.add(sign);
+  const gatePosts=new THREE.InstancedMesh(new THREE.CylinderGeometry(.025,.035,1.4,8),rail,2);[-1,1].forEach((side,i)=>{transform.position.set(gate.x+gate.nx*side*.75,gate.z+.7,gate.y+gate.ny*side*.75);transform.scale.set(1,1,1);transform.rotation.set(0,0,0);transform.updateMatrix();gatePosts.setMatrixAt(i,transform.matrix);});root.add(gatePosts);
+  const lamps=[];for(let s=7;s<track.length;s+=7){const p=track.sample(s);if(!track.tunnelAt?.(s,1))lamps.push(p);}
+  const glow=new THREE.MeshStandardMaterial({color:track.theme==='night'?'#95fff0':'#ffe8b4',emissive:track.theme==='night'?'#58dccb':'#ffcc7d',emissiveIntensity:track.theme==='night'?2:.4});
+  const lampsMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(.045,.35,.045),glow,lamps.length*2);let lamp=0;for(const p of lamps)for(const side of[-1,1]){transform.position.set(...position(p,side*.49,.25));transform.rotation.set(0,0,0);transform.updateMatrix();lampsMesh.setMatrixAt(lamp++,transform.matrix);}root.add(lampsMesh);
   return root;
 }

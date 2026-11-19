@@ -7,6 +7,8 @@ const files=async dir=>{for(const entry of await fs.readdir(path.join(root,dir),
 await files('src');await files('vendor');
 const glb='data:model/gltf-binary;base64,'+(await fs.readFile(path.join(root,'assets/slot08.glb'))).toString('base64');
 modules['src/render/scene3d.js']=modules['src/render/scene3d.js'].replace("new URL('../../assets/slot08.glb',import.meta.url).href",JSON.stringify(glb));
+const worldkit='data:model/gltf-binary;base64,'+(await fs.readFile(path.join(root,'assets/worldkit.glb'))).toString('base64');
+modules['src/render/asset-kit.js']=modules['src/render/asset-kit.js'].replace("new URL('../../assets/worldkit.glb',import.meta.url).href",JSON.stringify(worldkit));
 let html=await fs.readFile(path.join(root,'index.html'),'utf8');
 const css=await fs.readFile(path.join(root,'style.css'),'utf8');
 const poster='data:image/png;base64,'+(await fs.readFile(path.join(root,'assets/poster.png'))).toString('base64');

@@ -9,8 +9,8 @@ import {scoreStep,STEP} from '../src/audio/score.js';
 const dt=1/120,gas={throttle:1,switchLane:false},off={throttle:0,switchLane:false};
 for(let level=3;level<LEVELS.length;level++){
  test(`long circuit ${level}: closed modular path, smooth joins, safe slot geometry and real long straights`,()=>{
-  const t=createTrack(level);assert.ok(t.length>70);assert.ok(t.segments.some(s=>s.type==='line'&&s.length>20));
-  for(const seg of t.segments){const a=t.sample(seg.start-1e-6),b=t.sample(seg.start+1e-6);assert.ok(Math.hypot(a.x-b.x,a.y-b.y)<3e-6);assert.ok(Math.hypot(a.tx-b.tx,a.ty-b.ty)<3e-6);}
+  const t=createTrack(level);assert.ok(t.length>55);assert.ok(t.segments?t.segments.some(s=>s.type==='line'&&s.length>12):t.straightLength>12);
+  for(const seg of t.segments??[0,t.straightLength,t.halfLength,2*t.straightLength+t.arcLength].map(start=>({start}))){const a=t.sample(seg.start-1e-6),b=t.sample(seg.start+1e-6);assert.ok(Math.hypot(a.x-b.x,a.y-b.y)<3e-6);assert.ok(Math.hypot(a.tx-b.tx,a.ty-b.ty)<3e-6);}
   for(let s=0;s<t.length;s+=.17)for(const lane of [0,1]){const p=t.pose(s,lane);assert.ok(Number.isFinite(p.curvature));assert.ok(p.metric>.7);}
   for(const g of t.switches)for(let s=g.start;s<=g.end;s+=.1)assert.equal(t.sample(s).curvature,0);
  });

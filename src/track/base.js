@@ -14,16 +14,21 @@ export class SlotTrack {
       first = span * (30 * u ** 2 * (u - 1) ** 2) / change.length;
       second = span * (120 * u ** 3 - 180 * u ** 2 + 60 * u) / change.length ** 2;
     }
+    const bank=p.bank||0,bp=p.bankDerivative||0,bpp=p.bankSecondDerivative||0;
+    const verticalOffset=-d*Math.sin(bank),verticalFirst=(p.grade||0)-first*Math.sin(bank)-d*Math.cos(bank)*bp;
+    const horizontal=d*Math.cos(bank),hFirst=first*Math.cos(bank)-d*Math.sin(bank)*bp;
+    const hSecond=second*Math.cos(bank)-2*first*Math.sin(bank)*bp-d*Math.cos(bank)*bp*bp-d*Math.sin(bank)*bpp;
+    d=horizontal;first=hFirst;second=hSecond;
     const along = 1 - p.curvature * d;
     const qx = along * p.tx + first * p.nx, qy = along * p.ty + first * p.ny;
-    const metric = Math.hypot(qx, qy);
+    const horizontalMetric = Math.hypot(qx,qy),metric=Math.hypot(horizontalMetric,verticalFirst);
     // The normal derivative includes curvature change for spline modules.
     const kp = p.curvatureDerivative || 0;
     const ddx = (-2 * p.curvature * first - kp * d) * p.tx + (p.curvature * along + second) * p.nx;
     const ddy = (-2 * p.curvature * first - kp * d) * p.ty + (p.curvature * along + second) * p.ny;
-    return { ...p, x: p.x + p.nx * d, y: p.y + p.ny * d,
-      tx: qx / metric, ty: qy / metric, angle: Math.atan2(qy, qx), metric,
-      curvature: (qx * ddy - qy * ddx) / metric ** 3 };
+    return { ...p, x: p.x + p.nx * d, y: p.y + p.ny * d, z:p.z+verticalOffset,
+      tx: qx / horizontalMetric, ty: qy / horizontalMetric, angle: Math.atan2(qy, qx), metric, horizontalMetric, pitch:Math.atan2(verticalFirst,horizontalMetric),
+      curvature: (qx * ddy - qy * ddx) / horizontalMetric ** 3 };
   }
 
   switchAt(distance) {

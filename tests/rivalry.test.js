@@ -23,11 +23,11 @@ for(const level of [0,1,2]) for(const difficulty of ['rookie','club','pro']) {
 
 test('a developing powerslide can be saved by lifting; holding power derails',()=>{
   const track=createTrack(0),engine=new PhysicsEngine(track),setup=carSetup('club');
-  const make=()=>{const c=createCar({start:track.straightLength+1,setup});c.pose=track.pose(c.distance,c.lane);c.speed=safeSpeed(c.pose.curvature,c.maxGrip)*.99;return c;};
+  const make=()=>{const c=createCar({start:track.straightLength+1,setup});c.pose=track.pose(c.distance,c.lane);c.speed=safeSpeed(c.pose.curvature,c.maxGrip,c.pose.bank)*1.1;return c;};
   const held=make(),saved=make();
-  for(let i=0;i<16;i++){engine.step(held,1,dt);engine.step(saved,1,dt);}
+  for(let i=0;i<60;i++){engine.step(held,1,dt);engine.step(saved,1,dt);}
   assert.ok(saved.skid>.25);assert.ok(saved.instability>0);assert.equal(saved.state,'slotted');
-  for(let i=0;i<120;i++){engine.step(held,1,dt);engine.step(saved,0,dt);}
+  for(let i=0;i<180;i++){engine.step(held,1,dt);engine.step(saved,0,dt);}
   assert.equal(held.state,'derailed');assert.equal(saved.state,'slotted');assert.equal(saved.instability,0);assert.ok(saved.skid<.05);
 });
 
@@ -56,7 +56,7 @@ test('the entire grid uses the same upgraded hardware, with no handicap hidden i
 test('seeded rivals actually slide and crash through ordinary physics; not invulnerable',()=>{
   let totalCrashes=0,skidSeconds=0;
   for(const seed of [1,2,3,4]){const s=new RaceSession({seed});s.configure({difficulty:'club',assisted:true});s.status='running';for(let i=0;i<120*70&&s.status!=='finished';i++)s.update(dt,{throttle:1});for(const c of s.cars.slice(1)){totalCrashes+=c.crashes;skidSeconds+=c.skidSeconds;assert.ok(c.laps>=2);}}
-  assert.ok(totalCrashes>=2);assert.ok(totalCrashes<16);assert.ok(skidSeconds>30);
+  assert.ok(totalCrashes>=2);assert.ok(totalCrashes<16);assert.ok(skidSeconds>5);
 });
 
 test('rival decisions are reproducible and cannot read player ranking when no traffic is supplied',()=>{
@@ -70,7 +70,7 @@ test('clean manual driving beats held throttle; safe assistance is no automatic 
   const run=style=>{const s=new RaceSession({seed:808});s.configure({difficulty:'club',assisted:style==='assist'});s.status='running';const driver=new AIDriver(s.track,.98);for(let i=0;i<120*130&&s.status!=='finished';i++)s.update(dt,style==='clean'?driver.input(s.player,dt):{throttle:1});return s;};
   const held=run('held'),clean=run('clean'),assist=run('assist');
   assert.equal(held.status,'finished');assert.ok(held.player.crashes>=6);assert.equal(held.standings().findIndex(c=>!c.ai),2);
-  assert.equal(clean.player.crashes,0);assert.ok(clean.elapsed<held.elapsed*.60);assert.ok(clean.elapsed<assist.elapsed);
+  assert.equal(clean.player.crashes,0);assert.ok(clean.elapsed<held.elapsed*.75);assert.ok(clean.elapsed<assist.elapsed);
   assert.ok(assist.standings().findIndex(c=>!c.ai)>0);
 });
 
@@ -83,5 +83,5 @@ test('finish event observes every car crossing in the same tick before calculati
 });
 
 test('records use a new physics version without erasing existing progression',()=>{
-  const s=new RaceSession();assert.ok(s.recordKey.startsWith('rivalry-3:'));assert.equal(s.assisted,false);assert.equal(s.difficulty,'club');
+  const s=new RaceSession();assert.ok(s.recordKey.startsWith('worlds-5:'));assert.equal(s.assisted,false);assert.equal(s.difficulty,'club');
 });

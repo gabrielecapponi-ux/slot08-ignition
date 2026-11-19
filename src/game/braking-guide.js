@@ -10,7 +10,7 @@ export function brakingAdvice(track, car) {
   for (let ahead = 0; ahead <= lookahead; ahead += .15) {
     const p = track.pose(car.distance + ahead, car.lane, car.change);
     if (Math.abs(p.curvature) < .06) continue;
-    const limit = safeSpeed(p.curvature, grip) * .82;
+    const limit = safeSpeed(p.curvature, grip,p.bank||0) * .82;
     const distanceToBrake = ahead - Math.max(0, (car.speed ** 2 - limit ** 2) / (2 * braking)) - car.speed * .25;
     if (!best || distanceToBrake < best.distanceToBrake) best = { distance: ahead, distanceToBrake, limit, point: car.distance + ahead };
   }
