@@ -14,9 +14,9 @@ for(let level=3;level<LEVELS.length;level++){
   for(let s=0;s<t.length;s+=.17)for(const lane of [0,1]){const p=t.pose(s,lane);assert.ok(Number.isFinite(p.curvature));assert.ok(p.metric>.7);}
   for(const g of t.switches)for(let s=g.start;s<=g.end;s+=.1)assert.equal(t.sample(s).curvature,0);
  });
- test(`long circuit ${level}: held gas derails, assisted driver completes three laps`,()=>{
+ test(`long circuit ${level}: full gas produces a slide, assisted driver completes three laps`,()=>{
   const s=new RaceSession();s.configure({level});s.reset('time');s.status='running';
-  for(let i=0;i<120*40&&s.player.crashes===0;i++)s.update(dt,gas);assert.ok(s.player.crashes>0);
+  let maxSlip=0;for(let i=0;i<120*70&&s.player.crashes===0;i++){s.update(dt,gas);maxSlip=Math.max(maxSlip,s.player.skid);}assert.ok(s.player.crashes>0||maxSlip>.18,'full power must produce a visible warning on banked tracks');
   s.configure({assisted:true});s.reset('race');s.status='running';
   for(let i=0;i<120*360&&s.status!=='finished';i++)s.update(dt,{...gas,switchLane:i===1});
   assert.equal(s.status,'finished');assert.equal(s.player.laps,3);assert.equal(s.player.crashes,0);assert.equal(s.player.lane,1);

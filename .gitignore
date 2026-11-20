@@ -12,3 +12,7 @@ blender/export_local.py
 .env
 .env.*
 *.log
+
+# Uncompressed working copies; compressed originals are tracked.
+assets/worldkit.glb
+blender/worldkit.blend

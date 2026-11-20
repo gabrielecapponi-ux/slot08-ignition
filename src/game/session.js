@@ -38,7 +38,7 @@ export class RaceSession {
   configure({ level=this.level, difficulty=this.difficulty, assisted=this.assisted, upgrades=this.upgrades, appearance=this.appearance }={}) {
     this.appearance={...appearance};this.level=level; this.difficulty=difficulty; this.assisted=assisted; this.upgrades={...upgrades}; this.reset();
   }
-  get recordKey() { return ['worlds-5',this.level,this.mode,this.difficulty,this.assisted?'assist':'manual',...Object.values(this.upgrades)].join(':'); }
+  get recordKey() { return ['worlds-6',this.level,this.mode,this.difficulty,this.assisted?'assist':'manual',...Object.values(this.upgrades)].join(':'); }
   beginTutorial() { this.level=0; this.reset('time'); this.tutorial={step:0,initialLane:0}; this.status='running'; }
   get isLocal() { return this.mode==='local2'||this.mode==='local3'; }
   get players() { return this.cars.filter(c=>!c.ai); }

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {gunzipSync} from 'node:zlib';
 import {createTrack,LEVELS} from '../src/track/catalog.js';
 import {safeSpeed,PhysicsEngine} from '../src/physics/engine.js';
 import {createCar} from '../src/physics/car.js';
@@ -34,12 +35,12 @@ test('slope and banking metric equal physical lane distance, including within a 
  for(const level of[1,5,7,14]){const t=createTrack(level);for(let s=0;s<t.length;s+=.67){const p=t.pose(s,1),a=t.pose(s-.001,1),b=t.pose(s+.001,1),numeric=Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z)/.002;if(Math.abs(t.sample(s-.01).curvature-t.sample(s+.01).curvature)<.01)assert.ok(Math.abs(numeric-p.metric)<.005,`${level}:${s}`);}}
 });
 
-test('12 mechanical tiers, purchased cosmetics and old progress persist without repeat charges',()=>{
+test('20 mechanical tiers, purchased cosmetics and old progress persist without repeat charges',()=>{
  let data=JSON.stringify({credits:99999,upgrades:{motor:3,grip:2,brake:1},medals:[3,2,1],records:{old:12}});const storage={getItem:()=>data,setItem:(_,v)=>data=v};const p=new Profile(storage);assert.equal(p.data.upgrades.motor,3);
  for(let i=3;i<UPGRADE_LIMIT;i++)assert.equal(p.upgrade('motor'),true);assert.equal(p.upgrade('motor'),false);
  const before=p.data.credits;assert.equal(p.equip('wing',5),true);assert.equal(p.data.credits,before-200);assert.equal(p.equip('wing',0),true);assert.equal(p.equip('wing',5),true);assert.equal(p.data.credits,before-200);
  for(const paint of PAINTS)assert.equal(p.equip('paint',paint),true);for(let d=0;d<DECALS.length;d++)assert.equal(p.equip('decal',d),true);
- const restored=new Profile(storage);assert.equal(restored.data.appearance.wing,5);assert.equal(restored.data.upgrades.motor,12);assert.equal(restored.data.records.old,12);assert.deepEqual(restored.data.medals.slice(0,3),[3,2,1]);
+ const restored=new Profile(storage);assert.equal(restored.data.appearance.wing,5);assert.equal(restored.data.upgrades.motor,UPGRADE_LIMIT);assert.equal(restored.data.records.old,12);assert.deepEqual(restored.data.medals.slice(0,3),[3,2,1]);
  const empty=new Profile();assert.equal(empty.equip('wing',5),false);assert.equal(empty.equip('wheels',99),false);assert.equal(empty.equip('paint','bad'),false);
 });
 
@@ -52,7 +53,7 @@ test('all three pilots and both bots receive exactly the same level-12 hardware'
 });
 
 test('Blender catalogue contains every runtime part and biome prop within the asset budget',()=>{
- const bytes=fs.readFileSync(new URL('../assets/worldkit.glb',import.meta.url));assert.ok(bytes.length<2500000);assert.equal(bytes.toString('ascii',0,4),'glTF');const json=JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)).toString());const names=new Set(json.nodes.map(n=>n.name));for(const category of Object.keys(PARTS))for(let n=1;n<=5;n++)assert.ok(names.has(`PART_${category}_${n}`));for(const prop of['deer','fox','penguin','pine','oak','palm','cactus','tunnel_portal'])assert.ok(names.has('PROP_'+prop));assert.ok(names.has('ANIM_rotor'));assert.ok(names.has('ANIM_bird'));
+ const bytes=gunzipSync(fs.readFileSync(new URL('../assets/worldkit.glb.gz',import.meta.url)));assert.ok(bytes.length<6500000);assert.equal(bytes.toString('ascii',0,4),'glTF');const json=JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)).toString());const names=new Set(json.nodes.map(n=>n.name));for(const category of Object.keys(PARTS))for(let n=1;n<PARTS[category].names.length;n++)assert.ok(names.has(`PART_${category}_${n}`));for(const prop of['deer','fox','penguin','pine','oak','palm','cactus','tunnel_portal'])assert.ok(names.has('PROP_'+prop));assert.ok(names.has('ANIM_rotor'));assert.ok(names.has('ANIM_bird'));
 });
 
 test('three analog gas levels produce distinct acceleration without interfering between pilots',()=>{

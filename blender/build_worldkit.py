@@ -2,7 +2,7 @@
 Run in a new background process: Blender --background --python build_worldkit.py.
 Saves editable catalogue, render contact sheet, and metre-scale named GLB parts.
 """
-import bpy, math, random
+import bpy, math, random, gzip, lzma
 from mathutils import Vector
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent.parent
@@ -118,6 +118,126 @@ for variant in range(1,6):
  group('PART_exhaust_'+str(variant))
  for i in range(2 if variant<3 else 4):
   y=(i-(1 if variant<3 else 3)/2)*.025;rod('Exhaust',(-.14,y,.034),(-.18-variant*.004,y,.034),.007,'steel',10);rod('Bore',(-.183-variant*.004,y,.034),(-.184-variant*.004,y,.034),.0045,'dark',10)
+# Expedition: purpose-built scenery and genuinely different GT silhouettes.
+group('PROP_mushroom')
+for x,y,z in [(-.1,0,.18),(.12,.05,.29),(0,-.12,.13)]:
+ rod('Stem',(x,y,0),(x,y,z),.028,'cream');o=sphere('Cap',(x,y,z),(.13,.13,.065),'red')
+ for j in range(4):
+  a=j*math.tau/4;sphere('Cap spot',(x+.065*math.cos(a),y+.065*math.sin(a),z+.047),(.022,.022,.01),'cream')
+group('PROP_fern')
+for i in range(9):
+ a=i*math.tau/9
+ for j in range(1,5):
+  d=j*.065;o=sphere('Frond',(math.cos(a)*d,math.sin(a)*d,.16+math.sin(j/5*math.pi)*.16),(.13,.035,.012),'leaf_light' if i%2 else 'leaf');o.rotation_euler.z=a
+for species in ['rabbit','owl','ibex','tortoise']:
+ group('PROP_'+species)
+ if species=='rabbit':
+  sphere('Body',(0,0,.17),(.2,.12,.16),'cream');sphere('Head',(.15,0,.29),(.1,.085,.1),'cream');sphere('Tail',(-.2,0,.2),(.055,.05,.055),'snow')
+  for side in [-1,1]:
+   sphere('Ear',(.12,side*.055,.44),(.035,.028,.14),'cream');sphere('Inner ear',(.145,side*.055,.44),(.013,.02,.09),'fur');sphere('Eye',(.22,side*.065,.32),(.012,.012,.012),'dark');sphere('Foot',(.06,side*.085,.025),(.11,.045,.025),'cream')
+ elif species=='owl':
+  sphere('Body',(0,0,.23),(.15,.13,.22),'fur');sphere('Head',(0,0,.43),(.16,.15,.15),'fur')
+  for side in [-1,1]:
+   sphere('Face',(.13,side*.075,.44),(.035,.08,.09),'cream');sphere('Eye',(.16,side*.075,.45),(.02,.027,.027),'gold');sphere('Pupil',(.178,side*.075,.45),(.01,.014,.018),'dark');sphere('Wing',(-.03,side*.125,.25),(.1,.04,.18),'trunk');rod('Claw',(.06,side*.07,.03),(.17,side*.07,.03),.014,'gold')
+  sphere('Beak',(.19,0,.38),(.04,.024,.04),'orange')
+ elif species=='ibex':
+  sphere('Body',(0,0,.38),(.3,.14,.2),'fur');sphere('Neck',(.23,0,.55),(.1,.1,.23),'fur');sphere('Head',(.28,0,.72),(.14,.09,.12),'fur')
+  for x in [-.19,.19]:
+   for side in [-1,1]:rod('Leg',(x,side*.09,.37),(x+.025,side*.09,.06),.03,'fur');box('Hoof',(x+.025,side*.09,.035),(.07,.06,.06),'dark',.008)
+  for side in [-1,1]:
+   sphere('Eye',(.35,side*.085,.75),(.014,.012,.015),'dark')
+   for j in range(6):
+    a=j*.2;b=(j+1)*.2;rod('Curved horn',(.22-.27*(1-math.cos(a)),side*.075,.8+.27*math.sin(a)),(.22-.27*(1-math.cos(b)),side*.075,.8+.27*math.sin(b)),.022-j*.002,'trunk')
+ else:
+  sphere('Shell',(0,0,.17),(.23,.18,.14),'leaf');sphere('Head',(.24,0,.12),(.09,.06,.055),'fur')
+  for x in [-.14,.14]:
+   for side in [-1,1]:sphere('Foot',(x,side*.16,.045),(.085,.045,.04),'fur')
+  for x in [-.1,0,.1]:sphere('Shell scale',(x,0,.29-abs(x)*.3),(.065,.1,.02),'leaf_light')
+  for side in [-1,1]:sphere('Eye',(.285,side*.045,.15),(.012,.01,.012),'dark')
+group('PROP_bench')
+for y in [-.15,-.05,.05,.15]:box('Seat slat',(0,y,.25),(.8,.08,.045),'trunk',.008)
+for x in [-.3,.3]:
+ rod('Leg',(x,-.12,0),(x,-.12,.25),.025,'steel');rod('Leg',(x,.12,0),(x,.12,.62),.025,'steel')
+for z in [.43,.55]:box('Back slat',(0,.15,z),(.8,.045,.09),'trunk',.008)
+group('PROP_streetlamp');cone('Foot',(0,0,.04),.12,.08,.08,'dark');rod('Post',(0,0,0),(0,0,1.6),.025,'steel');rod('Arm',(0,0,1.6),(.3,0,1.6),.02,'steel');box('Lantern',(.3,0,1.56),(.18,.12,.08),'dark',.01);box('Lamp',(.3,0,1.51),(.14,.09,.015),'neon',.005)
+group('PROP_rock_arch')
+for side in [-1,1]:
+ sphere('Rock pier',(0,side*1.1,.7),(.65,.45,.8),'sand');sphere('Rock cap',(0,side*.8,1.45),(.55,.6,.45),'sand')
+sphere('Bridge rock',(0,0,1.7),(.55,.8,.3),'cream')
+group('PROP_sailboat');sphere('Hull',(0,0,.14),(.55,.2,.16),'cream');box('Deck',(0,0,.24),(.8,.3,.04),'trunk');rod('Mast',(0,0,.2),(0,0,1.2),.017,'steel')
+# Triangular sail is a real two-sided mesh.
+mesh=bpy.data.meshes.new('Sail');mesh.from_pydata([(0,0,.4),(0,0,1.18),(.45,0,.4)],[],[(0,1,2)]);mesh.update();o=bpy.data.objects.new('Sail',mesh);bpy.context.collection.objects.link(o);finish(o,'cream')
+for variant in range(6,11):
+ v=variant-6
+ group('PART_wing_'+str(variant))
+ if variant==6:
+  o=box('Ducktail',(-.139,0,.089),(.045,.17,.024),'carbon',.004);o.rotation_euler.y=-.3
+ else:
+  h=[0,.158,.146,.178,.153][v];span=[0,.2,.225,.235,.22][v]
+  for side in [-1,1]:
+   rod('Wing mount',(-.11,side*.055,.07),(-.135,side*.055,h+.012 if variant==7 else h),.004,'steel')
+   if variant==7:rod('Swan neck',(-.135,side*.055,h+.012),(-.16,side*.055,h),.004,'steel')
+  for tier in range(3 if variant==9 else 1):
+   if variant==10:
+    for side in [-1,1]:o=box('Delta panel',(-.14,side*.055,h),(.05,.12,.007),'carbon',.002);o.rotation_euler.z=side*.28
+   else:box('Wing',(-.147,0,h+tier*.016),(.052,span,.007),'carbon',.002)
+  for side in [-1,1]:box('Wing endplate',(-.147,side*span/2,h+.007),(.06,.004,.034),'gold' if variant==8 else 'red',.001)
+  if variant==8:box('Shark fin',(-.08,0,.13),(.1,.004,.045),'carbon',.001)
+ group('PART_wheels_'+str(variant))
+ for x in [-.09,.09]:
+  for side in [-1,1]:
+   y=side*.084;r=.035;rod('Slick',(x,y-.017,.035),(x,y+.017,.035),r,'rubber',24);rod('Rim',(x,y-.018,.035),(x,y+.018,.035),r*.78,'gold' if variant==9 else 'steel',24)
+   outer=y+side*.019
+   if variant==7:
+    rod('Aerodisc',(x,outer,.035),(x,outer+side*.002,.035),r*.74,'carbon',24)
+    for i in range(6):
+     a=i*math.tau/6;sphere('Rivet',(x+math.cos(a)*r*.55,outer+side*.003,.035+math.sin(a)*r*.55),(.002,.001,.002),'gold')
+   else:
+    rod('Hub dish',(x,outer,.035),(x,outer+side*.001,.035),r*.68,'dark',24)
+    count=12 if variant in [6,9] else 5 if variant==8 else 7
+    for i in range(count):
+     a=i*math.tau/count;b=a+(.36 if variant==6 else -.25 if variant==9 else 0)
+     rod('Spoke',(x+math.cos(a)*.007,outer+side*.002,.035+math.sin(a)*.007),(x+math.cos(b)*r*.72,outer+side*.002,.035+math.sin(b)*r*.72),.0035 if variant==8 else .002,'gold' if variant in [9,10] else 'steel',6)
+ group('PART_hood_'+str(variant));box('Carbon bonnet',(.075,0,.071),(.1,.075,.008),'carbon',.002)
+ if variant in [7,8]:
+  box('Engine block',(.07,0,.083),(.065,.05,.018),'steel',.003)
+  for i in range(4 if variant==8 else 3):
+   for side in [-1,1]:
+    x=.043+i*.017;rod('Intake stack',(x,side*.02,.09),(x,side*.022,.113),.006,'gold',12);cone('Intake lip',(x,side*.022,.114),.008,.009,.004,'steel',12);cone('Opening',(x,side*.022,.117),.006,.006,.001,'dark',12)
+ else:
+  for side in ([-1,1] if variant in [6,9] else [0]):
+   y=side*.023;o=box('Air duct',(.072,y,.083),(.065,.026 if side else .055,.018 if variant==6 else .03),'carbon',.003);o.rotation_euler.y=-.12
+   box('Duct opening',(.106,y,.087),(.004,.021 if side else .045,.012),'dark',.001)
+ group('PART_aero_'+str(variant));box('Splitter',(.15,0,.025),(.06,.195,.006),'carbon',.002)
+ for side in [-1,1]:
+  box('Side skirt',(0,side*.09,.025),(.25,.012,.012),'carbon',.002)
+  if variant in [6,9,10]:
+   for j in range(2):o=box('Canard',(.11-j*.025,side*.098,.045+j*.012),(.035,.025,.004),'carbon',.001);o.rotation_euler.y=-.2
+  if variant in [7,10]:
+   for x in [-.09,.09]:sphere('Fender flare',(x,side*.078,.057),(.05,.023,.019),'carbon')
+  if variant in [9,10]:rod('Splitter stay',(.14,side*.065,.055),(.175,side*.075,.028),.002,'steel',6)
+ for j in range(7):box('Diffuser vane',(-.16-(.025 if variant==8 else 0),(j-3)*.023,.025),(.08 if variant==8 else .05,.004,.027),'carbon',.001)
+ if variant==8:box('Longtail extension',(-.16,0,.065),(.075,.16,.018),'carbon',.003)
+ group('PART_lights_'+str(variant))
+ for side in [-1,1]:box('Underbody',(0,side*.077,.017),(.22,.005,.005),'gold' if variant==8 else 'neon',.001)
+ if variant in [6,7,9]:
+  count=2 if variant==6 else 4;z=.065 if variant==6 else .10
+  for i in range(count):
+   y=(i-(count-1)/2)*.027;x=.16 if variant==6 else .1;rod('Round housing',(x-.008,y,z),(x,y,z),.014,'carbon',16);rod('Lens',(x,y,z),(x+.002,y,z),.011,'glass',16)
+ else:
+  for i in range(6):box('LED module',(.154,(i-2.5)*.021,.054),(.012,.015,.009),'gold' if variant==8 else 'neon',.001)
+ group('PART_exhaust_'+str(variant))
+ if variant in [6,10]:
+  for side in [-1,1]:
+   rod('Side pipe',(.02,side*.09,.035),(-.12,side*.095,.035),.007,'steel',12);rod('Outlet',(-.12,side*.095,.035),(-.13,side*.115,.035),.008,'gold',12)
+   if variant==10:
+    for j in range(3):rod('Header',(.07-j*.025,side*.065,.06),(.02-j*.025,side*.09,.035),.004,'steel',8)
+ else:
+  count=1 if variant==7 else 3 if variant==8 else 2
+  for i in range(count):
+   y=(i-(count-1)/2)*.027;z=.07 if variant==9 else .035;radius=.012 if variant==7 else .008
+   rod('Tailpipe',(-.13,y,z),(-.19,y,z),radius,'steel',14);rod('Pipe opening',(-.19,y,z),(-.191,y,z),radius*.7,'dark',14)
+
 # Merge each asset, retaining named material slots. GLB splits slots efficiently.
 for root in assets:
  bpy.ops.object.select_all(action='DESELECT');children=[o for o in root.children if o.type=='MESH']
@@ -125,14 +245,15 @@ for root in assets:
  if children:
   bpy.context.view_layer.objects.active=children[0];bpy.ops.object.join();o=bpy.context.object;o.name=root.name+'_mesh';bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
 bpy.ops.export_scene.gltf(filepath=str(ROOT/'assets/worldkit.glb'),export_format='GLB',export_apply=True)
+(ROOT/'assets/worldkit.glb.gz').write_bytes(gzip.compress((ROOT/'assets/worldkit.glb').read_bytes(),mtime=0))
 # Editable catalogue is laid out on a tray for easy inspection in Blender.
 for i,root in enumerate(assets):
- root.location=((i%8)*2.7,(i//8)*2.7,0)
+ root.location=((i%10)*2.7,(i//10)*2.7,0)
  if root.name.startswith('PART_'):root.scale=(6,6,6)
 world=bpy.data.worlds.new('Studio');world.use_nodes=True;world.node_tree.nodes['Background'].inputs[0].default_value=(.13,.18,.23,1);world.node_tree.nodes['Background'].inputs[1].default_value=.5;bpy.context.scene.world=world
 bpy.ops.object.light_add(type='AREA',location=(5,0,15));bpy.context.object.data.energy=2400;bpy.context.object.data.shape='DISK';bpy.context.object.data.size=12
 bpy.ops.object.light_add(type='SUN',rotation=(.4,-.4,.3));bpy.context.object.data.energy=2
-bpy.ops.object.camera_add(location=(27,-19,27));cam=bpy.context.object;cam.rotation_euler=(Vector((9,7,0))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=30;bpy.context.scene.camera=cam
-sc=bpy.context.scene;sc.render.engine='BLENDER_EEVEE';sc.render.resolution_x=1500;sc.render.resolution_y=1100;sc.render.resolution_percentage=100;sc.view_settings.view_transform='AgX';sc.render.image_settings.file_format='PNG';sc.render.filepath=str(ROOT/'assets/worldkit-preview.png')
-bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'blender/worldkit.blend'));bpy.ops.render.render(write_still=True)
+bpy.ops.object.camera_add(location=(35,-25,38));cam=bpy.context.object;cam.rotation_euler=(Vector((12,11,0))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=39;bpy.context.scene.camera=cam
+sc=bpy.context.scene;sc.render.engine='BLENDER_EEVEE';sc.render.resolution_x=1800;sc.render.resolution_y=1500;sc.render.resolution_percentage=100;sc.view_settings.view_transform='AgX';sc.render.image_settings.file_format='PNG';sc.render.filepath=str(ROOT/'assets/worldkit-preview.png')
+bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'blender/worldkit.blend'));(ROOT/'blender/worldkit.blend.xz').write_bytes(lzma.compress((ROOT/'blender/worldkit.blend').read_bytes(),preset=9));bpy.ops.render.render(write_still=True)
 print('WORLDKIT',len(assets),'named assets',len(bpy.data.meshes),'meshes')

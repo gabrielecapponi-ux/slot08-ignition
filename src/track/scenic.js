@@ -6,7 +6,7 @@ import { mod, clamp, smootherstep } from '../core/math.js';
  * The exit descends along the remaining circuit, closing smoothly at the start. */
 export class SpiralTrack extends EnduranceTrack {
   constructor({radius=3.3,turns=1,width=12,height=7,lift=2.2}={}){
-    super({points:[[-width,-height],[width,-height],[width,height],[-width,height]],radius:[2.15,radius,2.15,2.15]});
+    super({points:[[-width,-height],[width,-height],[width,height],[width*.2,height],[width*.2,height*.2],[-width,height*.2]],radius:[2.15,radius,2.15,2.15,2.15,2.15]});
     this.spiral=this.segments[1];this.spiral.length+=turns*Math.PI*2*radius;
     this.length=0;for(const segment of this.segments){segment.start=this.length;this.length+=segment.length;}
     this.spiralEnd=this.spiral.start+this.spiral.length;this.lift=lift;this.turns=turns;

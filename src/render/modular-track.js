@@ -19,6 +19,7 @@ export function buildModularTrack(track) {
     const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices,3)); geometry.setIndex(indices); geometry.computeVertexNormals();
     const mesh = new THREE.Mesh(geometry,material); mesh.receiveShadow = true;mesh.castShadow=material===asphalt;root.add(mesh);
   }
+  ribbon(-.48,.48,.028,mat('#777773'));
   ribbon(-.38,.38,.058,slot); ribbon(-.35,.35,.075,asphalt);
   for (const lane of [-PHYSICS.laneOffset,PHYSICS.laneOffset]) {
     ribbon(lane-.016,lane+.016,.077,slot);
@@ -47,6 +48,11 @@ export function buildModularTrack(track) {
   const stanchions=new THREE.InstancedMesh(new THREE.CylinderGeometry(.012,.014,.16,6),rail,posts.length);
   posts.forEach(({p,side},i)=>{transform.position.set(...position(p,side*.415,.15));transform.rotation.set(0,0,0);transform.scale.set(1,1,1);transform.updateMatrix();stanchions.setMatrixAt(i,transform.matrix);});root.add(stanchions);
   for(const side of [-1,1])ribbon(side*.415-.017,side*.415+.017,.23,rail);
+  // Vertical guardrail faces and deck edges give bridges physical thickness.
+  for(const side of [-1,1])for(const [low,high,offset,material] of [[.018,.058,.38,slot],[.18,.23,.415,rail]]){
+   const v=[],idx=[];for(let i=0;i<=n;i++){const p=track.sample(i/n*track.length);for(const h of [low,high])v.push(...position(p,side*offset,h));if(i<n){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}}
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setIndex(idx);g.computeVertexNormals();const m=new THREE.Mesh(g,material);m.castShadow=true;m.receiveShadow=true;root.add(m);
+  }
   const roadPoints=Array.from({length:Math.ceil(track.length/.2)},(_,i)=>track.sample(i*.2));
   const supports=[];for(let s=0;s<track.length;s+=1.6){const p=track.sample(s);if(p.z>.25)for(const side of [-1,1]){const x=p.x+p.nx*side*.53,y=p.y+p.ny*side*.53;if(!roadPoints.some(q=>q.z<p.z-.4&&Math.hypot(q.x-x,q.y-y)<.55))supports.push({p,side});}}
   const supportsMesh=new THREE.InstancedMesh(new THREE.CylinderGeometry(.055,.07,1,8),mat('#a99c83'),supports.length);

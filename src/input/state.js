@@ -11,3 +11,5 @@ export const PLAYER_KEYS = [
   {gas:'KeyW',lane:['KeyE']},
   {gas:'KeyI',lane:['KeyO']},
 ];
+
+export function normalizePower(value){const n=Number(value);return Number.isFinite(n)?Math.max(.2,Math.min(1,Math.round(n*20)/20)):.65;}

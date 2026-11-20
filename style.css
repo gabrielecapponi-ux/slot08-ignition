@@ -115,3 +115,13 @@ body.garage-open{overflow:hidden}#garage{position:fixed;inset:0;margin:0;width:1
 @media(orientation:landscape) and (max-height:550px){.garage-toolbar{padding:7px 18px}.garage-panel{top:62px;bottom:12px;left:14px;padding:17px}.garage-panel h2{font-size:24px}.garage-preview-label{bottom:6%}.garage-preview-label>strong{font-size:17px;margin-bottom:10px}.power-control{margin-bottom:5px}.power-control button{min-height:36px;font-size:10px;padding:5px}.bottom-hud .drive-controls button{min-height:54px}}
 
 @media(max-width:650px){.paint-options{grid-template-columns:repeat(6,1fr)}}
+
+/* Fine throttle controls remain tappable without dragging or holding. */
+.gas-dial {margin-bottom:6px; min-width:0}
+.gas-dial label {display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.08em;color:#d9e3e7}
+.gas-dial output {font-size:16px;font-weight:800;color:var(--pilot)}
+.gas-dial>div {display:flex;align-items:center;gap:8px}
+.gas-dial input {min-width:40px;width:100%;height:36px;accent-color:var(--pilot);touch-action:pan-y}
+.gas-dial button {min-width:44px;min-height:44px;font-size:23px;padding:0;background:#16232de8}
+.part-detail {font-size:14px;line-height:1.5;color:#becdd7;min-height:42px;margin:12px 0}
+@media(max-height:520px){.gas-dial label{font-size:11px}.gas-dial button{min-height:34px}.gas-dial input{height:28px}}

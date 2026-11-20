@@ -1,3 +1,5 @@
+> Documento storico della versione Ignition del 18 novembre 2026. Per lo stato attuale Worlds 6.0 consultare README.md e QA.md.
+
 # SLOT 08 — Ignition / brief di produzione
 
 18 novembre 2026. Evoluzione giocabile del prototipo SLOT 08. Design originale ispirato alla corsa di modellini: nessun logo, modello o asset Hot Wheels / Carrera copiato.

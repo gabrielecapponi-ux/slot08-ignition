@@ -35,12 +35,12 @@ export class Scene3D {
   if(this.disposed){if(result[0].status==='fulfilled')this.disposeRoot(result[0].value.scene);if(result[1].status==='fulfilled')result[1].value.destroy();return;}
   if(result[0].status==='fulfilled'){this.assetSource=result[0].value.scene;this.sourceCar=this.assetSource.getObjectByName('CAR_GT');if(this.sourceCar){this.sourceCar.removeFromParent();this.sourceCar.position.set(0,0,0);this.sourceCar.rotation.set(0,0,0);}}
   if(result[1].status==='fulfilled')this.kit=result[1].value;
-  this.clearCars();this.setTrack(this.track);this.rig.age=0;this.rig.initial=true;this.onStatus?.(this.kit&&this.sourceCar?'WORLDS 5.0 · BLENDER / 49 MODELLI':'3D ESSENZIALE · ASSET NON DISPONIBILI');
+  this.clearCars();this.setTrack(this.track);this.rig.age=0;this.rig.initial=true;this.onStatus?.(this.kit&&this.sourceCar?'WORLDS 6.0 · BLENDER / 89 MODELLI':'3D ESSENZIALE · ASSET NON DISPONIBILI');
   for(const r of result)if(r.status==='rejected')console.warn('Asset fallback',r.reason);
  }
  fallbackCar(){const root=new THREE.Group();const b=new THREE.Mesh(new THREE.BoxGeometry(.3,.065,.15),new THREE.MeshStandardMaterial({name:'MAT_lime_enamel',color:0xc6f568,roughness:.25}));b.position.y=.06;root.add(b);const r=new THREE.Mesh(new THREE.BoxGeometry(.13,.045,.10),new THREE.MeshStandardMaterial({color:0x152b38}));r.position.y=.11;root.add(r);return root;}
  setTrack(track){this.track=track;if(this.staticRoot){this.scene.remove(this.staticRoot);this.disposeRoot(this.staticRoot);}this.staticRoot=buildModularTrack(track);this.world=new MiniatureWorld(track,this.kit);this.staticRoot.add(this.world.root);this.scene.add(this.staticRoot);
-  const theme=THEMES[track.theme]??THEMES.forest;this.sky?.dispose();this.sky=skyTexture(theme);this.scene.background=this.sky;this.scene.fog=new THREE.Fog(theme.sky,35,160);this.ground.material.color.set(theme.floor);this.sun.intensity=track.theme==='night'?1.35:2.4;this.sun.color.set(track.theme==='night'?'#bed9ff':'#ffecd3');
+  const theme=THEMES[track.theme]??THEMES.forest;this.sky?.dispose();this.sky=skyTexture(track.theme,track.index);this.scene.background=this.sky;this.scene.fog=new THREE.Fog(theme.sky,35,160);this.ground.material.color.set(theme.floor);this.sun.intensity=track.theme==='night'?1.35:2.4;this.sun.color.set(track.theme==='night'?'#bed9ff':'#ffecd3');
   const span=Math.max(track.bounds.maxX-track.bounds.minX,track.bounds.maxY-track.bounds.minY);Object.assign(this.sun.shadow.camera,{left:-span/2-3,right:span/2+3,top:span/2+3,bottom:-span/2-3,near:.1,far:180});this.sun.position.set(-span*.25,Math.max(14,span),span*.25);this.sun.shadow.camera.updateProjectionMatrix();this.rig.setTrack(track);this.dirty=true;
  }
  setView(view){this.rig.setMode(view);this.dirty=true;}

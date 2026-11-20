@@ -1,4 +1,4 @@
-import { PARTS, PAINTS, DECALS, UPGRADE_LIMIT, partPrice } from '../game/workshop.js';
+import { PARTS, PAINTS, DECALS, UPGRADE_LIMIT, PART_DETAILS, partPrice } from '../game/workshop.js';
 const $=id=>document.getElementById(id);
 export class Workshop {
  constructor(profile,session,renderer,onChange){this.profile=profile;this.session=session;this.renderer=renderer;this.onChange=onChange;this.category='wing';this.choice=0;this.abort=new AbortController();
@@ -23,7 +23,8 @@ export class Workshop {
   $('paint-options').innerHTML=PAINTS.map((color,i)=>`<button data-paint="${color}" aria-label="Vernice ${i+1}" aria-pressed="${d.appearance.paint===color}" style="--paint:${color}"></button>`).join('');
   $('decal-options').innerHTML=DECALS.map((v,i)=>`<option value="${i}" ${i===d.appearance.decal?'selected':''}>${v}</option>`).join('');
   const labels={motor:['Motore','Cofano e scarichi evolvono con il livello'],grip:['Pneumatici e magneti','Cerchi diversi con i nuovi gruppi di livelli'],brake:['Freno motore','Kit aerodinamico e diffusore visibili']};
-  $('upgrades').innerHTML=Object.entries(labels).map(([key,[name,desc]])=>`<div class="upgrade"><div><strong>${name} <span>${d.upgrades[key]} / ${UPGRADE_LIMIT}</span></strong><small>${desc}</small><progress max="12" value="${d.upgrades[key]}"></progress></div><button data-upgrade="${key}" ${p.price(key)>d.credits?'disabled':''}>${d.upgrades[key]===12?'MAX':p.price(key)+' CR'}</button></div>`).join('');
+  $('upgrades').innerHTML=Object.entries(labels).map(([key,[name,desc]])=>`<div class="upgrade"><div><strong>${name} <span>${d.upgrades[key]} / ${UPGRADE_LIMIT}</span></strong><small>${desc}</small><progress max="${UPGRADE_LIMIT}" value="${d.upgrades[key]}"></progress></div><button data-upgrade="${key}" ${p.price(key)>d.credits?'disabled':''}>${d.upgrades[key]===UPGRADE_LIMIT?'MAX':p.price(key)+' CR'}</button></div>`).join('');
+  $('part-detail').textContent=PART_DETAILS[this.category][this.choice]+' Solo aspetto: nessun bonus nascosto.';
   $('garage-note').textContent='Anteprima prima dell’acquisto. Vernici e livree gratuite. I potenziamenti valgono per tutta la griglia.';
   $('garage-preview-caption').textContent=this.renderer.kind==='2d'?'VISTA 2D · COMPONENTI 3D NON VISIBILI':'ANTEPRIMA LIVE';
   this.renderer.setGarage?.(true,{...d.appearance,[this.category]:this.choice},d.upgrades);

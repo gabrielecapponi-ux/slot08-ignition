@@ -1,52 +1,38 @@
-# Worlds 5.0 — verifica del 19 novembre 2026
+# Worlds 6.0 — verifica del 20 novembre 2026
 
-## Simulazione automatica
+## Ambito
 
-`npm test`: **95 test superati**. Sono inclusi audio, clock fisso, input, gare, profili e i nuovi casi Worlds.
+Aggiornamento di tutti i 15 scenari, tre spirali con curve opposte all’uscita, controllo fine del gas, sbandata più recuperabile, 60 componenti e 20 livelli meccanici. I progressi precedenti vengono migrati; i record sono separati con la chiave worlds-6.
 
-- Tutte le 15 piste: chiusura e continuità, pose finite, scambi su rettilinei, due corsie sopra il terreno, curve inclinate e gallerie.
-- Su tutte le piste, il 100% continuato porta al deragliamento; l'assistenza conclude tre giri senza uscite, anche con uno scambio prenotato. Questo test è riferito alla configurazione Club di serie, non a ogni combinazione possibile di potenziamenti.
-- Sbandata di riferimento: dopo 0,5 s l'auto è ancora agganciata, con scivolamento visibile. Il rilascio recupera stabilità; continuare ad accelerare porta fuori pista. Il margine effettivo varia con velocità, raggio e hardware.
-- Deragliamento estremo, traiettoria tangente, progresso congelato e recupero di esattamente 3 secondi. Nessuna penalità aggiunta due volte.
-- Le spirali condividono le coordinate orizzontali ma mantengono oltre 1,8 m di separazione tra passaggi; la pendenza modifica la distanza reale della corsia.
-- La sopraelevazione inclina le corsie e aumenta il limite di velocità. La superficie inclinata resta sopra il terreno.
-- Giocatore, bot e tre piloti locali usano hardware identico anche al livello 12. Gas 65/85/100 produce accelerazioni distinte. I bot possono uscire attraverso la stessa fisica, senza incidenti imposti.
-- Migrazione del profilo, 12 livelli meccanici, vernici/livree, pagamento dei componenti una sola volta, componenti automatici e selezioni manuali.
-- Il GLB contiene tutte le 30 varianti e gli elementi ambientali richiesti, sotto 2,5 MB.
+## Verifiche automatiche
 
-## Prove nel browser
+`npm test`: **100 test superati**, inclusa la decompressione del kit e il caricamento reale delle mesh. `npm run build`, `npm run standalone` e `git diff --check` completati. Standalone: 9,09 MB; kit distribuito: 650.856 byte compressi.
 
-Browser integrato sul Mac, 1280×720 e viewport simulato 390×844. Queste verifiche del layout non sostituiscono prove su hardware iPhone/Android reale.
+- Simulazione di un giro su tutte le 15 piste con GT Club di serie, gas costante al 65%: zero uscite. Non è una garanzia per configurazioni potenziate, scambi o difficoltà diverse.
+- Sovraccarico laterale moderato del 145%: 800 ms ancora agganciati in Rookie, Club e Pro; rilascio recuperabile. Sovraccarico prolungato o estremo provoca comunque il distacco.
+- Il gas pieno continua a provocare uscite sulle piste tecniche. Sulle piste più ampie e sopraelevate può essere sostenuto: è una conseguenza voluta della guida più permissiva. La vecchia aspettativa “uscita obbligatoria su ogni pista” è stata aggiornata.
+- Recupero di tre secondi, invariabilità al frame rate, nessuna fisica speciale per i bot, guida assistita, gare locali e tutorial.
+- Cursore, +/−, preselezioni e tastiera isolati fra tre piloti. Perdita del focus e rientro spengono il gas.
+- Venti livelli meccanici, sessanta acquisti distinti, conservazione del vecchio profilo, nessun pagamento ripetuto.
+- Geometria finita e chiusa, corsie libere dal terreno, spirali con separazione verticale, superfici inclinate coerenti con la fisica.
+- Decompressione GZIP e parser GLTFLoader reali: tutti i sessanta componenti presenti e alla scala dell’auto. Costruzione delle quindici scene Three.js e di tutti i tracciati: vertici e trasformazioni validi. Canvas simulato solo per le texture procedurali; questi test non effettuano rasterizzazione WebGL.
 
-- Tutte le 15 piste selezionate dall'interfaccia senza errori. Bosco, animali, gallerie, guardrail, segnaletica e doppia spirale verificati visivamente.
-- Tutte le 30 varianti del garage provate in anteprima. Acquistati nel profilo locale di test un alettone GT3 e cerchi Oro Sport: 95 + 60 CR; 545 → 390 CR. Vernice arancione e livrea Tricolore applicate gratuitamente. Componenti e colori ancora presenti dopo il ricaricamento.
-- Garage mobile: macchina interamente visibile, tre inquadrature, pannello scorrevole e pulsanti di acquisto. Corretto lo zoom troppo ravvicinato della prima iterazione.
-- Selettore 65% e scambio touch verificati; tre gas indipendenti attivati via Spazio/W/I. Tutti e tre i piloti sono usciti di pista e rientrati, con gas spento e una uscita ciascuno.
-- Blocco dei controlli durante il primo caricamento: evita che una selezione venga sovrascritta dalla configurazione iniziale.
-- Pacchetto standalone aperto nel browser, entrambi i GLB caricati, nessun errore di URL relativo ai moduli Blob.
-- Fallback Canvas2D verificato, con avviso che i componenti 3D non sono visibili.
-- Nessun errore o warning di console durante i cambi di circuito o le 30 anteprime. Il fallback 2D deliberato emette il suo avviso previsto.
-- Campione della doppia spirale: 128 draw call, 130.790 triangoli e 134 geometrie dopo aver selezionato tutti i circuiti. Circa 120 fps nel campione su questo Mac; non è una promessa di prestazioni sui telefoni. Un solo renderer, DPR massimo 1,5, props istanziati e risorse condivise.
+## Blender
 
-## Artifact e riproducibilità
+Il programma locale si arresta prima dello script nella rilevazione Metal. Modelli generati con Blender 5.2 nel progetto gratuito 3D Jutsu `f751b35d-ea52-4fc7-b8e6-a8f802bd90f1`, revisione 1: 89 radici, 60 componenti e 27 props, più due elementi animabili. Esportazioni GLB e BLEND scaricate e controllate con SHA-256. Materiali e forme provengono dallo script originale `blender/build_worldkit.py`.
 
-`npm run build` e `npm run standalone` completati. Il file autonomo pesa circa 10,8 MB, inclusi motore, codice, poster e modelli. Gli URL di tutti i moduli applicativi e del CSS riportano la versione 5.0.0.
+Il GLB contiene l’allestimento del catalogo, con parti ingrandite 6×; AssetKit normalizza la scala a 1 e la posizione a zero. La sorgente Blender conserva l’allestimento per ispezione. Il generatore locale esporta prima dell’allestimento: entrambe le forme sono supportate dal loader.
 
-Blender 5.2.1 LTS eseguito realmente in background: 49 radici esportate in `assets/worldkit.glb`, scena editabile `blender/worldkit.blend` e contact sheet. Materiali sRGB convertiti in lineare, gomma separata dal metallo. Nessun nuovo modello remoto o placeholder non esportato.
+Render del catalogo ispezionato. Non è una schermata del gioco.
 
-Screenshot:
-- `docs/qa-worlds-garage-mobile.jpg` — officina mobile e configurazione acquistata;
-- `docs/qa-worlds-helix.jpg` — doppia spirale completa e gallerie.
+## Limiti di verifica
 
-## Limiti dichiarati
+La connessione al browser si è bloccata ed è poi risultata indisponibile. Non sono state effettuate nuove prove visive dell’app, prove touch su telefono o misurazioni FPS. Gli screenshot della versione 5.0 restano uno storico, non attestano l’aspetto 6.0. Non sono stati acquistati componenti nel profilo del browser dell’utente.
 
-Fisica arcade, senza gravità longitudinale o carico verticale dinamico. Nessun urto tra auto, multiplayer online, sincronizzazione tra dispositivi, editor delle piste, loop verticali o salti guidati. Nei dispositivi senza WebGL resta la modalità 2D, senza anteprima delle parti 3D. Non è stata certificata una frequenza minima su telefoni reali.
+Prima del prossimo affinamento visivo controllare desktop e mobile: garage con ciascuna categoria, leggibilità dei controlli aggiunti, gallerie nelle quattro telecamere e frame rate della doppia spirale.
 
-## Pubblicazione verificata
+Fisica arcade, nessun urto tra auto, multiplayer online o editor delle piste. Restano i limiti descritti nel README.
 
-GitHub Pages ha distribuito con successo il commit applicativo `be1c7a6c0aa262b89825f4acdbb7b1dd38bebf97` (run `44523930387`). Sul link pubblico verificati titolo Worlds, footer 5.0, carico dei modelli Blender, garage a 12 livelli, anteprima Doppio piano, guida in Bosco delle Volpi e coach. Nessun errore di console. Non sono stati acquistati componenti sul profilo pubblico.
+## Storico
 
-- `docs/qa-worlds-live-garage.jpg`: garage pubblicato, anteprima di un alettone non acquistato.
-- `docs/qa-worlds-live-forest.jpg`: guida e coach nel nuovo bosco dal link GitHub Pages.
-
-Il gioco pubblico è stato lasciato al menu, audio spento e gas disattivato. Il viewport di prova è stato ripristinato; le schede locali sono state chiuse.
+La verifica della versione precedente è conservata in `docs/QA_WORLDS5.md`.
