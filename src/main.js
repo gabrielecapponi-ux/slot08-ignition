@@ -16,7 +16,7 @@ import { Workshop } from './ui/workshop.js';
 import { LEVELS, createTrack } from './track/catalog.js';
 import { formatTime } from './core/math.js';
 const $=id=>document.getElementById(id);let local;try{local=window.localStorage;}catch{}
-const profile=new Profile(local),sound=new SoundEngine();let journey;profile.beginNewArcadeOnce();let raceEvents=[];let input,loop,renderer,view='drone',graphics3D=false;
+const profile=new Profile(local),sound=new SoundEngine();let journey;profile.beginNewArcadeOnce();let raceEvents=[];let input,loop,renderer,view='chase',graphics3D=false;
 const session=new RaceSession({onEvent:e=>{
   if(e.type==='reset')raceEvents=[];
   if(['start','derail','contact','lap','finish'].includes(e.type)&&raceEvents.length<256)raceEvents.push({type:e.type,time:e.type==='start'?0:3+session.elapsed,name:e.car?.name||'GARA'});
@@ -36,9 +36,23 @@ const pause=()=>{input?.clear();session.status==='paused'?session.resume():sessi
 const status=text=>$('scene-status').textContent=text;
 let canvas=$('game');
 try{if(new URLSearchParams(location.search).get('renderer')==='2d')throw Error('2D requested');const {Scene3D}=await import('./render/scene3d.js');renderer=new Scene3D(canvas,session.track,{onStatus:status,onLost:()=>{session.pause();status('GRAFICA SOSPESA');$('poster').hidden=false;},onRestored:()=>{$('poster').hidden=true;status('3D RIPRISTINATO');}});graphics3D=true;}
-catch(e){console.warn('Canvas fallback',e);const copy=canvas.cloneNode(true);canvas.replaceWith(copy);canvas=copy;const {Canvas2D}=await import('./render/canvas2d.js');renderer=new Canvas2D(canvas,session.track,{onStatus:status});document.querySelectorAll('.camera-bar button').forEach(b=>{b.disabled=true;b.setAttribute('aria-pressed',String(b.id==='view-top'));});}
-const setView=v=>{if(!graphics3D)v='top';view=v;renderer.setView(v);for(const mode of ['drone','macro','rail','iso','top'])$('view-'+mode).setAttribute('aria-pressed',String(v===mode));};
-const cycle=()=>{const views=['drone','macro','rail','iso','top'];setView(views[(views.indexOf(view)+1)%views.length]);};
+catch(e){console.warn('Canvas fallback',e);const copy=canvas.cloneNode(true);canvas.replaceWith(copy);canvas=copy;const {Canvas2D}=await import('./render/canvas2d.js');renderer=new Canvas2D(canvas,session.track,{onStatus:status});}
+const cameras={chase:'Da dietro',drone:'Drone',macro:'Frontale GT',rail:'Bordo pista',iso:'Panoramica',top:'Dall’alto'};
+const availableViews=graphics3D?Object.keys(cameras):['chase','top'];
+const selector=$('race-camera');
+for(const mode of Object.keys(cameras)){
+  if(availableViews.includes(mode))selector.add(new Option(cameras[mode],mode));
+  else {$('view-'+mode).disabled=true;$('pause-view').querySelector(`option[value="${mode}"]`).disabled=true;}
+}
+let preferred='chase';
+try{const saved=local?.getItem('slot08.camera');if(availableViews.includes(saved))preferred=saved;}catch{}
+const setView=(v,remember=false)=>{
+  view=availableViews.includes(v)?v:'chase';renderer.setView(view);selector.value=view;
+  for(const mode of Object.keys(cameras))$('view-'+mode).setAttribute('aria-pressed',String(mode===view));
+  if(remember){preferred=view;try{local?.setItem('slot08.camera',view);}catch{}}
+};
+selector.addEventListener('change',()=>{setView(selector.value,true);focus();});
+const cycle=()=>setView(availableViews[(availableViews.indexOf(view)+1)%availableViews.length],true);
 input=new InputController({canvas,throttle:$('throttle'),lane:$('lane'),toggle:$('toggle-throttle'),extra:[2,3].map(i=>({throttle:$('throttle-'+i),lane:$('lane-'+i)})),onPause:pause,onActivity:()=>{},onCamera:cycle,isDriving:()=>['running','countdown'].includes(session.status)});
 const hud=new HUD(session,profile,input),abort=new AbortController(),on=(node,event,fn)=>node.addEventListener(event,fn,{signal:abort.signal});
 const graphics=installGraphics({renderer,storage:local,pause:()=>{input.clear();session.pause();},signal:abort.signal});
@@ -110,7 +124,7 @@ function updateAdvance(now) {
   if ($('auto-start-note').textContent !== message) $('auto-start-note').textContent = message;
   if(advance.brief){$('first-run').textContent=message+' · oppure scegli IN GRIGLIA';if(seconds===0)begin();}else if(seconds===0)startRound(advance.round);
 }
-function begin(refreshMenu=false){advance=null;journey?.hideHome();input.clear();session.rivalRating=profile.data.rivalRating;session.reset($('mode').value);menu();if($('qualifying-enabled').checked&&['campaign','grandprix'].includes(session.mode))session.beginQualifying();else session.start();setView(session.isLocal?'top':'drone');focus();window.scrollTo({top:0,behavior:'instant'});}
+function begin(refreshMenu=false){advance=null;journey?.hideHome();input.clear();session.rivalRating=profile.data.rivalRating;session.reset($('mode').value);menu();if($('qualifying-enabled').checked&&['campaign','grandprix'].includes(session.mode))session.beginQualifying();else session.start();setView(session.isLocal?'top':preferred);focus();window.scrollTo({top:0,behavior:'instant'});}
 function back(){input.clear();session.reset($('mode').value);menu();loop?.resetClock();}
 function finish(tutorial){
   advance = null;
@@ -138,17 +152,17 @@ function selectRound(id){advance=null;if(Number.isInteger(id)&&MEETINGS[id]?.wor
 on($('world-picker'),'change',()=>selectRound(Number($('world-picker').value)*5));
 on($('club-calendar'),'click',e=>{const b=e.target.closest('[data-round]');if(b)selectRound(Number(b.dataset.round));});
 const workshop=new Workshop(profile,session,renderer,menu);
-journey=new Journey({session,profile,choose:mode=>{if(mode==='campaign')enterClub();else session.reset(mode);menu();},grid:()=>{input.clear();session.startGrid();setView('drone');focus();startAudio();},home:()=>{advance=null;input.clear();session.reset();menu();},restore:()=>{session.configure({upgrades:profile.data.upgrades,appearance:profile.data.appearance});enterClub();menu();}});
+journey=new Journey({session,profile,choose:mode=>{if(mode==='campaign')enterClub();else session.reset(mode);menu();},grid:()=>{input.clear();session.startGrid();setView(preferred);focus();startAudio();},home:()=>{advance=null;input.clear();session.reset();menu();},restore:()=>{session.configure({upgrades:profile.data.upgrades,appearance:profile.data.appearance});enterClub();menu();}});
 on($('qualifying-enabled'),'change',()=>journey.refresh());
 for(const kind of ['pointerdown','keydown'])on($('lobby'),kind,()=>{if(advance?.brief){advance=null;$('first-run').textContent='Scegli il tuo assetto, poi entra in pista.';}});
-for(const v of ['drone','macro','rail','iso','top'])on($('view-'+v),'click',()=>{setView(v);focus();});
+for(const v of Object.keys(cameras))on($('view-'+v),'click',()=>{setView(v,true);focus();});
 on($('export-ae'),'click',()=>{
  const data=afterEffectsScript({track:session.track.level.name,lanes:session.track.laneCount,duration:session.elapsed,events:raceEvents,...(session.reward||{})});
  const url=URL.createObjectURL(new Blob([data],{type:'text/javascript;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='SLOT08-gara-after-effects.jsx';a.click();setTimeout(()=>URL.revokeObjectURL(url),15000);
  $('export-ae-note').textContent='File JSX scaricato. Sul Mac: After Effects → File → Script → Esegui file di script.';
 });
-on($('start'),'click',()=>{startAudio();startScreen();if(!profile.data.tutorial&&session.mode==='race'&&session.level===0){input.configure(1);session.beginTutorial();menu();setView('drone');focus();window.scrollTo(0,0);}else begin();});
-on($('tutorial-start'),'click',()=>{startAudio();startScreen();input.configure(1);session.beginTutorial();menu();setView('drone');focus();window.scrollTo(0,0);});
+on($('start'),'click',()=>{startAudio();startScreen();if(!profile.data.tutorial&&session.mode==='race'&&session.level===0){input.configure(1);session.beginTutorial();menu();setView(preferred);focus();window.scrollTo(0,0);}else begin();});
+on($('tutorial-start'),'click',()=>{startAudio();startScreen();input.configure(1);session.beginTutorial();menu();setView(preferred);focus();window.scrollTo(0,0);});
 on($('tutorial-skip'),'click',()=>{profile.data.tutorial=true;profile.save();session.reset('race');$('mode').value='race';begin();});
 on($('next-level'),'click',()=>{if(session.meeting){if(advance)startRound(advance.round);return;}if(session.isLocal){begin();return;}const tutorial=session.status==='tutorial-complete';session.level=tutorial?0:Math.min(LEVELS.length-1,session.level+1);$('mode').value=session.mode==='grandprix'?'grandprix':'race';begin();});
 on($('retry-round'),'click',()=>startRound(session.clubRound));
@@ -168,7 +182,7 @@ const pauseSettings=new MutationObserver(()=>{
   $('pause-power-value').textContent=$('pause-power').value+'%';
 });
 pauseSettings.observe($('pause-panel'),{attributes:true,attributeFilter:['hidden']});
-on($('pause-view'),'change',e=>setView(e.target.value));
+on($('pause-view'),'change',e=>setView(e.target.value,true));
 on($('pause-power'),'input',e=>{input.setPower(0,Number(e.target.value)/100);$('pause-power-value').textContent=Math.round(input.power[0]*100)+'%';});
 for(const event of ['contextmenu','selectstart'])on($('app'),event,e=>{if(['running','countdown'].includes(session.status))e.preventDefault();});
 on($('back-menu'),'click',back);on($('resume'),'click',()=>{session.resume();focus();});on($('pause'),'click',pause);

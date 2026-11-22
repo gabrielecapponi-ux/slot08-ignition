@@ -34,7 +34,16 @@ export class CameraRig {
     const moving=!ready&&session.status!=='finished'&&session.status!=='tutorial-complete';
     const heading=p.launchAngle??p.guideAngle??p.angle??0,tx=Math.cos(heading),ty=Math.sin(heading),ground=(p.z||0)+.08;
     if(intro){const u=smootherstep(clamp((this.age-.7)/3.7,0,1));const close=new THREE.Vector3(p.x+tx*.5-ty*.65,ground+.32,p.y+ty*.5+tx*.65);pos.lerpVectors(close,pos,u);look.lerpVectors(new THREE.Vector3(p.x,ground+.06,p.y),look,u);}
-    else if(moving && this.mobileRace && !session.isLocal && this.mode==='drone'){
+    else if(moving && this.mode==='chase'){
+      const near=this.track.tunnelAt?.(session.player.distance,1.2);
+      const pace=clamp(session.player.speed/5,0,1);
+      const lead=near?.9:1.25+pace*.9;
+      const road=this.track.pose(session.player.distance+lead,session.player.lane);
+      const reach=near?.72:aspect<1?1.65:1.25;
+      pos.set(p.x-tx*reach,ground+(near?.28:aspect<1?1.02:.76),p.y-ty*reach);
+      look.set(p.x+tx*lead*.45+(road.x-p.x)*.55,ground+.06+clamp(road.z-p.z,-.55,.7)*.55,p.y+ty*lead*.45+(road.y-p.y)*.55);
+      fov=(aspect<1?64:58)+(this.motion.matches?0:pace*4);
+    }else if(moving && this.mobileRace && !session.isLocal && this.mode==='drone'){
       const upcoming=this.track.sample(session.player.distance+1.25);
       pos.set(p.x-tx*1.7,ground+(aspect<1?2.25:1.85),p.y-ty*1.7);
       look.set(p.x+(upcoming.x-p.x)*.8,ground+.8*((upcoming.z||0)-(p.z||0)),p.y+(upcoming.y-p.y)*.8);
@@ -76,7 +85,7 @@ export class CameraRig {
       fov=48+pullBack*9;
     }
     const t=this.initial||this.motion.matches?1:1-Math.exp(-dt*(moving?6:3.8));
-    const following=moving&&!session.isLocal&&!session.player.crash&&['drone','macro','rail'].includes(this.mode);
+    const following=moving&&!session.isLocal&&!session.player.crash&&['chase','drone','macro','rail'].includes(this.mode);
     if(following){
       // Smooth only the camera arm, never delay world translation relative to the car.
       const arm=pos.clone().sub(look);

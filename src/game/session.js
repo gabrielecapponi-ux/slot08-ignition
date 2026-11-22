@@ -20,7 +20,7 @@ export class RaceSession {
     this.phase='race';this.grid=null;this.qualifying=null;this.eliminationOrder=[];this.nextElimination=45;this.tutorial = null; this.reward = null; this.raceNumber++;
     this.meeting = mode === 'campaign' ? MEETINGS[this.clubRound] : null;
     if(this.meeting){this.level=this.meeting.level;}
-    this.track = createTrack(this.level,{lanes:['campaign','grandprix','elimination'].includes(mode)?4:2,variant:this.meeting?this.clubRound:-1});
+    this.track = createTrack(this.level,{stunt:mode,lanes:['campaign','grandprix','elimination'].includes(mode)?4:2,variant:this.meeting?this.clubRound:-1});
     if(!this.hazards)this.track.conditions=[];
     if(this.meeting){this.track.meeting=this.meeting;positionClubSwitches(this.track);}
     this.physics = new PhysicsEngine(this.track);
@@ -30,7 +30,7 @@ export class RaceSession {
     this.celebration=0;this.elapsed = 0; this.countdown = RACE.countdown; this.notice = ''; this.noticeTTL = 0;
     this.cars = [createCar({ color: COLORS.mint, setup: carSetup(this.difficulty, this.upgrades) })];
     this.drivers = new Map();
-    if (mode === 'race' || mode === 'grandprix' || mode==='elimination' || this.meeting) {
+    if (mode === 'masone' || mode === 'riviera' || mode === 'race' || mode === 'grandprix' || mode==='elimination' || this.meeting) {
       this.cars.push(createCar({ id: 'ai-1', name: 'Apex', color: COLORS.orange, lane: 1, ai: true, setup: carSetup(this.difficulty, this.upgrades) }));
       this.cars.push(createCar({ id: 'ai-2', name: 'Volt', color: COLORS.blue, lane: 0, ai: true, start: RACE.startDistance - 0.40, setup: carSetup(this.difficulty, this.upgrades) }));
       if(this.track.laneCount===4){this.cars[0].lane=1;this.cars[1].lane=2;this.cars[2].lane=0;this.cars.push(createCar({id:'ai-3',name:'Nitro',color:COLORS.pink,lane:3,ai:true,setup:carSetup(this.difficulty,this.upgrades)}));}
@@ -158,7 +158,7 @@ export class RaceSession {
     }
     if(this.cars.length>1&&this.phase!=='qualifying'){
       resolveContacts(this.track,this.cars,this.physics,this.onEvent,this.elapsed);
-      for(const wreck of this.cars.filter(c=>c.crash && c.recoverIn>1.8 && !c.crash.hit)){
+      for(const wreck of this.cars.filter(c=>c.crash && c.recoverIn>0)){
         for(const rival of this.cars){
           if(rival.state!=='slotted'||rival.finishedAt!==null||rival.speed<.45)continue;
           const a=wreck.crash,b=rival.pose;

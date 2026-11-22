@@ -686,3 +686,12 @@ button{font-size:14px;border-radius:24px;font-weight:450;transition:background .
  }
 }
 .pause-settings{display:grid;gap:12px;margin:12px auto;max-width:280px}.pause-settings label{display:flex;align-items:center;gap:8px;justify-content:space-between}.pause-settings input{width:44%}
+
+#app #race-hud>.minimap-wrap{display:block!important;position:absolute;top:clamp(102px,17vh,165px);right:max(12px,env(safe-area-inset-right));width:clamp(116px,15vw,190px);padding:7px 10px;border:1px solid #8da3b766;border-radius:12px;background:#09141eef;color:white;pointer-events:none;font-variant-numeric:tabular-nums;z-index:2}
+#race-hud #minimap{display:block;width:100%;height:auto}
+.map-speed{font-size:12px;color:#c1ced4}.map-speed b{color:white;font-size:24px}
+#map-risk{font-size:12px;color:#c6f568}#map-risk[data-warn=true]{color:#ffb572}
+#race-hud .minimap-wrap p{margin:2px 0}
+@media(max-width:650px),(max-height:550px){#app #race-hud>.minimap-wrap{top:max(54px,calc(env(safe-area-inset-top) + 50px));width:116px;padding:4px 8px}#race-hud .minimap-wrap p{display:none}.map-speed b{font-size:20px}}
+@media(min-width:1101px) and (min-height:551px){#race-hud .camera-bar{right:calc(32px + clamp(116px,15vw,190px))}#race-hud .rivals{top:max(315px,calc(17vh + 160px))}}
+#race-camera{pointer-events:auto;touch-action:manipulation;display:block;width:100%;min-height:44px;margin:3px 0;padding:4px 0;border:0;border-bottom:1px solid #68818f;background:transparent;color:#fff;font:600 14px system-ui}#race-camera option{background:#101d28;color:white}

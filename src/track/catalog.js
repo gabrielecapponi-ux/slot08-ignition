@@ -6,6 +6,7 @@ import { FigureEight } from './figure-eight.js';
 import { courseConditions } from './conditions.js';
 import { mod } from '../core/math.js';
 
+import { STUNTS, stuntBase } from './stunts.js';
 const BASE_LEVELS = Object.freeze([
   {id:'sunset',name:'Sunset Speedway',tag:'01 / IMPARA IL RITMO',subtitle:'Rettilinei lunghi. Il tuo primo podio.',color:'#ff733e',sky:'#e8c399',board:'#aa7651'},
   {id:'skyline',name:'Skyline Eight',tag:'02 / CONQUISTA IL PONTE',subtitle:'Due direzioni. Un incrocio sopra la città.',color:'#73d8dc',sky:'#adc7cc',board:'#47616b'},
@@ -71,10 +72,12 @@ const WORLDS=[
   ['night','Double Helix','Due giri di spirale, 5,2 metri di dislivello.',.52],
 ];
 export const LEVELS=Object.freeze(BASE_LEVELS.map((l,i)=>Object.freeze({...l,name:WORLDS[i][1],subtitle:WORLDS[i][2],tag:String(i+1).padStart(2,'0')+' / '+(['forest','alpine'].includes(WORLDS[i][0])?'NATURA IN MINIATURA':'MONDO DA ESPLORARE')})));
-export function createTrack(index=0,{lanes=2,variant=-1}={}){
+export function createTrack(index=0,{lanes=2,variant=-1,stunt=null}={}){
   index=Math.max(0,Math.min(LEVELS.length-1,Math.floor(Number(index)||0)));
   let base;
-  if(Number.isInteger(variant)&&variant>=0&&variant<50)base=championshipBase(variant);
+  const spec=STUNTS[stunt];
+  if(spec)base=stuntBase(spec);
+  else if(Number.isInteger(variant)&&variant>=0&&variant<50)base=championshipBase(variant);
   else if(index===0){base=new OvalTrack();}
   else if([1,6,8,10,12].includes(index)){
     const size={1:[2.8,6],6:[3,10],8:[3,13],10:[3,15],12:[3,17]}[index];
@@ -84,9 +87,10 @@ export function createTrack(index=0,{lanes=2,variant=-1}={}){
   else if(index===2)base=new EnduranceTrack({points:[[-10,-6],[10,-6],[10,6],[2,6],[2,0],[-10,0]],radius:2.2});
   else base=new EnduranceTrack(ENDURANCE_LAYOUTS[index-3]);
   const [theme,name,subtitle,bank]=WORLDS[index];
-  const track=new ScenicTrack(base,{theme,bank,tunnelCount:index<3?1:2,feature:subtitle});
+  const track=new ScenicTrack(base,{theme:spec?.theme??theme,bank,tunnelCount:index<3?1:2,feature:subtitle});
   track.laneCount=lanes===4?4:2;track.width=.70+2*track.extraWidth;if(track.laneCount===4)track.maxBank=Math.min(bank,.28);
-  track.level={...LEVELS[index],name,subtitle};track.index=index;track.variant=variant;
+  track.level={...LEVELS[index],name,subtitle};if(spec){track.level.name=spec.name;track.level.subtitle=spec.loops===1?'Chicane nel bosco e giro della morte':'Due giri della morte sul rettilineo costiero';track.tunnels=track.tunnels.filter(t=>t.start>6+7*spec.loops);}
+  track.index=index;track.variant=variant;
   if(variant>=0){track.level={...track.level,name:courseName(variant),subtitle:courseFeature(variant)};if(variant%5===4&&lanes===4)installFork(track);}
   const pts=Array.from({length:1000},(_,i)=>track.sample(i/1000*track.length));
   track.bounds={minX:Math.min(...pts.map(p=>p.x))-2,maxX:Math.max(...pts.map(p=>p.x))+2,minY:Math.min(...pts.map(p=>p.y))-2,maxY:Math.max(...pts.map(p=>p.y))+2};

@@ -35,7 +35,7 @@ export class SlotTrack {
     const ddx = (-2 * p.curvature * first - kp * d) * p.tx + (p.curvature * along + second) * p.nx;
     const ddy = (-2 * p.curvature * first - kp * d) * p.ty + (p.curvature * along + second) * p.ny;
     return { ...p, fork:null, x: p.x + p.nx * d, y: p.y + p.ny * d, z:p.z+verticalOffset,
-      tx: qx / horizontalMetric, ty: qy / horizontalMetric, angle: Math.atan2(qy, qx), metric, horizontalMetric, pitch:Math.atan2(verticalFirst,horizontalMetric),
+      tx: qx / horizontalMetric, ty: qy / horizontalMetric, angle: Math.atan2(qy, qx), metric:p.loopMetric??metric, horizontalMetric, pitch:p.loopPitch??Math.atan2(verticalFirst,horizontalMetric),
       curvature: (qx * ddy - qy * ddx) / horizontalMetric ** 3 };
   }
 

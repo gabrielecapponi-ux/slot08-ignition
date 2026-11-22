@@ -11,12 +11,15 @@ export function collideBarriers(crash,previous,samples,extraWidth=0){
   const spread=(p.fork?.offset||0)/2;
   const walls=[[-span,-1],[span,1]];if(spread>.08)walls.push([-spread-.018,1],[spread+.018,-1]);
   for(const [wall,side] of walls){
-   const limit=side*wall-BARRIER.carRadius,velocity=side*(crash.vx*p.nx+crash.vy*p.ny);
-   if(velocity<=0||side*before>limit+.035||side*after<limit)continue;
+   const heading=Number.isFinite(crash.angle)?crash.angle:Math.atan2(p.ty,p.tx);
+   const cross=Math.abs(Math.cos(heading)*p.nx+Math.sin(heading)*p.ny);
+   const radius=.145*cross+BARRIER.carRadius*Math.sqrt(Math.max(0,1-cross*cross));
+   const limit=side*wall-radius,velocity=side*(crash.vx*p.nx+crash.vy*p.ny);
+   if(side*before>side*wall+.025||side*after<limit)continue;
    const base=p.z-wall*Math.sin(bank);
    if(Math.min(previous.z,crash.z)>base+BARRIER.top||Math.max(previous.z,crash.z)+.10<base+BARRIER.bottom)continue;
    const penetration=side*after-limit;
-   if(!contact||penetration>contact.penetration)contact={p,side,velocity,penetration};
+   if(!contact||penetration>contact.penetration)contact={p,side,velocity:Math.max(0,velocity),penetration};
   }
  }
  if(!contact)return false;

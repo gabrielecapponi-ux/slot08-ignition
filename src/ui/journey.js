@@ -5,6 +5,8 @@ import { formatTime } from '../core/math.js';
 const $=id=>document.getElementById(id);
 const MODES=[
  ['campaign','arcade','Arcade','Una tessera, dieci mondi. La tua storia al club.'],
+ ['masone','wheel','Masone Verticale','Un giro della morte tra gli alberi.'],
+ ['riviera','wheel','Riviera Doppio Loop','Due anelli verticali sul rettilineo costiero.'],
  ['time','chrono','Time Trial','Solo tu, tre settori e un tempo da battere.'],
  ['grandprix','trophy','Grand Prix','Quattro auto. Qualifiche e tre giri di gara.'],
  ['elimination','duel','Ultimo rimasto','Dopo 45 secondi esce l’ultimo. Poi ogni 35.'],

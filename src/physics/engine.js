@@ -77,7 +77,9 @@ export class PhysicsEngine {
     const drive = (1 + .35 * straight * fullPower) * cfg.motorForce * lowSpeedTorque * car.throttle * Math.max(0, 1 - v / cfg.maxSpeed);
     const resistance = cfg.rollingResistance + cfg.aerodynamicDrag * v * v
       + cfg.engineBrake * (1 - car.throttle) * Math.min(1,v/.65) + cfg.skidDrag * car.skid;
-    const gravity = PHYSICS.gravity*Math.sin(before.pitch || 0);
+    // The stunt modules have a powered magnetic guide for the vertical climb.
+    const liftAssist=before.loopMetric && before.pitch>0 ? .78*car.throttle : 0;
+    const gravity = (1-liftAssist)*PHYSICS.gravity*Math.sin(before.pitch || 0);
     car.speed = Math.max(0, v + ((drive - resistance) / cfg.mass-gravity)*dt);
     car.distance += ((v + car.speed) * 0.5 * dt) / before.metric;
     if (car.change && car.distance >= car.change.start + car.change.length) {

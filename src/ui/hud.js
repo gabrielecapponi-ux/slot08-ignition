@@ -28,6 +28,9 @@ export class HUD {
     const surface=upcomingSurface(s.track,c);$('surface-warning').hidden=!surface||status!=='running'||!!s.tutorial;
     if(surface){$('surface-warning').dataset.affected=String(surface.affected);this.text('surface-warning',surface.label+' · CORSIA '+(surface.lane+1)+(surface.inside?' · '+(surface.affected?'RILASCIA IL GAS':'CORSIA LIBERA'):' · '+Math.ceil(surface.distance)+' M'));}
     this.text('timer',formatTime(s.elapsed));this.text('record',formatTime(this.profile.data.records[s.recordKey]??Infinity));this.text('lap',`${s.mode==='time'||s.mode==='elimination'?c.laps+1:Math.min(s.phase==='qualifying'?2:3,c.laps+1)} / ${s.mode==='time'||s.mode==='elimination'?'∞':s.phase==='qualifying'?'2':'3'}`);this.text('position',`${s.standings().indexOf(c)+1} / ${s.cars.length}`);this.text('model-speed',c.speed.toFixed(1)+' m/s');this.text('speed',String(Math.round(c.speed*3.6*PHYSICS.modelScale)));this.text('wallet',this.profile.data.credits+' CR');
+    this.text('map-speed',String(Math.round(c.speed*3.6*PHYSICS.modelScale)));
+    const risk=c.state==='derailed'?'In recupero':c.skid>.18?'Sbandata':c.coach?.action==='brake'||c.gripRatio>.78?'Rilascia il gas':'Stabile';
+    this.text('map-risk',risk);$('map-risk').dataset.warn=String(risk!=='Stabile');
     const danger=c.gripRatio>.9,crashed=c.state==='derailed',skidding=c.skid>.18;$('app').dataset.driving=crashed?'crashed':skidding?'skidding':'grip';$('grip-fill').style.width=Math.min(100,c.gripRatio*100)+'%';$('grip-fill').style.background=c.instability>.5?'#ff4a56':danger?'#ff733e':'#c6f568';this.text('grip-title',skidding?'RECUPERA LA CODA':'ADERENZA');this.text('grip-label',crashed?'FUORI PISTA':c.instability>.5?'PERDI IL PATTINO!':skidding?'SGOMMA':c.gripRatio>.6?'AL LIMITE':'STABILE');
     if(crashed)$('notice').style.setProperty('--recovery-progress',String(Math.max(0,Math.min(1,1-c.recoverIn/PHYSICS.recoverySeconds))));
     const coach=c.coach;$('brake-coach').hidden=!s.guidanceEnabled||!!s.tutorial||s.isLocal||status!=='running';$('brake-coach').dataset.action=coach?.action??'go';this.text('brake-label',coach?.label??'ACCELERA · TROVA IL RITMO');this.text('brake-detail',coach?.action==='brake'?'Lascia SPAZIO / ACCELERA. Il freno motore rallenta la GT.':'Verde: gas · ambra: preparati · rosso: rilascia');
@@ -81,5 +84,9 @@ export class HUD {
       row.dataset.state=car.state==='derailed'?'crashed':car.finishedAt===null&&car.skid>.18?'skidding':'grip';
     });
   }
-  minimap(){const s=this.session,c=$('minimap').getContext('2d'),b=s.track.bounds,w=280,h=150,scale=Math.min((w-22)/(b.maxX-b.minX),(h-22)/(b.maxY-b.minY));const xy=p=>[(p.x-(b.minX+b.maxX)/2)*scale+w/2,(p.y-(b.minY+b.maxY)/2)*scale+h/2];c.clearRect(0,0,w,h);c.lineWidth=4;c.strokeStyle='#ffffff75';c.beginPath();for(let i=0;i<=150;i++){const p=xy(s.track.sample(i/150*s.track.length));if(i)c.lineTo(...p);else c.moveTo(...p);}c.stroke();for(const car of s.cars){const p=xy(car.pose);c.fillStyle=car.color;c.beginPath();c.arc(...p,car.ai?3:5,0,Math.PI*2);c.fill();}const [x,y]=xy(s.track.sample(.08));c.fillStyle='#fff';c.fillRect(x-3,y-5,6,10);}
+  minimap(){const s=this.session,c=$('minimap').getContext('2d'),b=s.track.bounds,w=280,h=150,scale=Math.min((w-22)/(b.maxX-b.minX),(h-22)/(b.maxY-b.minY));const xy=p=>[(p.x-(b.minX+b.maxX)/2)*scale+w/2,(p.y-(b.minY+b.maxY)/2)*scale+h/2];c.clearRect(0,0,w,h);c.lineWidth=4;c.strokeStyle='#ffffff75';if(this.mapTrack!==s.track){
+      this.mapTrack=s.track;this.mapPath=new Path2D();
+      for(let i=0;i<=300;i++){const p=xy(s.track.sample(i/300*s.track.length));if(i)this.mapPath.lineTo(...p);else this.mapPath.moveTo(...p);}
+    }
+    c.strokeStyle='#d7e4ef';c.stroke(this.mapPath);for(const car of s.cars){const p=xy(car.crash??car.pose);c.fillStyle=car.color;c.beginPath();c.arc(...p,car.ai?3:5,0,Math.PI*2);c.fill();}const [x,y]=xy(s.track.sample(.08));c.fillStyle='#fff';c.fillRect(x-3,y-5,6,10);}
 }
