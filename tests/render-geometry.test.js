@@ -16,6 +16,15 @@ globalThis.document={createElement:()=>canvas()};globalThis.window={matchMedia:(
 const bytes=readFileSync(new URL('../assets/worldkit.glb.gz',import.meta.url));
 const kit=new AssetKit().ingest(await parseCompressedKit(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)));
 
+const originalBitmap=globalThis.createImageBitmap;
+globalThis.self=globalThis;
+globalThis.createImageBitmap=async()=>({width:192,height:192,close(){}});
+const precisionBytes=readFileSync(new URL('../assets/parts.glb.gz',import.meta.url));
+const precision=await parseCompressedKit(precisionBytes.buffer.slice(precisionBytes.byteOffset,precisionBytes.byteOffset+precisionBytes.byteLength));
+kit.ingest(precision);
+if(originalBitmap)globalThis.createImageBitmap=originalBitmap;
+else delete globalThis.createImageBitmap;
+
 test('every Blender part loads at car scale and remains finite in all 60 garage previews',()=>{
  for(const [key,part]of Object.entries(PARTS))for(let value=1;value<part.names.length;value++){
   const name=`PART_${key}_${value}`;assert.ok(kit.items.has(name),name);
@@ -25,14 +34,27 @@ test('every Blender part loads at car scale and remains finite in all 60 garage 
  }
 });
 
-test('all fifteen world scenes and road meshes construct with finite vertices and instance transforms',()=>{
- for(let level=0;level<15;level++){
-  const t=createTrack(level),world=new MiniatureWorld(t,kit),road=buildModularTrack(t);world.update(.016,'drone',true);world.update(.016,'top',true);
+test('all fifteen two- and four-lane world scenes and road meshes construct with finite vertices and instance transforms',()=>{
+ for(const lanes of [2,4])for(let level=0;level<15;level++){
+  const t=createTrack(level,{lanes}),world=new MiniatureWorld(t,kit),road=buildModularTrack(t);world.update(.016,'drone',true);world.update(.016,'top',true);
   for(const group of [world.root,road]){group.updateMatrixWorld(true);group.traverse(o=>{
    assert.ok(o.matrixWorld.elements.every(Number.isFinite));
    if(o.geometry){const a=o.geometry.attributes.position;assert.ok(a.count>0);assert.ok(a.array.every(Number.isFinite),`${level}/${o.type}`);}
    if(o.isInstancedMesh)assert.ok(o.instanceMatrix.array.every(Number.isFinite));
   });}
-  assert.ok(world.animated.length>0);assert.equal(world.roofMat.opacity,.24);
+  assert.ok(world.animated.length>0);assert.equal(world.roofMat.opacity,1);assert.equal(world.roofMat.transparent,false);assert.equal(world.roofs.visible,false);
+  world.update(.016,'drone',true,false);assert.equal(world.roofs.visible,true);
+  world.update(.016,'chase',true,true);assert.equal(world.roofs.visible,false);
+ }
+});
+
+test('club pit furniture and timing signs build for all six championship rounds',async()=>{
+ const {MEETINGS}=await import('../src/game/club.js');
+ const {clubRoom}=await import('../src/render/club-room.js');
+ for(const meeting of MEETINGS){
+  const track=createTrack(meeting.level);track.meeting=meeting;
+  const room=clubRoom(track);room.updateMatrixWorld(true);
+  assert.ok(room.children.some(m=>m.userData.ownTexture && m.material.map));
+  assert.ok(room.children.every(m=>m.matrixWorld.elements.every(Number.isFinite)));
  }
 });

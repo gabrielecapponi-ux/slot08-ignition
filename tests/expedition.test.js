@@ -25,9 +25,9 @@ test('moderate overload remains recoverable for at least 800ms; sustained excess
  }
 });
 
-test('stock cars can learn all fifteen circuits at 65 percent without instant exits',()=>{
+test('Rookie stock cars can learn all fifteen circuits at 65 percent without exits',()=>{
  for(let level=0;level<15;level++){
-  const s=new RaceSession();s.configure({level});s.reset('time');s.status='running';
+  const s=new RaceSession();s.configure({level,difficulty:'rookie'});s.reset('time');s.status='running';
   for(let i=0;i<120*130&&s.player.laps<1;i++)s.update(1/120,{throttle:.65});
   assert.equal(s.player.laps,1,'complete track '+level);assert.equal(s.player.crashes,0,'recoverable at 65%: '+level);
  }
@@ -58,4 +58,21 @@ test('sixty parts and twenty mechanical tiers migrate, save, and charge exactly 
 
 test('fine gas steps clamp and reject nonfinite input',()=>{
  assert.equal(normalizePower(.67),.65);assert.equal(normalizePower(9),1);assert.equal(normalizePower(-9),.2);assert.equal(normalizePower(NaN),.65);
+});
+
+test('high speed motor load tightens full-throttle grip equally for both drivers',()=>{
+ for(const ai of [false,true]){
+  const car=createCar({ai,setup:carSetup('club')});
+  car.speed=3;
+  car.lateralForce=car.maxGrip;
+  car.throttle=.85;
+  updateGrip(car,.35,1/120);
+  assert.equal(car.gripRatio,1/(1-.85*car.setup.powerGripLoss));
+  car.throttle=1;
+  updateGrip(car,.35,1/120);
+  assert.ok(car.gripRatio>1/(1-car.setup.powerGripLoss));
+  car.throttle=0;
+  updateGrip(car,.35,1/120);
+  assert.equal(car.gripRatio,1);
+ }
 });

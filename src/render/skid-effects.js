@@ -9,8 +9,10 @@ export class SkidEffects {
     this.puffs = Array.from({ length: 96 }, () => ({ life: 0 }));
     this.ink = new THREE.InstancedMesh(new THREE.PlaneGeometry(.09, .014),
       new THREE.MeshBasicMaterial({ color: '#0a0c10', transparent: true, opacity: .52, depthWrite: false }), this.marks.length);
-    this.smoke = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0),
-      new THREE.MeshBasicMaterial({ color: '#d9dce0', transparent: true, opacity: .16, depthWrite: false }), this.puffs.length);
+    const pixels=new Uint8Array(32*32*4);for(let y=0;y<32;y++)for(let x=0;x<32;x++){const d=Math.hypot((x-15.5)/15.5,(y-15.5)/15.5);const i=(y*32+x)*4;pixels.set([255,255,255,Math.round(255*Math.max(0,1-d)**2)],i);}
+    this.smokeTexture=new THREE.DataTexture(pixels,32,32);this.smokeTexture.needsUpdate=true;
+    this.smoke = new THREE.InstancedMesh(new THREE.PlaneGeometry(2,2),
+      new THREE.MeshBasicMaterial({ color: '#d9dce0',map:this.smokeTexture,transparent:true,opacity:.24,depthWrite:false,side:THREE.DoubleSide }), this.puffs.length);
     for (const mesh of [this.ink, this.smoke]) {
       mesh.frustumCulled = false; mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(mesh);
     }
@@ -23,7 +25,7 @@ export class SkidEffects {
       pool.forEach((_, i) => mesh.setMatrixAt(i, this.matrix.matrix)); mesh.instanceMatrix.needsUpdate = true;
     }
   }
-  update(cars, dt) {
+  update(cars, dt, camera) {
     if (dt <= 0) return;
     for (const car of cars) {
       if (car.state !== 'slotted' || car.skid < .16 || car.speed < .3) { this.last.delete(car.id); continue; }
@@ -47,11 +49,11 @@ export class SkidEffects {
     this.puffs.forEach((p, i) => {
       p.life = Math.max(0, p.life - dt);
       if (p.life) { p.x += p.vx * dt; p.z += p.vz * dt; p.y += .09 * dt; }
-      this.matrix.position.set(p.x || 0, p.y || 0, p.z || 0); this.matrix.rotation.set(0, i, i);
+      this.matrix.position.set(p.x || 0, p.y || 0, p.z || 0); if(camera)this.matrix.quaternion.copy(camera.quaternion);else this.matrix.rotation.set(0, i, i);
       this.matrix.scale.setScalar(p.life ? (.025 + (.72 - p.life) * .09) * Math.min(1, p.life / .18) : 0);
       this.matrix.updateMatrix(); this.smoke.setMatrixAt(i, this.matrix.matrix);
     });
     this.ink.instanceMatrix.needsUpdate = true; this.smoke.instanceMatrix.needsUpdate = true;
   }
-  destroy() { for (const mesh of [this.ink, this.smoke]) { mesh.removeFromParent(); mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); } }
+  destroy() { this.smokeTexture.dispose();for (const mesh of [this.ink, this.smoke]) { mesh.removeFromParent(); mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); } }
 }

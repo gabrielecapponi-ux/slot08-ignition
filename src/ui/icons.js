@@ -1,0 +1,20 @@
+const paths = {
+  wheel: 'M12 2a10 10 0 1 0 .01 0M3 10l6 1 3 3 3-3 6-1M12 14v7',
+  play: 'm8 4 12 8-12 8Z',
+  spark: 'm14 2-10 12h7l-1 8 10-13h-7Z',
+  brake: 'M17 5a9 9 0 1 0 3 11M15 4l5 2-2 6-5-2ZM9 12a2 2 0 1 0 4 0 2 2 0 1 0-4 0',
+  trophy: 'M7 3h10v6a5 5 0 0 1-10 0ZM7 5H3v2q0 4 5 4m9-6h4v2q0 4-5 4m-4 3v5m-4 2h8',
+  audio: 'M3 9h4l5-5v16l-5-5H3Zm13-1q4 4 0 8m3-11q7 7 0 14',
+  reset: 'M4 9a8 8 0 1 1 0 7M4 3v6h6',
+  fullscreen: 'M3 9V3h6m6 0h6v6m0 6v6h-6m-6 0H3v-6',
+  garage: 'm2 9 10-6 10 6M4 9v12h16V9M7 12h10m-10 4h10m-10 4h10',
+  chevron: 'm9 5 7 7-7 7',
+  paint: 'm5 13 9-9 6 6-9 9Zm11-7 2-2m-9 13-5 4-1-1 4-6',
+  motor: 'M5 8h3l2-3h6l2 3h3v10h-4l-2 2H8l-3-3Zm-3 2v6m8-14h6',
+  arcade: 'M4 10h16l2 10h-5l-3-3h-4l-3 3H2Zm3 3v4m-2-2h4m6-1h1m2 2h1',
+  chrono: 'M12 6a8 8 0 1 0 .01 0M9 2h6m-3 0v4m0 8 4-4',
+  duel: 'm3 5 15 15m-5 0h5v-5M21 5l-6 6m-6 4-5 5m0-5v5h5',
+  pause: 'M8 5v14M16 5v14',
+  optics: 'M3 6h18M3 12h18M3 18h18m-13-15v6m8 0v6m-6 0v6',
+};
+export const icon=name=>`<svg class="slot-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[name]||paths.wheel}"/></svg>`;

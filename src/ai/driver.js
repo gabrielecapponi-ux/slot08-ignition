@@ -1,3 +1,4 @@
+import { trafficAhead, passingLaneClear } from '../game/club.js';
 import { planSpeed } from './line-planner.js';
 import { PHYSICS } from '../core/config.js';
 import { clamp } from '../core/math.js';
@@ -31,7 +32,13 @@ export class AIDriver {
     if (this.thinkIn <= 0) {
       this.thinkIn = this.reaction * (.8 + this.random() * .4);
       const pace = this.pace + (this.errorTime > 0 ? this.errorBoost : 0);
-      const target = planSpeed(this.track, car, pace);
+      let target = planSpeed(this.track, car, pace);
+      // A rival brakes through its throttle input; there is no speed clamp on a human car.
+      const gap=trafficAhead(this.track,car,cars);
+      if(gap<1.4 && this.errorTime<=0){
+        const leader=cars.find(c=>c!==car&&c.state==='slotted'&&c.lane===car.lane&&Math.abs(((c.distance-car.distance+this.track.length)%this.track.length)-gap)<.02);
+        if(leader)target=Math.min(target,Math.max(0,leader.speed+(gap-.38)*2.0));
+      }
       car.targetSpeed = target;
       this.throttle = car.speed < target - .06 ? 1 : car.speed > target + .03 ? 0 : clamp(.48 + (target - car.speed) * 4, 0, 1);
       // Recovery is a throttle decision, never an override of the physics.
@@ -42,7 +49,9 @@ export class AIDriver {
         if (ahead < 1.8 && gateKey !== this.lastGate) {
           this.lastGate = gateKey;
           const nearby = cars.some(other => other !== car && other.lane === car.lane && other.state === 'slotted' && other.distance - car.distance > 0 && other.distance - car.distance < 1.2);
-          switchLane = nearby || this.random() < .25;
+          switchLane = this.track.meeting
+            ? trafficAhead(this.track,car,cars)<2.4 && passingLaneClear(this.track,car,cars)
+            : nearby || this.random() < .25;
         }
       }
     }

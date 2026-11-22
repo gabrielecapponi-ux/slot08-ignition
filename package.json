@@ -1,9 +1,9 @@
 {
   "name": "slot-08",
-  "version": "6.0.0",
+  "version": "16.1.0",
   "private": true,
   "type": "module",
-  "description": "SLOT08 Worlds: 15 miniature circuits, Blender scenery, visible GT workshop and progressive grip.",
+  "description": "SLOT08 Club Stories: 50 campaign layouts, qualifying, four-lane racing and individual garages.",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",

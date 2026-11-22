@@ -125,3 +125,564 @@ body.garage-open{overflow:hidden}#garage{position:fixed;inset:0;margin:0;width:1
 .gas-dial button {min-width:44px;min-height:44px;font-size:23px;padding:0;background:#16232de8}
 .part-detail {font-size:14px;line-height:1.5;color:#becdd7;min-height:42px;margin:12px 0}
 @media(max-height:520px){.gas-dial label{font-size:11px}.gas-dial button{min-height:34px}.gas-dial input{height:28px}}
+
+#sectors {
+  position: absolute;
+  top: 264px;
+  right: 3.2%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(320px, 40%);
+  background: #141c26ee;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  pointer-events: none;
+}
+#sectors > div { padding: 8px 10px; }
+#sectors > div + div { border-left: 1px solid var(--line); }
+#sectors b, #sectors strong, #sectors small { display: block; }
+#sectors b { font-size: .75rem; color: var(--lime); }
+#sectors strong { font-size: .95rem; margin: 3px 0; }
+#sectors small { font-size: .75rem; color: #d1d9e3; }
+#sectors { font-variant-numeric: tabular-nums; }
+.sector-announcement { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 650px) {
+  #sectors { top: calc(228px + env(safe-area-inset-top, 0px)); left: 14px; right: 14px; width: auto; }
+}
+@media (orientation: landscape) and (max-height: 550px) {
+  #sectors { top: 126px; left: auto; right: max(18px, env(safe-area-inset-right)); width: 40%; }
+  #sectors > div { padding: 3px 6px; }
+}
+
+#compact-hud { display:none; }
+@media (max-width:650px), (pointer:coarse) and (max-width:1100px), (orientation:landscape) and (max-height:550px) {
+  #app:not([data-state=ready]):not([data-state=finished]) #compact-hud {display:inline-flex;align-items:center;min-height:44px;font-size:12px;}
+  #compact-hud[aria-pressed=true] {border-color:var(--lime);color:var(--lime);}
+  #app:not([data-state=ready]) :is(#wallet,#garage-open:disabled) {display:none;}
+  #app:not([data-state=ready]) {min-height:0;height:100dvh;}
+  #app:not([data-state=ready]) #viewport {height:100dvh;}
+  #app[data-compact=true] :is(.camera-bar,.race-mode,.rivals,.speed-panel,.minimap-wrap) {display:none;}
+  #app[data-compact=true] .brake-coach {top:calc(140px + env(safe-area-inset-top,0px)); padding:8px 12px;}
+  #app[data-compact=true] .brake-coach small {display:none;}
+  #app[data-compact=true] #sectors {top:calc(179px + env(safe-area-inset-top,0px));}
+  #app[data-compact=true] .notice {top:calc(253px + env(safe-area-inset-top,0px));}
+  #app[data-compact=true] .bottom-hud {bottom:max(10px,env(safe-area-inset-bottom));}
+  #app[data-compact=true]:not([data-state=ready]) .footer {display:none;}
+  #app .drive-controls button {min-height:54px;touch-action:manipulation;}
+  #app .power-control button, #app .gas-dial button {min-height:44px;touch-action:manipulation;}
+  #app[data-local=true][data-compact=true] .pilot-telemetry small {display:none;}
+}
+@media (orientation:landscape) and (max-height:550px) {
+  #app[data-compact=true] .brake-coach {top:109px; width:auto;max-width:40%;}
+  #app[data-compact=true] #sectors {top:59px;width:35%;right:max(12px,env(safe-area-inset-right));}
+  #app[data-compact=true] .notice {top:147px;}
+  #app[data-compact=true] .bottom-hud {justify-content:flex-end;}
+}
+
+.club-event {border-left:3px solid #ffab68;padding:.55rem .85rem;color:#ffdaad;line-height:1.45;font-size:.95rem;}
+#club-calendar {grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#39424b;list-style:none;margin:0;padding:1px;}
+#club-calendar li {display:grid;gap:.32rem;background:#17202a;padding:.85rem 1rem;color:#c8cfd4;}
+#club-calendar li.current {background:#2d3325;box-shadow:inset 3px 0 #c6f568;color:#fff;}
+#club-calendar small {font-size:.72rem;letter-spacing:.1em;}
+#club-calendar .won small,#club-calendar .current small {color:#c6f568;}
+#club-calendar span {font-size:.82rem;}
+#club-calendar[hidden],#level-list[hidden],#free-circuits[hidden]{display:none;}
+@media(max-width:650px){#club-calendar{grid-template-columns:repeat(2,minmax(0,1fr));}#club-calendar li{padding:.75rem;}}
+.atelier-nav{position:absolute;top:67px;left:3%;right:3%;display:flex;align-items:center;gap:8px;background:#16202aed;border:1px solid #465560;border-radius:10px;padding:5px;z-index:3}
+.atelier-nav>button{min-width:44px;font-size:24px;padding:0}.atelier-nav button{min-height:44px}
+#garage-categories{display:flex;flex:1;overflow-x:auto;gap:5px;scroll-snap-type:x proximity;scrollbar-width:thin}
+#garage-categories button{flex:1 0 auto;padding:6px 14px;font-size:13px;scroll-snap-align:center}
+#orbit-pad{position:absolute;inset:120px 0 0 42%;touch-action:none;cursor:grab}
+.garage-panel{top:140px}.part-options{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}
+.part-options button{flex:0 0 45%;scroll-snap-align:start}#fleet-list{display:grid;gap:6px}#fleet-list button{display:grid;gap:3px;text-align:left}#fleet-list small{color:#abb6be}
+#garage [hidden]{display:none!important}.garage-preview-label #garage-views{flex-wrap:wrap}.garage-preview-label #garage-views button{min-width:36px;padding:6px}
+#world-picker{grid-column:1/-1;width:min(100%,460px);padding:10px;background:#19232d;color:white}#club-calendar button{display:grid;text-align:left;gap:6px;width:100%;min-height:48px}
+@media(max-width:650px){.atelier-nav{top:55px;left:8px;right:8px}.garage-panel{top:47svh;padding:12px}.garage-panel h2{margin:0 0 8px}.garage-preview-label{top:35svh}.garage-preview-label>strong{margin:0}#orbit-pad{inset:108px 0 53svh}#garage-views button{min-height:36px}.garage-performance,.garage-finish{margin-top:0}}
+@media(orientation:landscape) and (max-height:550px){.atelier-nav{top:38px}.garage-panel{top:95px}.garage-toolbar{padding-block:2px}}
+
+/* Club key art stays in the lobby; the live camera takes over at the starting lights. */
+#app[data-state=ready]:not([data-garage=true]) #poster[hidden]{display:block!important;pointer-events:none}
+#app[data-state=ready] #poster{z-index:1;object-position:64% center}
+#viewport .vignette{z-index:2}
+@media(max-width:650px){#app[data-state=ready] #poster{object-position:65% center}}
+
+/* The warning runs on race time, including when a race is paused. */
+#app[data-driving=crashed] .notice {
+  overflow:hidden;
+  border-radius:7px;
+  background:#09121bf2;
+  border-color:#ffc16e70;
+  color:#ffedcf;
+}
+#app[data-driving=crashed] .notice::after {
+  content:"";
+  position:absolute;
+  bottom:0;
+  left:8px;
+  right:8px;
+  height:3px;
+  background:#ffb84d;
+  transform:scaleX(var(--recovery-progress,0));
+  transform-origin:left center;
+}
+@media (prefers-reduced-motion:reduce) {
+  #app[data-driving=crashed] .notice::after { transform:none; }
+}
+
+/* Railcut GT is drawn for the instrument cluster. Keep text controls and prose in the system face. */
+@font-face{font-family:"Railcut GT";src:url("assets/railcut-gt.woff") format("woff");font-style:normal;font-weight:400 900;font-display:swap}
+:root{--paper:#fff8e9;--muted:#c5d1d0;--accent:#ff9159;--lime:#d7ff72;--display:"Railcut GT","Arial Black",system-ui,sans-serif}
+.brand,.brand-icon,h1,.garage-panel h2,.race-setup h2,.center-panel h2,.countdown,.speed-readout>strong,.timing-bar strong,.garage-preview-label>strong{font-family:var(--display);font-style:normal;font-weight:600}
+h1{font-size:clamp(36px,4.2vw,68px);line-height:1.05;letter-spacing:-.035em;max-width:13em;text-shadow:0 2px 23px #0c141c85}
+h1 em{color:#ffab73}
+.brand{letter-spacing:-.02em}.brand-suffix{font-family:system-ui,sans-serif}
+.brand-icon{border-radius:3px;clip-path:polygon(15% 0,100% 0,100% 73%,78% 100%,0 100%,0 24%);font-weight:800;color:#111c22;background:linear-gradient(135deg,#ffcd8d,#ff8651);padding-top:2px;letter-spacing:-.06em}
+.top-actions button,.atelier-nav,.race-setup,.garage-panel,.center-panel,.camera-bar,.timing-bar>div{border-color:#c4e4dd43}
+.top-actions button{background:#14252bea}
+.race-setup,.garage-panel,.center-panel{background:linear-gradient(148deg,#253942ef,#121e28f8 62%);box-shadow:0 14px 60px #05121a40,inset 0 1px #f6f5ce18}
+.race-setup{border-top:3px solid #ffad76}
+.setup-heading,.garage-toolbar .eyebrow{color:#ffe0ad}
+.garage-panel h2,.race-setup h2,.garage-preview-label>strong{letter-spacing:-.025em}
+.eyebrow i{box-shadow:0 0 11px #e7ff8b70}
+.timing-bar>div{background:linear-gradient(145deg,#23343ef5,#14212be8);box-shadow:inset 2px 0 #a7d9d47a}
+.timing-bar strong{font-size:clamp(16px,1.55vw,23px)}
+#timer,#record{font-variant-numeric:tabular-nums}
+#club-calendar{border-radius:12px;overflow:hidden;background:#819c9d4f}
+#club-calendar li{background:#15232be8}
+#club-calendar li.current{background:linear-gradient(120deg,#304333,#1a2d2b)}
+#club-calendar button[aria-pressed=true]{border-color:#d7ff7299}
+#app .top-actions button:focus-visible,button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #eaffae;outline-offset:3px}
+#app:not([data-state=ready]) .vignette{background:linear-gradient(#12253142,transparent 18%,transparent 73%,#0e182456)}
+#garage-open{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M2%2020V9l10-6%2010%206v11M5%2020V10h14v10M6%2013h12M6%2016h12M9%2020h6%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#sound{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2010h4l5-5v14l-5-5H3z%20M15%209q4%203%200%206%20M18%206q7%206%200%2012%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#sound[aria-pressed=false]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2010h4l5-5v14l-5-5H3z%20M16%209l6%206m0-6-6%206%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#compact-hud{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%209V5h6m6%200h6v4m0%206v4h-6m-6%200H3v-4m4-2h3l2-4%202%205%202-2h2%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#audio-settings{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%204v7m0%203v6m8-16v3m0%204v9m8-16v10m0%204v2M1.8%2011h4.4v3H1.8zm8-4h4.4v4H9.8zm8%207h4.4v4h-4.4z%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#help-open{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%204h8l2%202%206-2v15l-7%202-2-2H4z%20M12%206v12%20M6.5%208H9m-2.5%203H9m6-1%203-1%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#pause{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M5%204h4v16H5z%20M15%204h4v16h-4z%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#tab-next,#next-level,#tutorial-start{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2012h15m-7-7%207%207-7%207%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#start{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2019%2018%205M8%205h10v10%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#tab-prev{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M20%2012H5m7%207-7-7%207-7%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#audio-close,#help-close,#garage-close{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m5%205%2014%2014m0-14L5%2019%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#resume{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m7%204%2014%208-14%208z%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#finish-menu,#back-menu{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2011%2012%204l9%207M5%2010v10h14V10m-9%2010v-6h4v6%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+.throttle-button>span{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2017%2011%207m-3%2010%208-10m-3%2010%208-10%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+.lane-button>span{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2018h3l9-12h4m-3-3%203%203-3%203%20M4%206h3l3%204m4%204%203%204h3m-3-3%203%203-3%203%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-gas-step="0.05"]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2012h18m-9-9v18%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-gas-step="-0.05"]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2012h18%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#zoom-in{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M16%2016l5%205%20M18%2010a8%208%200%201%201-16%200%208%208%200%201%201%2016%200%20M6%2010h8m-4-4v8%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#zoom-out{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M16%2016l5%205%20M18%2010a8%208%200%201%201-16%200%208%208%200%201%201%2016%200%20M6%2010h8%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#under-view{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2011h18l-2-5-4-2H9L5%206z%20M5%2011v3m14-3v3%20M12%2022v-7m-3%203%203-3%203%203%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#view-drone{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m7%207%2010%2010M7%2017%2017%207%20M2%205q2-5%206%200-2%205-6%200zm14%200q2-5%206%200-2%205-6%200zM2%2019q2-5%206%200-2%205-6%200zm14%200q2-5%206%200-2%205-6%200z%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#view-rail{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M2%2017h20M3%2020h18M5%2013l2-7h6l3%207z%20M16%208l4-2v7l-4-2%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#view-iso{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m2%209%2010-6%2010%206-10%206z%20M2%209v6l10%206%2010-6V9m-10%206v6%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+#view-top{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%203h6m6%200h6v6m0%206v6h-6m-6%200H3v-6M3%209V3%20M8%209l4-3%204%203v7l-4%202-4-2z%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-category=fleet]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M2%2016v-4l3-2%203-5h7l4%205%203%202v4h-3m-3%200H8m-3%200H2m4-6h12%20M8%2016a2%202%200%201%201-4%200%202%202%200%201%201%204%200zm12%200a2%202%200%201%201-4%200%202%202%200%201%201%204%200z%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-category=paint]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m5%2014%209-10%204%204-9%2010H5z%20M14%204l2-2%205%205-3%202%20M5%2020h14%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-category=mechanics]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M13%205h3l2-2v6l-3%203-3-1-7%209-3-3%208-8-1-3%203-4z%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-category=wheels]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M22%2012a10%2010%200%201%201-20%200%2010%2010%200%201%201%2020%200z%20M15%2012a3%203%200%201%201-6%200%203%203%200%201%201%206%200zm-3-3V3m3%208%205-2m-6%206%204%204m-7-4-3%205m1-8-6-1%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-category=wing]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m2%209%2017-5%203%204-16%205z%20M9%2013l-2%207m10-9-2%207M5%2020h5m3-2h5%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-category=hood]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m4%2018%202-10%204-4h5l4%204%201%2010-5%202H9z%20M9%209l-1%205m7-5%201%205%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-category=aero]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m2%2016%2010-4%206-7h4l-4%2010-8%203H2z%20M4%2020h12%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-category=lights]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M11%205q6%207%200%2014H6Q1%2012%206%205z%20M16%206l5-2m-4%207h6m-7%205%205%202%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-category=exhaust]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m2%2016%208-5%202-4%207-4%203%205-7%204-3%201-7%206z%20M16%205l3%205m-11%203%203%204%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+[data-category=glass]{--pictogram:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m2%2017%205-9%203-2h7l5%2011-2%202H4z%20M10%208l-3%206m7-6-2%204%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")}
+:is(#garage-open,#sound,#sound[aria-pressed=false],#compact-hud,#audio-settings,#help-open,#pause,#tab-next,#next-level,#tutorial-start,#start,#tab-prev,#audio-close,#help-close,#garage-close,#resume,#finish-menu,#back-menu,.throttle-button>span,.lane-button>span,[data-gas-step="0.05"],[data-gas-step="-0.05"],#zoom-in,#zoom-out,#under-view,#view-drone,#view-rail,#view-iso,#view-top,[data-category=fleet],[data-category=paint],[data-category=mechanics],[data-category=wheels],[data-category=wing],[data-category=hood],[data-category=aero],[data-category=lights],[data-category=exhaust],[data-category=glass])::before{content:"";display:inline-block;vertical-align:-.22em;width:1.24em;height:1.24em;margin-right:.45em;background:currentColor;-webkit-mask:var(--pictogram) center/contain no-repeat;mask:var(--pictogram) center/contain no-repeat}
+:is(#help-open,#pause,#help-close,#audio-close,#zoom-in,#zoom-out,#tab-prev,#tab-next,[data-gas-step]){font-size:0!important}
+:root :is(#help-open,#pause,#help-close,#audio-close,#zoom-in,#zoom-out,#tab-prev,#tab-next,[data-gas-step])::before{width:20px;height:20px;vertical-align:middle;margin:0}
+#garage-categories button{white-space:nowrap}.garage-categories button::before{color:#efca8a}.garage-categories button[aria-pressed=true]::before{color:#203020}
+#app .drive-controls button>span::before{width:1.4em;height:1.4em}
+#start>span,#tutorial-start>span{display:none}
+@media(max-width:650px){
+  h1{font-size:clamp(33px,8vw,42px);letter-spacing:-.035em}
+  .timing-bar strong{font-size:17px}.brand-icon{font-size:20px}
+  .top-actions button{white-space:nowrap}
+  .top-actions :is(#audio-settings,#compact-hud){font-size:0!important}
+  .top-actions :is(#audio-settings,#compact-hud)::before{width:19px;height:19px;margin:0}
+  .top-actions{gap:3px}
+  #garage-views button::before{width:14px;height:14px}
+}
+@media(orientation:landscape) and (max-height:550px){.timing-bar strong{font-size:15px}h1{font-size:34px}}
+
+#fleet-list button{display:grid;grid-template-columns:86px minmax(0,1fr);grid-template-rows:auto auto;column-gap:12px;align-content:center;align-items:center;padding:8px 10px}
+.fleet-thumb{grid-row:span 2;display:block;width:86px;aspect-ratio:2;background-image:url('assets/fleet-catalog.webp?v=15.0.0');background-size:300% 300%;background-repeat:no-repeat;border-radius:4px}
+#fleet-list button[aria-pressed=true]{border-color:var(--lime)}
+
+/* The department sheet translates inside its own viewport; the model stays framed. */
+.garage-panel{overflow-x:hidden;overscroll-behavior:contain}
+.garage-sheet{position:relative;min-width:0}
+.atelier-nav button:focus-visible,.garage-sheet button:focus-visible,.garage-sheet select:focus-visible{outline:2px solid #ffe0a7;outline-offset:-3px}
+
+/* A fixed-size control keeps its hit target while the rendered hardware moves. */
+#app .drive-controls .throttle-button {
+  position:relative;isolation:isolate;overflow:hidden;padding-inline:41px 10px;
+  color:#f7f6e9;border-color:#708b91;
+  background:radial-gradient(ellipse at 18% 25%,#47565b 0%,#26343b 46%,#132129 100%);
+}
+#app .drive-controls .throttle-button.active {
+  color:#eeffd5;border-color:#c7f076;box-shadow:inset 0 -3px 0 #c7f076;
+}
+#app .throttle-button>span::before{display:none}
+.plunger-controller {
+  display:block;position:absolute;inset-block:2px;left:6px;aspect-ratio:96/264;
+  pointer-events:none;background-image:url("assets/controller-atlas.webp");
+  background-size:900% 200%;background-repeat:no-repeat;
+}
+@media(max-width:700px),(max-height:590px){
+  #app .drive-controls .throttle-button{padding-inline:26px 5px}
+  .plunger-controller{left:3px}
+}
+
+#auto-start-note{color:var(--lime);font-variant-numeric:tabular-nums}
+.finish-actions{flex-wrap:wrap;justify-content:center;gap:.55rem}
+
+/* The race fills the live viewport, including browser-bar and rotation changes. */
+html:has(#app:not([data-state=ready])), body:has(#app:not([data-state=ready])) {overflow:hidden;overscroll-behavior:none}
+#app:not([data-state=ready]) {height:100dvh;min-height:0}
+#app:not([data-state=ready]) #viewport {position:absolute;inset:0;height:100%;width:100%}
+#garage {height:100dvh}
+#fullscreen {display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:10px}
+.fullscreen-icon {width:19px;height:19px;display:block;background:linear-gradient(currentColor,currentColor) left top/7px 2px,linear-gradient(currentColor,currentColor) left top/2px 7px,linear-gradient(currentColor,currentColor) right top/7px 2px,linear-gradient(currentColor,currentColor) right top/2px 7px,linear-gradient(currentColor,currentColor) left bottom/7px 2px,linear-gradient(currentColor,currentColor) left bottom/2px 7px,linear-gradient(currentColor,currentColor) right bottom/7px 2px,linear-gradient(currentColor,currentColor) right bottom/2px 7px;background-repeat:no-repeat}
+#fullscreen[aria-pressed=true] {color:var(--lime);border-color:var(--lime)}
+#screen-help {max-width:540px;width:calc(100% - 24px);max-height:calc(100dvh - 24px);overflow:auto}
+#screen-help h2 {font-size:24px}
+#screen-help p {font-size:16px;line-height:1.5}
+#screen-help a {display:inline-block;padding-block:12px;text-decoration:underline}
+@media (max-width:650px), (pointer:coarse) and (max-width:1100px), (orientation:landscape) and (max-height:550px) {
+  #app:not([data-state=ready]) .topbar {height:50px;padding-inline:max(10px,env(safe-area-inset-left)) max(10px,env(safe-area-inset-right));pointer-events:none}
+  #app:not([data-state=ready]) .topbar :is(.brand,#audio-settings,#help-open) {display:none}
+  #app:not([data-state=ready]) .top-actions {width:100%;justify-content:flex-end}
+  #app:not([data-state=ready]) .top-actions button {min-width:44px;min-height:44px;pointer-events:auto}
+  #app[data-compact=true]:not([data-state=ready]) .timing-bar {top:calc(54px + env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));gap:6px}
+  #app[data-compact=true] .timing-bar>div {padding:6px 10px;min-width:0;flex:1;backdrop-filter:none}
+  #app[data-compact=true] .timing-bar small {font-size:10px;letter-spacing:.05em;margin-bottom:2px}
+  #app[data-compact=true] .timing-bar strong {font-size:17px}
+  #app[data-compact=true] .timing-bar>div:nth-child(2) strong {font-size:clamp(12px,3.6vw,16px)}
+  #app[data-compact=true] .timing-bar button {min-width:44px;min-height:44px;padding:8px}
+  #app[data-compact=true] .timing-bar>div:nth-child(3) {display:none}
+  #app[data-compact=true] .brake-coach {top:calc(108px + env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));width:auto;max-width:none;background:#14212ab8;border:0;backdrop-filter:none}
+  #app[data-compact=true] .brake-coach strong {font-size:12px}
+  #app[data-compact=true] .notice {top:calc(155px + env(safe-area-inset-top));font-size:12px}
+  #app[data-compact=true] #sectors {top:calc(148px + env(safe-area-inset-top));left:10px;right:10px;width:auto}
+  #app[data-compact=true] .bottom-hud {left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));gap:0}
+  #app[data-compact=true] .power-control {display:none}
+  #app[data-compact=true][data-local=false] .gas-dial {display:grid;grid-template-columns:90px 1fr;align-items:center;gap:8px;margin-bottom:6px;padding:0 8px;background:#11212ab8;border-radius:10px}
+  #app[data-compact=true][data-local=false] .gas-dial label {display:block;font-size:10px;letter-spacing:.03em}
+  #app[data-compact=true][data-local=false] .gas-dial output {display:block;font-size:16px}
+  #app[data-compact=true] .gas-dial input {height:44px}
+  #app[data-compact=true] .gas-dial button {min-width:44px;min-height:44px}
+  #app[data-compact=true][data-local=false] .drive-controls {gap:12px;width:100%}
+  #app[data-compact=true][data-local=false] .drive-controls button {flex:1;min-width:0;min-height:68px;font-size:14px;gap:5px}
+  #app[data-compact=true][data-local=false] .drive-controls kbd {font-size:10px;letter-spacing:.06em}
+  #app[data-compact=true] #all-controls {width:100%}
+  #app:not([data-state=ready]) .vignette {background:linear-gradient(0deg,#08141e66,transparent 27%,transparent 85%,#08141e33)}
+  .center-panel {max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);overflow:auto}
+  #app[data-state=ready] .top-actions #audio-settings {display:none}
+  #garage .garage-toolbar {padding-top:max(8px,env(safe-area-inset-top));padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  #garage .atelier-nav {top:calc(56px + env(safe-area-inset-top))}
+  #garage .garage-preview-label #garage-views {flex-wrap:nowrap;justify-content:center;gap:4px;overflow-x:auto;padding:2px 8px}
+  #garage .garage-preview-label #garage-views button {min-width:44px;min-height:44px;flex:0 0 auto}
+}
+@media (max-width:350px) {
+  #garage .garage-preview-label #garage-views {justify-content:flex-start}
+}
+@media (orientation:landscape) and (max-height:550px) {
+  #app[data-compact=true]:not([data-state=ready]) .timing-bar {top:calc(6px + env(safe-area-inset-top));right:184px;width:min(380px,calc(100% - 210px))}
+  #app[data-compact=true] .brake-coach {top:calc(62px + env(safe-area-inset-top));right:auto;max-width:44%;padding:6px 10px}
+  #app[data-compact=true] .notice {top:calc(107px + env(safe-area-inset-top))}
+  #app[data-compact=true] #sectors {top:62px;left:auto;right:max(12px,env(safe-area-inset-right));width:44%}
+  #app[data-compact=true][data-local=false] .pilot-controls {display:grid;grid-template-columns:1fr minmax(170px,230px) 1fr;align-items:end;gap:14px;width:100%}
+  #app[data-compact=true][data-local=false] .drive-controls {display:contents}
+  #app[data-compact=true][data-local=false] .lane-button {grid-column:1;grid-row:1;width:150px;justify-self:start}
+  #app[data-compact=true][data-local=false] .throttle-button {grid-column:3;grid-row:1;width:150px;justify-self:end}
+  #app[data-compact=true][data-local=false] .gas-dial {grid-column:2;grid-row:1;display:block;margin:0}
+  #app[data-compact=true][data-local=false] .gas-dial label {display:flex;padding-top:4px}
+  #app[data-compact=true][data-local=false] .drive-controls button {min-height:76px}
+  #garage .atelier-nav {top:calc(44px + env(safe-area-inset-top))}
+  #garage .garage-panel {top:calc(100px + env(safe-area-inset-top));bottom:max(8px,env(safe-area-inset-bottom))}
+}
+@media (max-width:650px) and (orientation:portrait) {
+  #garage .garage-panel {top:47dvh;bottom:max(8px,env(safe-area-inset-bottom))}
+  #garage .garage-preview-label {top:35dvh}
+  #orbit-pad {bottom:53dvh}
+}
+
+/* Club 13 — timing sheets, parts drawers and the amber club badge. */
+:root{--accent:#ff743b;--lime:#d8ec8c;--paper:#f4f1e7;--line:#abb3af44}
+#app .topbar{background:linear-gradient(#0d171bfa,#0d171b00)}
+#app button,#garage button{border-radius:3px}
+#app :is(#garage-open,#sound,#compact-hud,#audio-settings,#help-open,#start,#tutorial-start,#next-level,#resume,#finish-menu,#back-menu)::before,
+#garage :is(#garage-close,#under-view,[data-category])::before{display:none}
+#app #help-open,#garage :is(#tab-prev,#tab-next){font-size:14px!important}
+#app #help-open{min-width:44px}
+#app .top-actions{font-size:12px;font-weight:700;letter-spacing:.04em}
+#app .hero-copy h1{font-size:clamp(42px,6.6vw,92px);line-height:.94;letter-spacing:-.045em;margin:22px 0}
+#app .hero-copy .intro{font-size:15px;line-height:1.55;max-width:420px}
+#app .hero-copy .eyebrow{color:#f0c586;letter-spacing:.18em;font-size:12px}
+#app .hero-copy .eyebrow i{display:none}
+#app .primary{font-size:14px;letter-spacing:.08em;border-radius:3px;box-shadow:none}
+#app .text-button{font-size:13px}
+.tour-passport{max-width:410px;margin-top:24px;border-top:1px solid #eee5cb70;padding-top:16px}
+.tour-passport>div{display:flex;justify-content:space-between;gap:12px;font-size:11px;letter-spacing:.12em}
+.tour-passport>div span{color:#c1c9c5}.tour-passport p{margin:8px 0;font-size:20px;font-weight:600}
+.tour-passport meter,#finish-progress meter{width:100%;height:10px;display:block;accent-color:var(--accent)}
+.tour-passport small{display:block;line-height:1.5;margin-top:8px;font-size:12px;color:#d1d8ce}
+#app .race-setup{position:relative;background:#ebe8dd;color:#1e2a2d;border:0;border-top:5px solid var(--accent);border-radius:3px;box-shadow:0 16px 44px #0005;backdrop-filter:none}
+#app .race-setup h2{font-family:Arial,Helvetica,sans-serif;font-size:29px;font-weight:800;line-height:1.08;margin-top:12px}
+#app .race-setup>p{color:#44504f;font-size:13px;line-height:1.5}
+#app .race-setup .setup-heading{font-size:11px;color:#714f3d}
+#app .race-setup label{color:#334449;font-size:12px}
+#app .race-setup select{color:#17262b;background:#fffdf6;border-color:#b1bab4;font-size:13px;border-radius:2px;min-height:44px}
+#app .race-setup .switch-row small{color:#56605e;font-size:11px}
+#app .race-setup .switch-row input{flex-shrink:0}
+#route-preview{float:right;width:100px;height:64px;margin:6px 0 12px 12px;display:grid;place-items:center;background:#18282a;border-radius:2px}
+#route-preview svg{width:82px;height:50px}
+#track-condition{padding:8px 10px;background:#d9d4c4;border-left:3px solid #ab7848;clear:both;font-weight:700}
+#app #world-picker{border:0;border-bottom:2px solid #f1d19a;padding:10px 4px;border-radius:0;background:#142326e8;font-size:14px}
+#app #club-calendar{background:#102023f2;border:0;border-radius:0;gap:0;padding:0;box-shadow:none}
+#app #club-calendar li{border:0;border-right:1px solid #79878255;padding:0;background:none;border-radius:0}
+#app #club-calendar button{min-height:78px;border:0;border-radius:0;background:none;padding:14px 16px;box-shadow:none}
+#app #club-calendar li.current{background:#f0ebdc;color:#172729;border-bottom:4px solid var(--accent)}
+#app #club-calendar li.current small{color:#71513a}
+#app #club-calendar small{font-size:12px;letter-spacing:.03em}
+#app #club-calendar strong{font-size:15px;font-weight:700}
+#app .level-card{border-radius:2px}
+#garage .garage-toolbar{background:#101c20f2;border-bottom:1px solid #d0d0bc44;min-height:56px}
+#garage .atelier-nav{background:#172529f5;border:0;border-bottom:2px solid #e7d0a1;border-radius:0;padding:4px}
+#garage .atelier-nav>button{font-family:Arial,sans-serif;font-size:25px!important}
+#garage .atelier-nav>button::before{display:none}
+#garage #garage-categories button{font-size:14px;font-weight:700;background:none;color:#cad1ca;border:0;border-bottom:3px solid transparent;padding:10px 16px;border-radius:0}
+#garage #garage-categories button[aria-pressed=true]{color:#ffb078;border-bottom-color:#ff8b4d;background:#20353a}
+#garage .garage-panel{background:#e8e5dbf5;color:#1d2b2e;border:0;border-radius:3px;box-shadow:0 20px 80px #0005;backdrop-filter:none;padding:18px}
+#garage .garage-panel h2{font-family:Arial,Helvetica,sans-serif;font-size:27px;font-weight:800;margin:0 0 16px;letter-spacing:-.03em}
+#garage .garage-panel h3{font-size:16px;font-weight:700}
+#garage .garage-panel h3 small{color:#5e695f;font-size:11px}
+#garage .part-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;overflow:visible;padding:0;margin:0}
+#garage .part-options button{display:flex;flex-direction:column;align-items:stretch;gap:5px;text-align:left;background:#f8f6ef;border:2px solid transparent;padding:5px 5px 10px;min-width:0;box-shadow:0 1px 0 #10202322;border-radius:2px;color:#203035}
+#garage .part-options button[aria-pressed=true]{border-color:#d96632;background:#fffdf7;box-shadow:0 0 0 1px #d96632}
+.part-thumb{display:block;width:100%;aspect-ratio:4/3;background:#e1e2df url('assets/parts-catalog.webp') no-repeat;background-size:1100% 700%;border-radius:1px}
+#garage .part-options strong{font-size:14px;line-height:1.2;padding-inline:5px}
+#garage .part-options small{font-size:11px;letter-spacing:.05em;color:#626d64;padding-inline:5px}
+#garage #part-buy{position:sticky;bottom:0;width:100%;margin-top:8px;font-size:13px;min-height:48px;background:#1d373a;color:#fff5dc;box-shadow:0 -8px 14px #e8e5dbe0}
+#garage #part-detail{font-size:14px;line-height:1.5;color:#47594f;margin:16px 0 4px}
+#garage #garage-note{font-size:13px;color:#715132;line-height:1.5}
+#garage #fleet-list button{background:#f5f3e9;border:1px solid #c4c9be;border-radius:2px;color:#1d2f30}
+#garage #fleet-list button[aria-pressed=true]{border:2px solid #d96632}
+#garage #fleet-list small{font-size:12px;color:#58665b}
+#garage .hardware-card{margin-bottom:12px;border:1px solid #b9c3b6;background:#faf8f0;padding:7px}
+#garage .hardware-card>button{display:grid;grid-template-columns:100px 1fr;gap:12px;width:100%;border:0;padding:0;text-align:left;color:#1f3033}
+#garage .hardware-card>button[aria-pressed=true]{outline:2px solid #d96632;outline-offset:3px}
+.hardware-card button>span:last-child{align-self:center}.hardware-card strong,.hardware-card small,.hardware-card em,.hardware-card b{display:block}
+.hardware-card strong{font-size:15px}.hardware-card small{font-size:11px;margin:5px 0;color:#7a5a3b}
+.hardware-card em{font-size:12px;font-style:normal;color:#59665d;line-height:1.5}.hardware-card b{font-size:10px;margin:6px 0;color:#ab522f}
+.hardware-card>div{display:flex;align-items:center;gap:12px;margin-top:10px}.hardware-card progress{width:80px;accent-color:#cf6432}
+#garage .hardware-card [data-upgrade]{margin-left:auto;min-height:44px;background:#213b3e;color:#fff2d5;font-size:12px;font-weight:bold}
+#garage #trim-options button{color:#213034;border-color:#8d9b92}
+#garage #trim-options button[aria-pressed=true]{background:#d2cfb8}
+#garage .garage-preview-label>strong{color:#fff1d2;text-shadow:0 2px 6px #000}
+#countdown.countdown{top:24%;left:50%;right:auto;transform:translateX(-50%);width:min(520px,90%);font:inherit;text-align:center;padding:24px;background:#102023ef;border:1px solid #ded5b044;border-radius:3px;box-shadow:0 15px 90px #0004}
+#countdown small{font-size:12px;letter-spacing:.15em;color:#f3d9ac;display:block}
+.start-lights{display:flex;justify-content:center;gap:12px;margin:22px 0}
+.start-lights i{display:block;width:46px;height:46px;border-radius:50%;background:#361a16;box-shadow:inset 0 3px 9px #000b;border:3px solid #030b0f}
+.start-lights i.on{background:#f45730;box-shadow:0 0 22px #f0593070,inset 0 3px 3px #ffd7b055}
+#countdown strong{display:block;font-family:var(--display);font-size:48px;color:#f6e7cf;line-height:1.1}
+#countdown>span{display:block;margin-top:10px;font-size:11px;letter-spacing:.12em;color:#c4c9ba}
+.surface-warning{position:absolute;top:215px;left:3.2%;max-width:90%;padding:10px 14px;background:#f0d388;color:#283028;border-left:4px solid #9d5231;font-size:12px;font-weight:bold;letter-spacing:.03em;pointer-events:none}
+.surface-warning[data-affected=false]{background:#c9ddbd;border-left-color:#557d53}
+#finish-panel{width:min(530px,92vw);padding:30px;background:#eee9dc;color:#172a2c;border:0;border-top:7px solid var(--accent);border-radius:2px;backdrop-filter:none;text-align:left;overflow-y:auto}
+#finish-panel .eyebrow{color:#805738;justify-content:flex-start}
+#finish-panel h2{font-family:Arial,sans-serif;font-size:36px;font-weight:900;letter-spacing:-.04em;margin:12px 0 18px}
+#finish-panel p{color:#526158;font-size:14px;line-height:1.5}
+#finish-panel #finish-reward{font-size:23px;font-weight:800;color:#a74a25;line-height:1.3}
+#finish-panel #finish-unlock{font-size:13px;color:#425336;font-weight:700}
+#finish-panel #auto-start-note{font-size:13px;color:#4b5f53}
+#finish-panel .text-button{color:#213c3b}
+#finish-panel #retry-round{color:#213c3b;border-color:#71897c}
+.finish-stars{display:flex;gap:12px;color:#c6c6b7;letter-spacing:0;font-family:Arial,sans-serif}
+.finish-stars span{font-size:42px;display:block}
+.finish-stars .earned{color:#c86b2f}
+#finish-progress>div{display:flex;justify-content:space-between;font-size:12px;gap:10px;margin:12px 0 6px}
+#app[data-state=finished] #finish-panel{animation:finish-arrival .45s cubic-bezier(.2,.8,.2,1) both}
+#app[data-state=finished] .finish-stars .earned{animation:star-arrival .4s var(--star-delay) both}
+@keyframes finish-arrival{from{opacity:0;translate:0 24px}to{opacity:1;translate:0 0}}
+@keyframes star-arrival{from{opacity:0;scale:.3;rotate:-20deg}to{opacity:1;scale:1;rotate:0deg}}
+@media(min-width:1001px){#app .lobby{grid-template-columns:1fr 370px;top:105px;gap:20px}#app .hero-copy{margin-bottom:0}#app #club-calendar{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:650px){
+ #app .top-actions{gap:3px}#app .top-actions button{font-size:10px;padding:8px}#app #help-open{font-size:10px!important}
+ #app .hero-copy h1{font-size:59px;margin:20px 0}#app .hero-copy .intro{font-size:14px}#app .hero-copy .eyebrow{font-size:10px}
+ #app .lobby{padding-top:86px;gap:24px}#app .hero-actions{gap:8px}#app .hero-actions .primary{font-size:13px}
+ #app .race-setup{padding:20px}#app #club-calendar{display:flex;overflow-x:auto;scroll-snap-type:x mandatory}#app #club-calendar li{flex:0 0 68%;scroll-snap-align:center}
+ #garage .garage-panel{padding:12px}#garage .garage-panel h2{font-size:23px;margin-bottom:12px}
+ #garage .part-options{gap:8px}#garage .part-options strong{font-size:13px}.hardware-card em{font-size:11px}
+ #garage #garage-categories button{font-size:13px;padding:8px 12px}
+ #garage .hardware-card>button{grid-template-columns:85px 1fr;gap:8px}
+ #app[data-compact=true] .surface-warning{top:calc(150px + env(safe-area-inset-top));left:10px;right:10px;max-width:none;font-size:11px;padding:8px}
+ #app[data-compact=true] .notice{top:calc(195px + env(safe-area-inset-top))}
+ #countdown.countdown{padding:18px;top:24%}.start-lights{gap:9px;margin:18px 0}.start-lights i{width:38px;height:38px}
+ #finish-panel{padding:22px}#finish-panel h2{font-size:29px}#finish-panel #finish-reward{font-size:19px}
+}
+@media(orientation:landscape) and (max-height:550px){
+ #app .hero-copy h1{font-size:44px}#app .hero-copy .intro{font-size:13px}.tour-passport{margin-top:12px;padding-top:10px}
+ #app .surface-warning,#app[data-compact=true] .surface-warning{left:auto;right:12px;top:65px;max-width:45%;font-size:10px;padding:7px}
+ #countdown.countdown{top:18%;padding:14px;width:340px}.start-lights{margin:10px 0}.start-lights i{width:30px;height:30px}#countdown strong{font-size:30px}
+ #finish-panel{padding:18px;width:min(590px,90%)}#finish-panel h2{font-size:26px;margin:8px 0}.finish-stars span{font-size:30px}#finish-panel p{margin:8px 0}#finish-panel .finish-actions{margin-top:12px}
+ #garage .hardware-card>button{grid-template-columns:70px 1fr}
+}
+@media(prefers-reduced-motion:reduce){#app[data-state=finished] #finish-panel,#app[data-state=finished] .finish-stars .earned{animation:none}}
+
+@media(max-width:700px){#app .top-actions #compact-hud{font-size:10px!important}}
+@media(min-width:900px){#app[data-state=finished] #finish-panel{left:5%;transform:translateY(-50%)}}
+
+.studio-export{font-size:13px;margin:12px 0}.studio-export summary{cursor:pointer;min-height:44px;display:flex;align-items:center}.studio-export button{color:#173b3b;border-color:#7c938b}.studio-export p{font-size:12px!important}
+
+/* CLUB STORIES / 14 — original type, circular controls and smoked glass. */
+@font-face{font-family:'Slot Sans';src:url('assets/slot-sans.woff2') format('woff2');font-weight:450;font-style:normal;font-display:swap}
+:root{font-family:'Slot Sans',Arial,sans-serif;--accent:#ff944a;--paper:#f1f7f2;--muted:#b3c6c3;--lime:#b9fa49;--glass:linear-gradient(135deg,#142c32c9,#0a171dcc)}
+body,button,select,input,.brand-suffix,#app .race-setup h2,#garage .garage-panel h2,#finish-panel h2,.hardware-card{font-family:'Slot Sans',Arial,sans-serif}
+button{font-size:14px;border-radius:24px;font-weight:450;transition:background .2s,border-color .2s,box-shadow .2s}button:hover{box-shadow:0 0 20px #d9efcf10}select{font-size:14px!important;min-height:44px}
+.slot-icon{display:inline-block;width:46px;height:46px;flex:0 0 auto;vertical-align:middle;color:inherit}
+#app .round-action,#garage .round-action{border:0;border-radius:50%;width:48px;height:48px;min-height:48px;padding:0;background:#12252b70;color:#dbeae4;display:inline-grid;place-items:center;box-shadow:none;font-size:0!important}
+#app .round-action::before,#garage .round-action::before{display:none!important}
+#app .round-action:hover,#garage .round-action:hover{background:#8cae9d25;color:#ffc492}
+#app .round-action .slot-icon,#garage .round-action .slot-icon{width:46px;height:46px}
+#tab-prev .slot-icon{transform:rotate(180deg)}
+#app .top-actions{gap:7px}#app .top-actions #wallet{font-size:14px}#app .topbar{background:linear-gradient(#08161ddd,transparent)}
+#app .primary{border-radius:32px;background:#f4b27c;color:#102128;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:10px 24px;min-height:54px;box-shadow:0 6px 30px #020b1240}
+#app .primary .slot-icon{width:32px;height:32px}#app .primary span{font-size:14px;margin:0}
+#app .text-button{font-size:14px;color:#dce8e1;letter-spacing:0}
+.mode-home{position:absolute;inset:108px 6% 55px;display:grid;grid-template-columns:1.1fr 1fr;gap:7%;align-items:center;z-index:2}
+#app[data-home=true] #lobby{display:none!important}#app[data-home=true] #mode-home{display:grid}
+.home-title h1{font-size:clamp(52px,6vw,92px);margin:18px 0 28px;line-height:1.06;max-width:650px}
+.home-title>p{font-size:17px;line-height:1.6;color:#dce3da}.home-title>.eyebrow{font-size:13px;color:#d3e4d9;letter-spacing:.16em}
+.home-save{margin-top:36px;padding-top:22px;border-top:1px solid #c4dbc83b;max-width:440px}.home-save span{font-size:13px;color:#f0b98b;display:block}.home-save strong{font-size:17px;display:block;margin:12px 0;font-weight:450}.home-save p{font-size:13px;color:#a8beb5;line-height:1.5}.home-save button{padding:4px 0;min-height:44px}
+#mode-choices{display:flex;flex-direction:column;gap:9px}#mode-choices button{display:flex;align-items:center;gap:18px;text-align:left;min-height:100px;padding:13px 24px 13px 13px;background:linear-gradient(110deg,#10252b9e,#17333240);backdrop-filter:blur(12px);border:1px solid #d7e7d626;border-radius:54px}
+#mode-choices button:first-child{background:linear-gradient(110deg,#39614fbb,#1d383f80);border-color:#d4f6be88}
+#mode-choices button:hover,#mode-choices button:focus-visible{background:#2c514ce0;border-color:#f5c694}
+#mode-choices .slot-icon{width:70px;height:70px;color:#e1e9cb}#mode-choices strong{font-size:26px;font-weight:450;display:block;margin-bottom:5px}#mode-choices small{font-size:14px;display:block;color:#bed0c9;line-height:1.4}
+#app[data-state=ready] .vignette{z-index:1;background:linear-gradient(90deg,#091820e8,#09182095 55%,#08161d63),linear-gradient(0deg,#08161dfa,transparent 40%)}
+#app .lobby{top:98px;bottom:60px;grid-template-columns:minmax(0,1fr) 360px;gap:18px 36px;align-items:start;overflow-y:auto;scrollbar-width:thin;padding-right:4px}
+#app .hero-copy{max-width:none;margin:0;align-self:start}#app .hero-copy h1{font-size:clamp(36px,4vw,58px);margin:12px 0 14px;letter-spacing:-.025em;max-width:700px}#app .hero-copy .intro{font-size:16px;line-height:1.5;max-width:640px;margin:0;color:#cbdad3}
+#chapter-kicker{font-size:13px;color:#e7be98;letter-spacing:.1em}#circuit-preview{width:100%;height:auto;max-height:270px;display:block;margin:4px 0 0}#app .hero-actions{margin-top:6px}
+#app .race-setup{background:var(--glass);border:1px solid #d5ebdc32;border-radius:28px;box-shadow:0 18px 60px #020f1b30,inset 0 1px #e3ffe115;backdrop-filter:blur(18px);color:#e5f0e5;padding:22px}
+#app .race-setup h2{font-size:27px;font-weight:450;color:#eff4e7;line-height:1.2;margin:14px 0}
+#app .race-setup :is(p,label),#app .race-setup .switch-row small{color:#bed0c9;font-size:14px}#app .race-setup strong{color:#edf4eb;font-size:14px;font-weight:450}
+#app .race-setup .setup-heading{font-size:12px;color:#e5c1a0;letter-spacing:.07em}
+#app .race-setup select{background:#132930cc;color:#dcebe3;border:1px solid #b0cbbb30;border-radius:22px;padding:12px 18px;margin-top:6px}
+#app .setup-options{padding:10px 0 16px}.switch-row{padding-top:13px}#app .race-setup .switch-row small{font-size:12px;line-height:1.5}
+#route-preview{display:none}#track-condition{background:#88a99f10;border:0;border-radius:16px;font-weight:450;padding:10px 12px}
+#app .tour-passport{background:none;margin-top:18px;padding:15px 0 0;border-top:1px solid #cfe3c833}.tour-passport p{font-size:17px!important}.tour-passport small{font-size:13px}.tour-passport>div span{font-size:12px}.tour-passport strong{font-size:16px}
+#app #world-picker{grid-column:1/-1;width:auto;max-width:420px;border:1px solid #c1dfcf40;border-radius:24px;background:#11272cbd;padding:12px 20px;font-size:14px}
+#app #club-calendar{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:none;gap:8px;margin:0}
+#app #club-calendar li,#app #club-calendar li.current{background:#11252ba8;border:1px solid #c7e3ce30;border-radius:20px;color:#e4eadf;overflow:hidden}
+#app #club-calendar li.current{background:#2b5142ad;border-color:#d2eab680}#app #club-calendar button{min-height:88px;padding:15px;border-radius:20px}
+#app #club-calendar small,#app #club-calendar li.current small{font-size:12px;color:#becfb9;letter-spacing:0}#app #club-calendar strong{font-size:15px;font-weight:450;line-height:1.3}
+#app .level-card{background:#142a31aa;border-radius:24px}.level-card strong{font-size:16px!important}.level-card small{font-size:12px!important}.hint{font-size:12px!important}
+#garage .garage-panel{background:var(--glass);backdrop-filter:blur(18px);color:#e4eee6;border:1px solid #c3ddcf32;border-radius:26px;box-shadow:0 16px 65px #02101b60;padding:20px}
+#garage .garage-panel h2{font-size:28px;font-weight:450;letter-spacing:-.02em}#garage .garage-panel h3{font-size:17px;font-weight:450}#garage .garage-panel h3 small{color:#a8bdb4;font-size:12px}
+#garage .atelier-nav{background:#13282ba3;border:1px solid #c9e3d62e;border-radius:40px;backdrop-filter:blur(14px);padding:2px 7px}
+#garage #garage-categories button{display:inline-flex;align-items:center;gap:6px;color:#bcd1c8;border:0;border-radius:30px;padding:6px 11px;font-size:14px;min-height:50px;background:none}
+#garage #garage-categories .slot-icon{width:38px;height:38px}#garage #garage-categories button[aria-pressed=true]{background:#a4c69c25;color:#ffe0b9;border:0}
+#garage .garage-toolbar{background:linear-gradient(#101f27e8,#101f2750);border:0;font-size:14px}
+#garage .part-options{gap:12px}#garage .part-options button{background:#19313970;border:1px solid #c6e4d42b;border-radius:24px;color:#dbeae1;box-shadow:none;padding:10px;gap:8px}
+#garage .part-options button[aria-pressed=true]{background:#54745c30;border:1px solid #eac899;box-shadow:0 0 0 2px #eac89920}
+#garage .part-thumb{border-radius:50%;filter:brightness(.78) contrast(1.08);max-width:180px;margin:auto}
+#garage .part-options strong{font-size:15px;font-weight:450}#garage .part-options small{font-size:12px;color:#abc3b9;letter-spacing:.01em}
+#garage #part-buy{background:#edb787;color:#132b30;border-radius:28px;box-shadow:0 -8px 30px #10272b75;font-size:14px}
+#garage #part-detail,#garage #garage-note{font-size:14px;line-height:1.6;color:#bfcec5}#garage #garage-note{color:#efc29b}
+#garage #fleet-list button{background:#1832397a;border:1px solid #b9dcca2b;border-radius:24px;color:#e0ebe3;padding:12px}
+#garage #fleet-list button[aria-pressed=true]{border:1px solid #e5c18c;box-shadow:0 0 0 2px #eac89920}#garage #fleet-list small{font-size:13px;color:#b4cbbd;line-height:1.6}.fleet-thumb{border-radius:18px;filter:brightness(.82)}
+#garage .hardware-card{border:1px solid #b2d4c62b;background:#17313780;border-radius:22px;padding:12px;margin-bottom:14px}#garage .hardware-card>button{color:#e8ede2;gap:12px}
+#garage .hardware-card>button[aria-pressed=true]{outline:2px solid #edc490;border-radius:18px}.hardware-card strong{font-size:16px;font-weight:450}.hardware-card small,.hardware-card em{font-size:13px;color:#adc6bc;line-height:1.5}.hardware-card b{font-size:12px;color:#e4bc94;font-weight:450}
+#garage .hardware-card [data-upgrade]{border-radius:24px;background:#c5deb2;color:#1b3230;font-size:14px;font-weight:450}#garage #trim-options button{color:#cfe1d5;border:1px solid #a0c0b444;border-radius:24px}#garage #trim-options button[aria-pressed=true]{background:#698e6555}
+.mastery-tuning p{font-size:14px;line-height:1.6}.mastery-tuning button{margin:5px 0;width:100%;text-align:left}.mastery-tuning button[aria-pressed=true]{border-color:#f2c28b;color:#f2c28b}
+#finish-panel,#qualifying-grid,#countdown.countdown{background:var(--glass);backdrop-filter:blur(20px);border:1px solid #cee2cd40;border-radius:32px;color:#e7f0e4;box-shadow:0 25px 90px #03121985;padding:30px}
+#finish-panel h2,#qualifying-grid h2{font-family:var(--display);font-size:37px;font-weight:450;color:#e5eee4}#finish-panel .eyebrow,#qualifying-grid .eyebrow{color:#edbb88;font-size:13px}
+#finish-panel p,#qualifying-grid p{color:#bfd5c9;font-size:15px}#finish-panel #finish-reward{color:#f6c28e;font-size:25px}#finish-panel #finish-unlock{color:#d5e8bc;font-weight:450;font-size:14px}#finish-panel #auto-start-note{color:#c0d4c5;font-size:14px}#finish-panel :is(.text-button,#retry-round){color:#d4e5d8}
+#finish-panel .finish-stars{color:#9db4a14d}#finish-panel .finish-stars .earned{color:#f1c789;filter:drop-shadow(0 0 12px #ffc98c40)}
+#finish-panel[data-rank="1"]::after{content:'';position:absolute;pointer-events:none;inset:0;border-radius:32px;box-shadow:inset 0 0 55px #ffc87913;animation:victory-glow 2s ease-in-out infinite alternate}
+#grid-results{list-style:none;padding:0;margin:22px 0;display:grid;gap:8px}#grid-results li{display:flex;align-items:center;gap:14px;border:1px solid #b2cebc30;border-radius:24px;padding:10px 16px;font-size:17px}#grid-results li b{font-size:23px;color:#e5bf90;font-weight:450}#grid-results li strong{margin-left:auto;font-size:15px;font-weight:450}#grid-results li.is-you{background:#74995732;border-color:#d8ebb889}#grid-skip{display:block;margin:4px auto}
+#qualifying-grid{z-index:5;width:min(520px,92vw)}#countdown.countdown{background:#10252ba3}#countdown small,#countdown>span{font-size:13px;letter-spacing:.05em}
+.studio-export button{color:#e2d4b8;border-color:#88a99b}.studio-export summary{font-size:14px}
+#app .timing-bar small,#app .camera-bar button,#app .grip-label,#app .minimap-wrap p,#app .race-mode{font-size:12px}#app .rival small{font-size:12px}#app .rival-name{font-size:14px}
+#app .footer{font-size:12px;letter-spacing:.02em}#app .footer span:first-child{font-size:11px}
+#app .round-action[aria-pressed=false]{opacity:.7}
+@keyframes victory-glow{to{box-shadow:inset 0 0 100px #ffd59522}}
+@media(max-width:1000px){.mode-home{inset-inline:4%;gap:4%}.home-title h1{font-size:62px}#mode-choices strong{font-size:23px}#mode-choices button{gap:10px;padding-right:15px}#mode-choices .slot-icon{width:58px;height:58px}#app .lobby{grid-template-columns:minmax(0,1fr) 330px;gap:14px 20px}#app .hero-copy h1{font-size:42px}#app .top-actions{gap:2px}}
+@media(max-width:700px){
+ #app[data-state=ready]{height:auto;min-height:100dvh;overflow:visible}#app .topbar{height:72px;padding:0 12px}.brand-suffix{display:none}#app .top-actions .round-action{width:42px;height:44px;min-height:44px}#app .top-actions .slot-icon{width:40px;height:40px}#app .top-actions #wallet{font-size:12px;margin-right:2px}
+ #app .top-actions #audio-settings,#app .top-actions #compact-hud,#app .top-actions #help-open{display:none}#app .brand{font-size:14px;gap:5px}.brand-icon{width:30px;height:30px}#app .top-actions{gap:0}
+ .mode-home{position:relative;inset:auto;display:flex!important;flex-direction:column;align-items:stretch;gap:22px;padding:100px 20px 74px}.mode-home[hidden]{display:none!important}.home-title h1{font-size:56px;margin:14px 0 18px}.home-title>p{font-size:15px}.home-title>.eyebrow{font-size:12px}.home-save{margin-top:18px;padding-top:14px}.home-save strong{font-size:15px}.home-save p{font-size:12px;margin:8px 0}.home-save button{font-size:13px!important}#mode-choices button{min-height:88px;border-radius:48px;padding:10px 18px 10px 8px;gap:12px}#mode-choices strong{font-size:24px}#mode-choices small{font-size:13px}#mode-choices .slot-icon{width:60px;height:60px}
+ #app .lobby{inset:auto;margin:0 16px;padding:96px 0 70px;display:flex;gap:22px;overflow:visible}#app .hero-copy h1{font-size:42px;margin:14px 0}#app .hero-copy .intro{font-size:16px}#circuit-preview{margin:4px -12px;width:calc(100% + 24px)}#app .hero-actions{flex-wrap:wrap;gap:8px}#app .hero-actions .primary{font-size:14px}#app .race-setup{padding:22px}#app .tour-passport{margin-top:20px}#app #world-picker{max-width:none;width:100%}
+ #app #club-calendar{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:9px;padding:2px}#app #club-calendar li{flex:0 0 70%;scroll-snap-align:center}#app #club-calendar button{min-height:90px}#app #club-calendar strong{font-size:16px}#app .footer{font-size:10px;gap:10px}#app .footer span:first-child{font-size:10px}#app .footer span:last-child{display:none}
+ #garage .garage-panel{padding:16px;border-radius:24px}#garage #garage-categories button{padding:6px 9px;font-size:14px}#garage #garage-categories .slot-icon{width:32px;height:32px}#garage .atelier-nav>button{width:42px!important;min-height:44px}#garage .part-options strong{font-size:14px}#garage .hardware-card>button{grid-template-columns:85px 1fr}#garage .hardware-card em{font-size:12px}
+ #finish-panel{padding:24px}#finish-panel h2{font-size:31px}#finish-panel #finish-reward{font-size:22px}#app .timing-bar strong{font-size:18px}#app .timing-bar small{font-size:11px}#countdown strong{font-size:40px}
+}
+@media(orientation:landscape) and (max-height:550px){
+ #app[data-state=ready]{min-height:100dvh;height:100dvh;overflow:hidden}.mode-home{position:absolute;inset:72px 4% 30px;display:grid!important;grid-template-columns:1fr 1fr;padding:0;gap:30px;overflow-y:auto;align-items:start}.mode-home[hidden]{display:none!important}.home-title h1{font-size:44px}.home-title>p{font-size:14px}.home-save{margin-top:16px}.home-save p,.home-save button{display:none!important}#mode-choices button{min-height:68px;padding:6px 12px;border-radius:40px}#mode-choices .slot-icon{width:48px;height:48px}#mode-choices strong{font-size:20px}#mode-choices small{font-size:12px}
+ #app .lobby{position:absolute;inset:76px 3% 34px;display:grid;grid-template-columns:1fr 320px;padding:0;margin:0;overflow-y:auto;gap:16px}#app .hero-copy h1{font-size:36px}#circuit-preview{max-height:180px}.tour-passport{display:none}#app #club-calendar{display:flex;grid-column:1/-1;overflow-x:auto}#app #club-calendar li{flex:0 0 29%}#finish-panel,#qualifying-grid{max-height:88dvh;overflow-y:auto;padding:20px}#finish-panel h2,#qualifying-grid h2{font-size:28px;margin:10px 0}#grid-results{gap:4px;margin:12px 0}#grid-results li{padding:6px 14px}
+}
+@media(prefers-reduced-motion:reduce){#finish-panel[data-rank="1"]::after{animation:none}button{transition:none}}
+#app #start>span{display:inline}
+@media(min-width:701px) and (min-height:551px){#app[data-state=ready]{height:100dvh;min-height:700px;overflow:hidden}#app .lobby{position:absolute;inset:98px 3.2% 56px;margin:0;padding:0 4px 16px 0;grid-template-rows:auto auto auto;height:auto;align-content:start}}
+@media(max-width:700px) and (orientation:portrait){
+ .mode-home{padding-top:94px;gap:16px}.home-title{display:contents}.home-title>.eyebrow{order:0;margin:0;font-size:12px}.home-title h1{order:1;font-size:40px;line-height:1.08;margin:0 0 4px;max-width:100%;letter-spacing:-.02em}.home-title>p:not(.eyebrow){display:none}#mode-choices{order:2;gap:8px}#mode-choices button{min-height:78px;padding:8px 14px 8px 8px}#mode-choices .slot-icon{width:54px;height:54px}#mode-choices strong{font-size:22px}#mode-choices small{font-size:13px}.home-save{order:3;margin-top:3px;padding-top:15px}#app .top-actions .round-action{width:44px;min-width:44px}
+}
+#app[data-compact=true][data-phase=qualifying] .race-mode,#app[data-compact=true][data-mode=elimination] .race-mode{display:block;font-size:13px;padding:7px 12px;border-radius:22px;background:#10262bd9;border:1px solid #c5debf30;color:#e2d3a6;letter-spacing:.02em}
+@media(max-width:650px){#app[data-compact=true][data-phase=qualifying] .race-mode,#app[data-compact=true][data-mode=elimination] .race-mode{top:auto;bottom:155px;left:16px;right:auto;max-width:calc(100% - 32px);text-align:left;font-size:12px}}
+@media(orientation:landscape) and (max-height:550px){#app[data-compact=true][data-phase=qualifying] .race-mode,#app[data-compact=true][data-mode=elimination] .race-mode{top:auto;bottom:95px;right:12px;left:auto;font-size:12px}}
+#app .race-setup #rival-development{font-size:12px;line-height:1.5;color:#a4c6b8;padding:0 10px;margin:8px 0}
+
+/* Club 15.1: one unobstructed preview rectangle drives both cameras. */
+#garage .garage-panel{width:min(360px,30vw)}
+#garage #orbit-pad{left:calc(min(360px,30vw) + 48px);right:24px;top:144px;bottom:152px}
+#garage .garage-preview-label{left:calc(min(360px,30vw) + 48px);right:24px;top:auto;bottom:24px}
+#garage .garage-preview-label>strong{margin-bottom:12px}
+#garage .fleet-thumb{filter:brightness(1.08) saturate(1.22) contrast(1.05)}
+#garage .part-thumb{filter:brightness(1) saturate(1.12) contrast(1.06)}
+#garage #garage-views button{min-height:44px;border-radius:22px}
+@media(max-width:650px) and (orientation:portrait){
+ #garage .garage-panel{top:58dvh;left:10px;right:10px;bottom:10px;width:auto}
+ #garage #orbit-pad{left:10px;right:10px;top:116px;bottom:calc(42dvh + 98px)}
+ #garage .garage-preview-label{left:10px;right:10px;top:calc(58dvh - 90px);bottom:auto}
+ #garage .garage-preview-label>.eyebrow{display:none}
+ #garage .garage-preview-label>strong{font-size:18px;margin:0 0 8px}
+ #garage .garage-preview-label #garage-views{justify-content:flex-start;overflow-x:auto;padding:2px 0}
+}
+@media(orientation:landscape) and (max-height:550px){
+ #garage #orbit-pad{top:110px;bottom:94px}
+ #garage .garage-preview-label{bottom:8px}
+ #garage .garage-preview-label>.eyebrow{display:none}
+ #garage .garage-preview-label>strong{font-size:16px;margin-bottom:6px}
+ #garage .garage-preview-label #garage-views{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto}
+}
+
+/* Optical settings use the same round controls as the club. */
+#graphics-panel{width:min(540px,94vw);overflow:auto;background:#101e27f5}
+#graphics-panel h2{font-family:'Slot Sans',Arial,sans-serif;font-size:clamp(25px,4vw,36px)}
+#graphics-panel label{display:block;font-size:16px;margin:24px 0 12px}
+#graphics-profile{display:block;width:100%;min-height:52px;padding:12px 42px 12px 16px;background:#223640;border:1px solid #c8e9e347;color:#f1f7f2;border-radius:26px;font-size:16px}
+#graphics-live{display:block;margin-top:24px;font-size:24px;color:var(--lime);font-variant-numeric:tabular-nums}
+#graphics-panel p{font-size:14px;line-height:1.65}
+#graphics-open{border-radius:50%;min-width:44px;padding:8px}
+@media(max-width:650px){#graphics-open{font-size:11px}.top-actions{max-width:calc(100% - 80px);overflow-x:auto;scrollbar-width:none;flex-shrink:1}.top-actions>*{flex-shrink:0}}
+
+#graphics-open .slot-icon{width:28px;height:28px;display:block}
+
+/* The next corner is the primary instrument on a phone. */
+@media (max-width:650px), (pointer:coarse) and (max-width:1100px), (max-height:550px) and (max-width:1100px) {
+ #app:is([data-state=running],[data-state=countdown]):not([data-local=true]) {
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  & :is(.topbar,#sectors,.race-mode,.camera-bar,.speed-panel,.minimap-wrap,.rivals,.gas-dial,.power-control,.pilot-telemetry,.footer,.brake-coach){display:none!important}
+  & .timing-bar{position:absolute;top:max(6px,env(safe-area-inset-top))!important;left:max(8px,env(safe-area-inset-left))!important;right:max(8px,env(safe-area-inset-right))!important;width:auto!important;display:flex;align-items:center;gap:4px;justify-content:center}
+  & .timing-bar>div{flex:0 1 auto!important;min-width:0;padding:4px 8px!important;background:#101820d9;border:0;border-radius:9px}
+  & .timing-bar>div:nth-child(3){display:none}
+  & .timing-bar small{font-size:9px!important;line-height:1}
+  & .timing-bar strong{font-size:15px!important;line-height:1.15}
+  & #pause{width:44px;height:44px;border-radius:50%}
+  & .bottom-hud{bottom:max(6px,env(safe-area-inset-bottom));left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right))}
+  & :is(#all-controls,#controls-1,.drive-controls){display:flex!important;width:100%!important;justify-content:space-between;gap:12px}
+  & .drive-controls button{touch-action:none;width:min(42vw,165px)!important;flex:none!important;min-height:48px!important;height:52px;border-radius:18px;background-color:#10202ce6}
+  & .drive-controls kbd{display:none}
+ }
+}
+.pause-settings{display:grid;gap:12px;margin:12px auto;max-width:280px}.pause-settings label{display:flex;align-items:center;gap:8px;justify-content:space-between}.pause-settings input{width:44%}

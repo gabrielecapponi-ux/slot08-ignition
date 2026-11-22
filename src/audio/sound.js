@@ -1,10 +1,10 @@
-import { RacingScore } from './score.js';
+import { RacingScore, raceSection } from './score.js';
 const clamp=v=>Math.max(0,Math.min(1,Number(v)||0));
 function smooth(param,value,time,tau=.055){param.setTargetAtTime(value,time,tau);}
 /** Opt-in local synthesis. Separate motor, tyre and coast layers are driven by
  * actual physics. The score ducks under skids; music and effects have own buses. */
 export class SoundEngine {
-  constructor(){this.enabled=false;this.context=null;this.voices=new Map();this.musicVolume=.45;this.effectsVolume=.75;this.lastCue=-10;this.active=false;}
+  constructor(){this.enabled=false;this.context=null;this.voices=new Map();this.section='groove';this.musicVolume=.45;this.effectsVolume=.75;this.lastCue=-10;this.active=false;}
   init(){
     const Context=window.AudioContext||window.webkitAudioContext;if(!Context)return false;
     const c=this.context=new Context();this.master=c.createGain();this.master.gain.value=.75;
@@ -16,36 +16,102 @@ export class SoundEngine {
     for(let i=0;i<data.length;i++){seed=(1664525*seed+1013904223)>>>0;data[i]=seed/2147483648-1;}
     this.score=new RacingScore(c,this.music,this.noise);return true;
   }
-  async toggle(){try{if(!this.context&&!this.init())return false;if(this.enabled){this.enabled=false;await this.context.suspend();}else{await this.context.resume();this.enabled=this.context.state==='running';}}catch{this.enabled=false;}return this.enabled;}
+  async toggle(){try{if(!this.context&&!this.init())return false;if(this.enabled){this.active=false;this.enabled=false;await this.context.suspend();}else{await this.context.resume();this.enabled=this.context.state==='running';}}catch{this.enabled=false;}return this.enabled;}
   setVolumes({music=this.musicVolume,effects=this.effectsVolume}={}){this.musicVolume=clamp(music);this.effectsVolume=clamp(effects);}
   voice(id,pan){
     if(this.voices.has(id))return this.voices.get(id);
     const c=this.context,out=c.createStereoPanner();out.pan.value=pan;out.connect(this.effects);
+    const reflection = c.createDelay(.1), tone = c.createBiquadFilter(), tunnel = c.createGain();
+    reflection.delayTime.value = .042;
+    tone.type = 'lowpass'; tone.frequency.value = 1650; tunnel.gain.value = 0;
+    out.connect(reflection).connect(tone).connect(tunnel).connect(this.effects);
     const oscillator=(type,filterType,frequency)=>{const o=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain();o.type=type;f.type=filterType;f.frequency.value=frequency;g.gain.value=0;o.connect(f).connect(g).connect(out);o.start();return{o,f,g};};
     const noise=(frequency,q)=>{const o=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();o.buffer=this.noise;o.loop=true;f.type='bandpass';f.frequency.value=frequency;f.Q.value=q;g.gain.value=0;o.connect(f).connect(g).connect(out);o.start();return{o,f,g};};
-    const v={engine:oscillator('sawtooth','lowpass',1500),sub:oscillator('triangle','lowpass',500),tyre:oscillator('triangle','bandpass',1900),rubber:noise(2200,.65),coast:noise(700,3),pan:out,wasBraking:false,wasState:'slotted'};
+    const v={engine:oscillator('sawtooth','lowpass',1500),sub:oscillator('triangle','lowpass',500),gear:oscillator('triangle','bandpass',1000),rail:noise(850,1.1),tyre:oscillator('triangle','bandpass',1900),rubber:noise(2200,.65),coast:noise(700,3),pan:out,tunnel,releaseArmed:false,previousSpeed:0,updatedAt:null,wasState:'slotted'};
     this.voices.set(id,v);return v;
   }
   update(session,active){
     if(!this.context||!this.enabled)return;
     const now=this.context.currentTime,cars=session.cars??[session],player=session.player??session;
-    smooth(this.effects.gain,this.effectsVolume,now);smooth(this.music.gain,active?this.musicVolume*.38*(player.skid>.3?.65:1):0,now,.15);
-    this.score.update(active&&this.musicVolume>0,Math.min(1,player.speed/3.8));
-    const present=new Set(),humans=cars.filter(c=>!c.ai).length;
-    cars.forEach((car,i)=>{
-      present.add(car.id);const v=this.voice(car.id,cars.length===1?0:(i-1)*.5);
-      const running=active&&car.state==='slotted'&&car.finishedAt===null,speed=car.speed,load=car.throttle,skid=running?car.skid:0;
-      const weight=car.ai?.24:humans>1?.62:1,rpm=55+speed*98+load*22;
-      smooth(v.engine.o.frequency,rpm,now,.07);smooth(v.engine.f.frequency,550+speed*330+load*900,now);smooth(v.engine.g.gain,running?(.012+Math.min(1,speed)*.025+load*.022)*weight:0,now);
-      smooth(v.sub.o.frequency,rpm/2,now);smooth(v.sub.g.gain,running?.025*weight:0,now);
-      smooth(v.tyre.o.frequency,900+skid*850+Math.sin(now*32)*skid*70,now,.025);smooth(v.tyre.g.gain,skid*.045*weight,now,.025);smooth(v.rubber.g.gain,skid*.075*weight,now,.025);
-      const braking=running&&load<.15&&speed>.35;smooth(v.coast.f.frequency,300+speed*210,now);smooth(v.coast.g.gain,braking?.05*weight:0,now);
-      if(active&&this.active){if(braking&&!v.wasBraking&&!car.ai)this.chirp(530,145,.24,.025);if(car.state==='derailed'&&v.wasState!=='derailed')this.impact(weight);}
-      v.wasBraking=braking;v.wasState=car.state;
-    });
-    for(const [id,v]of this.voices)if(!present.has(id))for(const part of ['engine','sub','tyre','rubber','coast'])smooth(v[part].g.gain,0,now);
+    const focus = cars.find(car => !car.ai && car.finishedAt === null) ?? player;
+    this.section = active ? raceSection(session, focus, this.section) : 'groove';
+    const coachWarning = session.guidanceEnabled && player.coach?.action === 'brake';
+    const duck = coachWarning ? .48 : focus.skid > .3 ? .65 : 1;
+    smooth(this.effects.gain, this.effectsVolume, now);
+    smooth(this.music.gain, active ? this.musicVolume * .38 * duck : 0, now, .1);
+    this.score.update(active && this.musicVolume > 0, clamp(focus.speed / 3.8), this.section);
+
+    const present = new Set();
+    const humanCount = cars.filter(car => !car.ai).length;
+    for (const [index, car] of cars.entries()) {
+      present.add(car.id);
+      const v = this.voice(car.id, 0);
+      const pan = cars.length === 1 ? 0 : (index / (cars.length - 1) - .5) * .85;
+      smooth(v.pan.pan, pan, now);
+      const running = active && car.state === 'slotted' && car.finishedAt === null;
+      smooth(v.tunnel.gain, running && car.pose?.tunnel ? .34 : 0, now, .035);
+      const speed = car.speed, load = car.throttle, skid = running ? car.skid : 0;
+      const weight = car.ai ? .24 : humanCount > 1 ? .62 : 1;
+      // Approximate a 24 mm tyre, a 3:1 final drive and a nine-tooth pinion.
+      const wheelHz = speed / (Math.PI * .024);
+      const shaftHz = wheelHz * 3;
+      const motorHz = 42 + shaftHz * 2 + load * 12;
+      const meshHz = 80 + shaftHz * 9;
+      const motion = clamp(speed / .6);
+      smooth(v.engine.o.frequency, motorHz, now, .055);
+      smooth(v.engine.f.frequency, 450 + speed * 320 + load * 1050, now);
+      smooth(v.engine.g.gain, running ? (.021 * motion + .034 * load) * weight : 0, now);
+      smooth(v.sub.o.frequency, motorHz / 2, now);
+      smooth(v.sub.g.gain, running ? (.009 * motion + .016 * load) * weight : 0, now);
+      smooth(v.gear.o.frequency, meshHz, now, .035);
+      smooth(v.gear.f.frequency, meshHz, now, .035);
+      smooth(v.gear.g.gain, running ? motion * (.009 + .017 * load) * weight : 0, now);
+      smooth(v.rail.f.frequency, 380 + wheelHz * 18, now);
+      smooth(v.rail.g.gain, running ? clamp(speed / 4) * .042 * weight : 0, now);
+      smooth(v.tyre.o.frequency, 900 + skid * 850 + Math.sin(now * 32) * skid * 70, now, .025);
+      smooth(v.tyre.g.gain, skid * .045 * weight, now, .025);
+      smooth(v.rubber.g.gain, skid * .075 * weight, now, .025);
+
+      const braking = running && load < .15 && speed > .12;
+      const gap = now - v.updatedAt;
+      const continuous = this.active && v.wasState === 'slotted' && v.updatedAt !== null && gap > 0 && gap < .25;
+      const deceleration = continuous ? clamp((v.previousSpeed - speed) / gap / 4) : 0;
+      smooth(v.coast.f.frequency, 280 + shaftHz * 5, now, .035);
+      smooth(v.coast.g.gain, braking ? motion * (.023 + .055 * deceleration) * weight : 0, now, .035);
+      if (!continuous) v.releaseArmed = false;
+      if (running && load > .3) v.releaseArmed = true;
+      if (continuous && braking && v.releaseArmed) {
+        v.releaseArmed = false;
+        this.brushRelease(v.pan, meshHz, .035 * motion * weight);
+      }
+      if (active && this.active && car.state === 'derailed' && v.wasState !== 'derailed') this.impact(weight);
+      v.previousSpeed = speed;
+      v.updatedAt = running ? now : null;
+      v.wasState = car.state;
+    }
+    for (const [id, voice] of this.voices) {
+      if (present.has(id)) continue;
+      for (const part of ['engine', 'sub', 'gear', 'rail', 'tyre', 'rubber', 'coast']) smooth(voice[part].g.gain, 0, now);
+      smooth(voice.tunnel.gain, 0, now);
+      voice.updatedAt = null;
+    }
     if(active&&session.guidanceEnabled&&player.coach?.action==='brake'&&player.throttle>.1&&now-this.lastCue>1.6){this.chirp(740,520,.15,.07);this.lastCue=now;}
     this.active=active;
+  }
+  brushRelease(output, pitch, volume) {
+    const c = this.context, now = c.currentTime;
+    const noise = c.createBufferSource(), filter = c.createBiquadFilter(), gain = c.createGain();
+    noise.buffer = this.noise;
+    filter.type = 'bandpass';
+    filter.Q.value = 2.2;
+    filter.frequency.setValueAtTime(pitch, now);
+    filter.frequency.exponentialRampToValueAtTime(Math.max(90, pitch * .42), now + .12);
+    gain.gain.setValueAtTime(.0001, now);
+    gain.gain.exponentialRampToValueAtTime(Math.max(.0001, volume), now + .008);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + .16);
+    noise.connect(filter).connect(gain).connect(output);
+    noise.start(now); noise.stop(now + .17);
+    noise.onended = () => { noise.disconnect(); filter.disconnect(); gain.disconnect(); };
   }
   chirp(from,to,duration=.16,volume=.045,delay=0){
     if(!this.context||!this.enabled)return;const c=this.context,now=c.currentTime+delay,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(from,now);o.frequency.exponentialRampToValueAtTime(to,now+duration);g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(volume,now+.008);g.gain.exponentialRampToValueAtTime(.0001,now+duration);o.connect(g).connect(this.effects);o.start(now);o.stop(now+duration+.02);o.onended=()=>{o.disconnect();g.disconnect();};

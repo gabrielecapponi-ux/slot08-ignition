@@ -1,5 +1,5 @@
 export const THEMES={
- forest:{sky:'#bacfc6',ground:'#65805a',hill:'#426c50',water:'#528d94',accent:'#d7be7a',props:['pine','oak','boulder','cabin','flower','deer','fox','rabbit','owl','fern','mushroom'],floor:'#846c53'},
+ forest:{sky:'#bacfc6',ground:'#65805a',hill:'#426c50',water:'#528d94',accent:'#d7be7a',props:['pine','oak','oak','pine','oak','boulder','cabin','flower','deer','fox','rabbit','owl','fern','mushroom'],floor:'#846c53'},
  alpine:{sky:'#bbd2df',ground:'#c2d0cb',hill:'#91a9a2',water:'#62b5c6',accent:'#8bb9d0',props:['pine','boulder','cabin','pine','ibex','deer'],floor:'#747e85'},
  harbor:{sky:'#adc6cf',ground:'#667d83',hill:'#516c75',water:'#3b879b',accent:'#ec9d71',props:['warehouse','crate','lighthouse','palm','buoy','bird','bench','streetlamp'],floor:'#7e7770'},
  coast:{sky:'#acd4db',ground:'#c6ba87',hill:'#8caa81',water:'#52aeb7',accent:'#efb86d',props:['palm','palm','cabin','boulder','flower','lighthouse','bench'],floor:'#c0a385'},

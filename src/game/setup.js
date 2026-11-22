@@ -9,6 +9,7 @@ export const DIFFICULTIES = Object.freeze({
 export function carSetup(difficulty = 'club', upgrades = {}) {
   const d = DIFFICULTIES[difficulty] || DIFFICULTIES.club;
   return { ...PHYSICS,
+    surfaceSensitivity: difficulty === 'rookie' ? .45 : 1,
     slideRate: difficulty === 'rookie' ? .78 : 1,
     motorForce: PHYSICS.motorForce * (1 + .045 * (upgrades.motor || 0)),
     maxSpeed: PHYSICS.maxSpeed * (1 + .025 * (upgrades.motor || 0)),

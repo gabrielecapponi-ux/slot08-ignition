@@ -4,9 +4,11 @@ import { clamp } from '../core/math.js';
  * Identical parameters and integration for every car; releasing power recovers grip.
  * A short overload is recoverable. Sustained overload pulls the guide out. */
 export function updateGrip(car, curvature, dt) {
-  const powerLoss = 1 - car.setup.powerGripLoss * car.throttle;
-  car.gripRatio = car.lateralForce / (car.maxGrip * powerLoss);
-  const target = Math.sign(curvature) * clamp((car.gripRatio - .68) / .95, 0, 1) * .56;
+  const highThrottle = clamp((car.throttle - .85) / .15, 0, 1);
+  const speedLoad = clamp(((car.speed ?? 0) - .8) / 1.6, 0, 1);
+  const powerLoss = 1 - car.setup.powerGripLoss * car.throttle - .055 * highThrottle ** 2 * speedLoad;
+  car.gripRatio = car.lateralForce / (car.maxGrip * (car.surfaceGrip??1) * powerLoss);
+  const target = Math.sign(curvature) * clamp((car.gripRatio - .62) / .91, 0, 1) * .56;
   const response = 1 - Math.exp(-dt / (car.throttle > .1 ? .18 : .14));
   car.driftAngle += (target - car.driftAngle) * response;
   car.skid = clamp((Math.abs(car.driftAngle) - .075) / .48, 0, 1);

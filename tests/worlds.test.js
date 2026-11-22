@@ -57,5 +57,5 @@ test('Blender catalogue contains every runtime part and biome prop within the as
 });
 
 test('three analog gas levels produce distinct acceleration without interfering between pilots',()=>{
- const s=new RaceSession();s.reset('local3');s.status='running';for(let i=0;i<120;i++)s.update(dt,[{throttle:.65},{throttle:.85},{throttle:1}]);assert.ok(s.cars[0].speed<s.cars[1].speed);assert.ok(s.cars[1].speed<s.cars[2].speed);for(const c of s.cars)assert.equal(c.crashes,0);
+ const s=new RaceSession();s.reset('local3');s.cars[2].distance-=2;s.cars[2].pose=s.track.pose(s.cars[2].distance,s.cars[2].lane);s.status='running';for(let i=0;i<120;i++)s.update(dt,[{throttle:.65},{throttle:.85},{throttle:1}]);assert.ok(s.cars[0].speed<s.cars[1].speed);assert.ok(s.cars[1].speed<s.cars[2].speed);for(const c of s.cars)assert.equal(c.crashes,0);
 });

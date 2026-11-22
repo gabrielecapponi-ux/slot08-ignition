@@ -1,6 +1,61 @@
-# SLOT 08 — IGNITION / WORLDS 6.0
+# SLOT 08 — IGNITION / CLUB OPTICS 16.0
 
-**[Gioca dal telefono o dal computer](https://gabrielecapponi-ux.github.io/slot08-ignition/)** — il Mac non deve restare acceso. Browser 3D, senza account o servizi a pagamento. Three.js 0.180.0 è incluso nel repository.
+Dieci mondi di cinque gare con 50 geometrie di campagna e 15 circuiti liberi. Otto stelle in un mondo aprono il successivo. RS Touring e LM Prototipo si sbloccano nei mondi 2 e 5. In officina si possono ispezionare motore e freni dal basso, confrontare i cerchi e personalizzare vetri e sedili. Vedi [ricerca e meccaniche](docs/club-7.md).
+**[Gioca dal telefono o dal computer](https://slot08-club-championship.fregafestival.chatgpt.site/)** — il Mac non deve restare acceso. Browser 3D; il sito mantiene l’accesso già configurato. Three.js 0.180.0 è incluso nel repository.
+
+## Club 16 — movimento stabile e ottica
+
+Camera e auto sincronizzate, rotazione del garage senza zoom oscillante e transizione di partenza attorno alla vettura. Il pannello **Grafica** mostra risoluzione e fps effettivi: Adattiva e Fluidità puntano fino a 120 fps, Dettaglio a 60, Ultra al 4K/120 quando hardware e display lo consentono. Materiali della pista, metallo e acqua affinati; 24 tracciati avanzati rinnovati dal mondo 3, con più controcurve, dossi e chicane. Nessun azzeramento dei progressi. [Implementazione e limiti](docs/CLUB16.md).
+
+## Club 15.1 — macchina al centro
+
+Anteprima officina adattata alle dimensioni effettive dell’auto e allo spazio libero dai menu. Inquadratura più ravvicinata, vista Frontale e pulsante Centra; più spazio per l’auto anche in verticale. Vernici più sature, luce neutra e riflessi meno sbiancati. Camera di inseguimento più vicina e centrata sulla vettura, anche in curva. Difficoltà, ricambi e progressi restano invariati. [Verifiche e limiti](QA.md).
+
+## Club 15.0 — precisione delle miniature
+
+Nove carrozzerie ricostruite in Blender, con ottiche, cerchi, rollcage, specchi ancorati e diffusori. Guardrail continuo nero e giallo, con profilo metallico, montanti e piedini; appoggi dei ponti corretti e scenografia tenuta libera da entrambi i rami dei bivi. Nuovi edifici notturni, cascate e pareti alpine, con materiali opachi e fondazioni sul terreno. Il renderer cattura una riflessione statica dell’ambiente per ogni pista.
+
+La versione conserva difficoltà, ricambi e salvataggio della 14. Le geometrie sono più dettagliate, ma restano miniature originali: non sono scansioni della Corvette né un risultato fotorealistico AAA. [Interventi e limiti](docs/CLUB15.md), [verifiche](QA.md).
+
+## Club 14.0 — la storia al club
+
+Nuovo carattere Slot Sans, icone circolari e pannelli trasparenti. Home con Arcade, Time Trial, Grand Prix, Ultimo rimasto e Club locale. Ogni evento di campagna ha una geometria distinta e una vera anteprima del percorso, con chicane, incroci a quote diverse, spirali e due rami separati.
+
+Due giri di qualifica facoltativi decidono la griglia della gara di tre giri. Il passaggio automatico mostra il prossimo circuito prima di partire. Ogni auto conserva il proprio sviluppo; al massimo motore si sbloccano assetti con vantaggi e compromessi. Gli avversari evolvono soltanto tra le gare.
+
+Al primo caricamento della 14 l’Arcade ricomincia da zero, come richiesto. La partita precedente rimane recuperabile dal menu. Vedi [modifiche, implementazione e lavoro restante](docs/CLUB14.md) e [verifiche](QA.md).
+
+## Storico
+
+## Club 13.0 — quattro corsie
+
+Campagna e Grand Prix ora schierano quattro auto su quattro corsie. Gli scambi alternano le coppie esterne e le corsie centrali, con carreggiata, gallerie e barriere adattate. I tamponamenti trasferiscono velocità: tolto il rallentamento invisibile dietro un avversario. La tenuta di base resta quella precedente e gli imprevisti sono facoltativi.
+
+Officina con 69 miniature Blender e anteprima dei potenziamenti prima dell'acquisto, menu del club, semaforo a cinque luci e risultati animati. In Studio video puoi esportare una composizione JSX nei tempi della gara per After Effects; richiede l'app sul computer. Vedi [implementazione e limiti](docs/CLUB13.md) e [verifiche](QA.md).
+
+## Mobile 12.0
+
+In gara il canvas segue il viewport disponibile, con margini per fotocamera e indicatore Home. In orizzontale i comandi sono ai lati e il gas è al centro. Il pulsante Schermo intero usa la modalità nativa quando disponibile. Su iPhone, Safari → Condividi → Aggiungi alla schermata Home → Apri come app web. Il rendering mobile adatta la risoluzione al tempo di disegno e alla dimensione del display.
+
+## Club 11.0
+
+Il gas parte al 100% e il suono si attiva alla prima partenza. I rettilinei offrono più spinta. In campagna, due stelle sulla tappa fanno partire la successiva dopo otto secondi. Per il cambio di mondo servono otto stelle. Dal risultato puoi anticipare la partenza, rifare la gara o rientrare ai box.
+
+## Club 10.0
+
+Sopra l’85% di gas il carico del motore riduce progressivamente il margine di aderenza laterale in velocità, con lo stesso calcolo per ogni pilota.
+
+## Scuderia 9.0
+
+GT-08 Club, Rally Treporte e Berlinetta S sono subito guidabili. RS Touring, Endurance GT, LM Prototipo, Targa R, Gruppo C 88 e Hypercar 09 si sbloccano rispettivamente nei mondi 2, 4, 5, 6, 8 e 10. Nel garage si possono ispezionare anche le carrozzerie ancora bloccate. Il cambio di telaio mantiene i crediti e i ricambi acquistati. La gravità agisce sulle pendenze in tutte le modalità e la risposta della coda al gas è comune a piloti e rivali.
+
+## Regia e materiali 8.1
+
+Spazio accelera, Esc prenota lo scambio in gara e P mette in pausa. La telecamera segue la traiettoria della vettura durante i tre secondi di recupero. Il contatto alla stessa quota può far uscire un avversario anche nelle gare veloci e locali. Gli alberi usano modelli Blender con rami e foglie che proiettano ombre. Il bagliore delle scintille è un asset Higgsfield. Il carattere Railcut GT è disegnato per il gioco. Per aprire la composizione di rientro in After Effects, scegliere File → Script → Esegui file di script e selezionare [slot08-rientro.jsx](motion/slot08-rientro.jsx).
+
+## Novità 6.1 Mobile
+
+La vista compatta mantiene i comandi di guida, il coach e i settori. In gara il pulsante HUD alterna le due viste. Il modello GT per il gioco comprende solo la vettura. Il portale di partenza si modifica in `blender/mobile-gantry.blend`; il modello esportato per il gioco è `assets/mobile-gantry.glb`. La versione comprende la musica dinamica, il mixer e il Time Attack a tre settori. Eseguire `npm test`, `npm run build` e `npm run standalone` per verificare e generare `SLOT08.html`.
 
 ## Novità 6.0 — 20 novembre 2026
 
@@ -19,10 +74,10 @@ I crediti, gli acquisti e i potenziamenti precedenti rimangono. I record 6.0 han
 - **Gallerie percorribili**, incroci su cavalcavia e paraboliche che inclinano la pista e la GT. Tre piste contengono una vera spirale; Double Helix sale di 5,2 metri con due giri aggiuntivi. Le corsie sovrapposte hanno almeno 1,8 metri di separazione verticale. In panoramica, i tetti diventano trasparenti per seguire le auto.
 - **Gas più leggibile:** cursore e pulsanti 65%, 85%, 100% indipendenti per ciascun pilota; P1 usa anche 1, 2, 3. Il gas sale in modo progressivo, il rilascio resta rapido. La sbandata avvisa prima del deragliamento e può essere recuperata. Nei test di riferimento, mezzo secondo di sbandata moderata lascia ancora tempo per salvarsi; non è una garanzia a qualsiasi velocità.
 - **Garage con anteprima 3D reale:** 60 componenti in sei categorie (ali, cerchi, cofani, kit aerodinamici, luci, scarichi), 16 vernici e 8 livree. Tre inquadrature e anteprima gratuita prima dell'acquisto. Le parti acquistate si rimontano senza pagarle di nuovo. Colori e livree sono gratuiti.
-- **20 livelli ciascuno** per motore, magneti/pneumatici e freno motore. In modalità Automatico, gruppi di livelli cambiano anche cofano, scarichi, cerchi o kit aerodinamico. Un componente manuale prevale sull'aspetto automatico. I componenti estetici non aggiungono bonus fisici nascosti.
+- **20 livelli ciascuno** per motore, magneti/pneumatici e freno motore. In modalità Automatico, gruppi di livelli cambiano anche cofano, scarichi, cerchi o kit aerodinamico. Un componente manuale prevale sull'aspetto automatico. I cerchi e gli alettoni aggiungono un bonus alla tenuta indicato nel garage.
 - **Stesse regole per giocatore e bot:** stessi potenziamenti, tenuta, sbandata e tre secondi di recupero. I bot stimano male alcune curve e possono uscire. Niente accelerazioni in base alla classifica o teletrasporti.
 
-Restano il tutorial pratico, il coach di frenata, quattro telecamere, gare contro due bot, Time Attack e gare locali per due/tre persone sullo stesso dispositivo. La musica originale a 136 BPM e i suoni di motore, rilascio, gomme e impatto sono sintetizzati dal gioco. Premi Attiva audio; il mixer separa musica ed effetti. Nessun autoplay.
+Restano il tutorial pratico, il coach di frenata, quattro telecamere, gare contro due bot, Time Attack e gare locali per due/tre persone sullo stesso dispositivo. La musica originale a 136 BPM e i suoni di motore, rilascio, gomme e impatto sono sintetizzati dal gioco. Il suono si attiva alla partenza. Il mixer regola separatamente musica ed effetti.
 
 ![Bosco delle Volpi, precedente versione 5.0](docs/qa-worlds-live-forest.jpg)
 
@@ -35,13 +90,13 @@ Restano il tutorial pratico, il coach di frenata, quattro telecamere, gare contr
 | Spazio / ACCELERA / pressione sulla pista | Gas; il rilascio frena |
 | 1 / 2 / 3, oppure pulsanti 65% / 85% / 100% | Potenza del gas di P1 |
 | Freccia su / giù; cursore e pulsanti +/− | Regola il gas a passi del 5% |
-| Invio / SCAMBIO | Prenota la prossima X; seconda pressione annulla |
-| Shift / frecce laterali | Alternative a Invio |
+| Esc / SCAMBIO | Prenota la prossima X; seconda pressione annulla |
+| Shift / frecce laterali | Alternative a Esc |
 | C | Drone, bordo pista, panoramica, dall'alto |
-| P / Esc | Pausa / riprendi |
+| P | Pausa / riprendi |
 | Gas a interruttore nel menu | Un tocco accende, un altro spegne |
 
-In locale: P1 Spazio/Invio, P2 W/E, P3 I/O. Ogni pilota ha pulsanti touch e potenza indipendenti. Dopo il primo arrivo, gli altri hanno 30 secondi. Non è multiplayer tra telefoni. Le auto non si urtano.
+In locale: P1 Spazio/Esc, P2 W/E, P3 I/O. Ogni pilota ha pulsanti touch e potenza indipendenti. Dopo il primo arrivo, gli altri hanno 30 secondi. Non è multiplayer tra telefoni. Le auto non si urtano.
 
 Per iniziare: scegli Rookie, gas 65% e coach acceso. Passa all'85% quando riconosci le curve e al 100% sui rettilinei. Il gas ridotto non garantisce di superare ogni curva. La guida assistita frena al posto tuo ed è una scelta separata, più prudente. Perdere il focus mette in pausa e spegne il gas.
 

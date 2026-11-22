@@ -1,0 +1,286 @@
+{
+  "image": "parts-catalog.webp",
+  "tileWidth": 256,
+  "tileHeight": 192,
+  "columns": 11,
+  "rows": 7,
+  "automaticReference": "Stock GT-08. Automatic appearance in-game follows installed upgrades.",
+  "entries": {
+    "wing_0": {
+      "column": 0,
+      "row": 0
+    },
+    "wing_1": {
+      "column": 1,
+      "row": 0
+    },
+    "wing_2": {
+      "column": 2,
+      "row": 0
+    },
+    "wing_3": {
+      "column": 3,
+      "row": 0
+    },
+    "wing_4": {
+      "column": 4,
+      "row": 0
+    },
+    "wing_5": {
+      "column": 5,
+      "row": 0
+    },
+    "wing_6": {
+      "column": 6,
+      "row": 0
+    },
+    "wing_7": {
+      "column": 7,
+      "row": 0
+    },
+    "wing_8": {
+      "column": 8,
+      "row": 0
+    },
+    "wing_9": {
+      "column": 9,
+      "row": 0
+    },
+    "wing_10": {
+      "column": 10,
+      "row": 0
+    },
+    "wheels_0": {
+      "column": 0,
+      "row": 1
+    },
+    "wheels_1": {
+      "column": 1,
+      "row": 1
+    },
+    "wheels_2": {
+      "column": 2,
+      "row": 1
+    },
+    "wheels_3": {
+      "column": 3,
+      "row": 1
+    },
+    "wheels_4": {
+      "column": 4,
+      "row": 1
+    },
+    "wheels_5": {
+      "column": 5,
+      "row": 1
+    },
+    "wheels_6": {
+      "column": 6,
+      "row": 1
+    },
+    "wheels_7": {
+      "column": 7,
+      "row": 1
+    },
+    "wheels_8": {
+      "column": 8,
+      "row": 1
+    },
+    "wheels_9": {
+      "column": 9,
+      "row": 1
+    },
+    "wheels_10": {
+      "column": 10,
+      "row": 1
+    },
+    "hood_0": {
+      "column": 0,
+      "row": 2
+    },
+    "hood_1": {
+      "column": 1,
+      "row": 2
+    },
+    "hood_2": {
+      "column": 2,
+      "row": 2
+    },
+    "hood_3": {
+      "column": 3,
+      "row": 2
+    },
+    "hood_4": {
+      "column": 4,
+      "row": 2
+    },
+    "hood_5": {
+      "column": 5,
+      "row": 2
+    },
+    "hood_6": {
+      "column": 6,
+      "row": 2
+    },
+    "hood_7": {
+      "column": 7,
+      "row": 2
+    },
+    "hood_8": {
+      "column": 8,
+      "row": 2
+    },
+    "hood_9": {
+      "column": 9,
+      "row": 2
+    },
+    "hood_10": {
+      "column": 10,
+      "row": 2
+    },
+    "aero_0": {
+      "column": 0,
+      "row": 3
+    },
+    "aero_1": {
+      "column": 1,
+      "row": 3
+    },
+    "aero_2": {
+      "column": 2,
+      "row": 3
+    },
+    "aero_3": {
+      "column": 3,
+      "row": 3
+    },
+    "aero_4": {
+      "column": 4,
+      "row": 3
+    },
+    "aero_5": {
+      "column": 5,
+      "row": 3
+    },
+    "aero_6": {
+      "column": 6,
+      "row": 3
+    },
+    "aero_7": {
+      "column": 7,
+      "row": 3
+    },
+    "aero_8": {
+      "column": 8,
+      "row": 3
+    },
+    "aero_9": {
+      "column": 9,
+      "row": 3
+    },
+    "aero_10": {
+      "column": 10,
+      "row": 3
+    },
+    "lights_0": {
+      "column": 0,
+      "row": 4
+    },
+    "lights_1": {
+      "column": 1,
+      "row": 4
+    },
+    "lights_2": {
+      "column": 2,
+      "row": 4
+    },
+    "lights_3": {
+      "column": 3,
+      "row": 4
+    },
+    "lights_4": {
+      "column": 4,
+      "row": 4
+    },
+    "lights_5": {
+      "column": 5,
+      "row": 4
+    },
+    "lights_6": {
+      "column": 6,
+      "row": 4
+    },
+    "lights_7": {
+      "column": 7,
+      "row": 4
+    },
+    "lights_8": {
+      "column": 8,
+      "row": 4
+    },
+    "lights_9": {
+      "column": 9,
+      "row": 4
+    },
+    "lights_10": {
+      "column": 10,
+      "row": 4
+    },
+    "exhaust_0": {
+      "column": 0,
+      "row": 5
+    },
+    "exhaust_1": {
+      "column": 1,
+      "row": 5
+    },
+    "exhaust_2": {
+      "column": 2,
+      "row": 5
+    },
+    "exhaust_3": {
+      "column": 3,
+      "row": 5
+    },
+    "exhaust_4": {
+      "column": 4,
+      "row": 5
+    },
+    "exhaust_5": {
+      "column": 5,
+      "row": 5
+    },
+    "exhaust_6": {
+      "column": 6,
+      "row": 5
+    },
+    "exhaust_7": {
+      "column": 7,
+      "row": 5
+    },
+    "exhaust_8": {
+      "column": 8,
+      "row": 5
+    },
+    "exhaust_9": {
+      "column": 9,
+      "row": 5
+    },
+    "exhaust_10": {
+      "column": 10,
+      "row": 5
+    },
+    "motor": {
+      "column": 0,
+      "row": 6
+    },
+    "grip": {
+      "column": 1,
+      "row": 6
+    },
+    "brake": {
+      "column": 2,
+      "row": 6
+    }
+  }
+}

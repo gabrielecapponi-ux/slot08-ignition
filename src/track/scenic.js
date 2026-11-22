@@ -1,3 +1,4 @@
+import { forkAt } from './fork.js';
 import { SlotTrack } from './base.js';
 import { EnduranceTrack } from './endurance.js';
 import { mod, clamp, smootherstep } from '../core/math.js';
@@ -34,12 +35,14 @@ export class ScenicTrack extends SlotTrack {
     else if(this.base.arcLength){const start=p.section===1?this.base.straightLength:2*this.base.straightLength+this.base.arcLength;u=(p.s-start)/this.base.arcLength;}
     else if(this.base.radius&&this.base.straightLength){const L=this.base.straightLength,A=Math.PI*this.base.radius;u=(p.s-(p.section===1?L:2*L+A))/A;}
     else return this.maxBank*Math.tanh(p.curvature*3);
-    const amount=this.base.spiral?(this.base.segments[p.section]===this.base.spiral?this.maxBank:.09):(p.section%4===3?Math.min(.10,this.maxBank):this.maxBank);
-    return Math.sign(p.curvature)*amount*Math.sin(Math.PI*clamp(u,0,1))**2;
+    let amount=this.base.spiral?(this.base.segments[p.section]===this.base.spiral?this.maxBank:.09):(p.section%4===3?Math.min(.10,this.maxBank):this.maxBank);
+    if(this.variant>=0&&this.base.segments)amount*=Math.min(1,this.base.segments[p.section].length/4);
+    const transition=this.meeting ? smootherstep(clamp(Math.min(u,1-u)/.32,0,1)) : Math.sin(Math.PI*clamp(u,0,1))**2;
+    return Math.sign(p.curvature)*amount*transition;
   }
   sample(distance){const s=mod(distance,this.length),p=this.base.sample(s),e=.025,a=this.base.sample(s-e),b=this.base.sample(s+e),bank=this.bankAt(p),ba=this.bankAt(a),bb=this.bankAt(b);
-    const lift=angle=>.38*Math.abs(Math.sin(angle));
-    return {...p,z:p.z+lift(bank),bank,grade:(b.z+lift(bb)-a.z-lift(ba))/(2*e),bankDerivative:(bb-ba)/(2*e),bankSecondDerivative:(bb-2*bank+ba)/(e*e),tunnel:this.tunnels.find(t=>s>=t.start&&s<=t.end)??null};
+    const lift=angle=>(.38+this.extraWidth)*Math.abs(Math.sin(angle));
+    return {...p,fork:forkAt(this.fork,s),z:p.z+lift(bank),bank,grade:(b.z+lift(bb)-a.z-lift(ba))/(2*e),bankDerivative:(bb-ba)/(2*e),bankSecondDerivative:(bb-2*bank+ba)/(e*e),tunnel:this.tunnels.find(t=>s>=t.start&&s<=t.end)??null};
   }
   tunnelAt(distance,padding=0){const s=mod(distance,this.length);return this.tunnels.find(t=>s>=t.start-padding&&s<=t.end+padding)??null;}
 }

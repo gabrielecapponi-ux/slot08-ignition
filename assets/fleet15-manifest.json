@@ -1,0 +1,97 @@
+{
+  "generator": "Blender 4.3.2 / scripts/art/build_fleet.py",
+  "source": "Original SLOT08 meshes; reference-informed proportions, not scans",
+  "validation": "All exported float attributes finite; CAR_GT, GT_tyre, GT_tail_signature and GT_brake_caliper verified",
+  "cars": [
+    {
+      "file": "fleet-0.glb",
+      "triangles": 57682,
+      "meshes": 90,
+      "bytes": 1638812,
+      "materials": 17,
+      "transparent": [
+        "MAT_smoked_glass"
+      ]
+    },
+    {
+      "file": "fleet-1.glb",
+      "triangles": 44426,
+      "meshes": 73,
+      "bytes": 1186872,
+      "materials": 16,
+      "transparent": [
+        "MAT_smoked_glass"
+      ]
+    },
+    {
+      "file": "fleet-2.glb",
+      "triangles": 52592,
+      "meshes": 82,
+      "bytes": 1361228,
+      "materials": 17,
+      "transparent": [
+        "MAT_smoked_glass"
+      ]
+    },
+    {
+      "file": "fleet-3.glb",
+      "triangles": 47048,
+      "meshes": 74,
+      "bytes": 1221292,
+      "materials": 16,
+      "transparent": [
+        "MAT_smoked_glass"
+      ]
+    },
+    {
+      "file": "fleet-4.glb",
+      "triangles": 40652,
+      "meshes": 70,
+      "bytes": 1096932,
+      "materials": 15,
+      "transparent": [
+        "MAT_smoked_glass"
+      ]
+    },
+    {
+      "file": "fleet-5.glb",
+      "triangles": 52244,
+      "meshes": 83,
+      "bytes": 1356264,
+      "materials": 17,
+      "transparent": [
+        "MAT_smoked_glass"
+      ]
+    },
+    {
+      "file": "fleet-6.glb",
+      "triangles": 40004,
+      "meshes": 70,
+      "bytes": 1087192,
+      "materials": 15,
+      "transparent": [
+        "MAT_smoked_glass"
+      ]
+    },
+    {
+      "file": "fleet-7.glb",
+      "triangles": 51978,
+      "meshes": 81,
+      "bytes": 1335308,
+      "materials": 17,
+      "transparent": [
+        "MAT_smoked_glass"
+      ]
+    },
+    {
+      "file": "fleet-8.glb",
+      "triangles": 46856,
+      "meshes": 79,
+      "bytes": 1250820,
+      "materials": 17,
+      "transparent": [
+        "MAT_smoked_glass"
+      ]
+    }
+  ]
+}
