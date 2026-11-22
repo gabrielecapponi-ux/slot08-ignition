@@ -6,10 +6,14 @@ export const STUNTS = {
 };
 
 export function stuntBase(spec) {
-  const base=new EnduranceTrack({points:spec.points,radius:2.4});
+  const base=new EnduranceTrack({points:spec.points,radius:spec.turnRadius??2.4});
   const flat=base.sample.bind(base), start=6, span=7, radius=spec.radius;
   base.sample=distance=>{
     const p=flat(distance), local=p.s-start;
+    if(spec.flip && local>=0 && local<5){
+      const u=local/5, a=2*Math.PI*u, height=1.25*Math.sin(Math.PI*u)**2;
+      return {...p,z:p.z+height,flipAngle:-(a-Math.sin(a)),bridge:true};
+    }
     if(local<0 || local>=span*spec.loops)return p;
     const u=(local%span)/span, a=2*Math.PI*u;
     // Ease the rotation at the joins. Sideways separation clears the return deck.

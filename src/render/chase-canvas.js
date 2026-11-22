@@ -1,3 +1,5 @@
+import { drawSector } from '../track/sectors.js';
+const horizons=new Map();
 // Perspective race view for devices without WebGL. The road comes from the same
 // sampled course as the physics, including banks, forks and elevated crossings.
 export function drawChase(ctx, canvas, session) {
@@ -16,6 +18,14 @@ export function drawChase(ctx, canvas, session) {
   const sky=ctx.createLinearGradient(0,0,0,h*.58);
   sky.addColorStop(0,'#61829b');sky.addColorStop(.75,'#d8d3ba');sky.addColorStop(1,'#658075');
   ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);ctx.fillStyle='#586854';ctx.fillRect(0,h*.48,w,h*.52);
+  if(session.meeting){
+    const id=session.meeting.world;
+    if(!horizons.has(id)){
+      const horizon=document.createElement('canvas');horizon.width=768;horizon.height=384;
+      drawSector(horizon.getContext('2d'),768,384,id);horizons.set(id,horizon);
+    }
+    ctx.drawImage(horizons.get(id),0,0,w,h);
+  }
   const shapes=[];
   function strip(a,b,left,right,color,height=0){
     const xy=(s,d)=>project(s.x+s.nx*d,s.y+s.ny*d,s.z+height-d*Math.sin(s.bank||0));

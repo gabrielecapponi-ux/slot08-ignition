@@ -1,4 +1,5 @@
 import { icon } from './icons.js';
+import {SECTORS} from '../track/sectors.js';
 import { CHAPTERS,courseName } from '../track/championship.js';
 import { openWorld } from '../game/tour.js';
 import { formatTime } from '../core/math.js';
@@ -45,12 +46,12 @@ export class Journey {
   this.showHome();
  }
  animate(id){if(!matchMedia('(prefers-reduced-motion: reduce)').matches)$(id).animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'translateY(0)'}],{duration:550,easing:'cubic-bezier(.16,1,.3,1)'});}
- showHome(){$('qualifying-grid').hidden=true;window.scrollTo({top:0,behavior:'instant'});const world=openWorld(this.profile.data.results);$('app').dataset.home='true';$('mode-home').hidden=false;$('home-progress').textContent='CAPITOLO '+(world+1)+' / 10 · '+CHAPTERS[world][0];$('home-continue').textContent=this.profile.data.clubWins?this.profile.data.clubWins+' gare completate · riprendi la tua storia':'Nuova tessera. Prima auto. Tutto da conquistare.';this.animate('mode-home');}
+ showHome(){$('qualifying-grid').hidden=true;window.scrollTo({top:0,behavior:'instant'});const world=openWorld(this.profile.data.results);$('app').dataset.home='true';$('mode-home').hidden=false;$('home-progress').textContent='CAPITOLO '+(world+1)+' / 10 · '+SECTORS[world][0];$('home-continue').textContent=this.profile.data.clubWins?this.profile.data.clubWins+' gare completate · riprendi la tua storia':'Nuova tessera. Prima auto. Tutto da conquistare.';this.animate('mode-home');}
  hideHome(){window.scrollTo({top:0,behavior:'instant'});$('app').dataset.home='false';$('mode-home').hidden=true;}
  refresh(){
   const s=this.session,world=s.meeting?.world;
-  $('chapter-title').textContent=world!=null?CHAPTERS[world][0]:MODES.find(m=>m[0]===s.mode)?.[2]||'Il tuo club';
-  $('chapter-copy').textContent=world!=null?CHAPTERS[world][1]:MODES.find(m=>m[0]===s.mode)?.[3]||'Scegli il circuito e porta la tua auto in griglia.';
+  $('chapter-title').textContent=world!=null?SECTORS[world][0]:MODES.find(m=>m[0]===s.mode)?.[2]||'Il tuo club';
+  $('chapter-copy').textContent=world!=null?s.track.level.name+' · '+s.track.level.subtitle:MODES.find(m=>m[0]===s.mode)?.[3]||'Scegli il circuito e porta la tua auto in griglia.';
   $('chapter-kicker').textContent=world!=null?'CAPITOLO '+(world+1)+' · GARA '+(s.meeting.round+1)+' / 5':'SESSIONE LIBERA';
   $('qualifying-setting').hidden=!['campaign','grandprix'].includes(s.mode);
   $('start-label').textContent=['campaign','grandprix'].includes(s.mode)&&$('qualifying-enabled').checked?'QUALIFICHE · 2 GIRI':s.mode==='time'?'ENTRA IN PISTA':'IN GRIGLIA';

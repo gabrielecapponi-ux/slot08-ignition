@@ -63,7 +63,9 @@ const screenControls = installScreenControls({
 function startScreen() {
   if (window.matchMedia('(pointer: coarse)').matches) void screenControls.enter(false);
 }
-function trackIcon(index,variant=-1){const t=createTrack(index,{lanes:4,variant}),b=t.bounds;const points=Array.from({length:110},(_,i)=>{const p=t.sample(i/109*t.length);return`${((p.x-b.minX)/(b.maxX-b.minX)*60).toFixed(1)},${((p.y-b.minY)/(b.maxY-b.minY)*38).toFixed(1)}`;}).join(' ');return`<svg viewBox="0 0 60 38" aria-hidden="true"><polyline points="${points}" fill="none" stroke="${LEVELS[index].color}" stroke-width="3" stroke-linejoin="round"/></svg>`;}
+import {SECTORS,drawSector,worldIcon} from './track/sectors.js';
+const routeIcons=new Map();
+function trackIcon(index,variant=-1){const key=index+':'+variant;if(routeIcons.has(key))return routeIcons.get(key);const t=createTrack(index,{lanes:4,variant}),b=t.bounds;const points=Array.from({length:110},(_,i)=>{const p=t.sample(i/109*t.length);return`${((p.x-b.minX)/(b.maxX-b.minX)*60).toFixed(1)},${((p.y-b.minY)/(b.maxY-b.minY)*38).toFixed(1)}`;}).join(' ');const svg=`<svg viewBox="0 0 60 38" aria-hidden="true"><polyline points="${points}" fill="none" stroke="${LEVELS[index].color}" stroke-width="3" stroke-linejoin="round"/></svg>`;routeIcons.set(key,svg);return svg;}
 function enterClub(){
   const world=openWorld(profile.data.results),first=profile.data.results.slice(world*5,world*5+5).findIndex(s=>s<2);
   session.carIndex=profile.data.car;
@@ -88,18 +90,28 @@ function menu(){
   $('rival-development').hidden=!event;$('rival-development').textContent=event?'Scuderie rivali · '+session.cars.filter(c=>c.ai).map(c=>c.name+' Lv.'+c.upgrades.motor).join(' / '):'';
   $('club-event').hidden=!event;
   $('world-picker').hidden=!event;
+  $('world-atlas').hidden=!event;$('map-stage').hidden=!event;
   if(event){
     const world=event.world,stars=worldStars(profile.data.results,world);
+    const [title,accent]=SECTORS[world];
+    $('map-stage').textContent='M'+(world+1)+' · GARA '+(event.round+1)+'/5';
+    const banner=$('atlas-art');if(banner.dataset.world!==String(world)){
+      drawSector(banner.getContext('2d'),banner.width,banner.height,world);banner.dataset.world=world;
+    }
+    $('world-atlas').style.setProperty('--sector',accent);
+    $('atlas-world').textContent='Mondo '+(world+1)+' / 10 · '+title;
+    $('atlas-next').textContent=(world<9?'Prossimo mondo · '+SECTORS[world+1][0]+' · '+Math.min(stars,STAR_GATE)+'/'+STAR_GATE+' stelle':'Ultimo mondo')+' · Gara '+(event.round+1)+' di 5';
+    $('atlas-stops').innerHTML=SECTORS.map(([name,color],i)=>`<button data-world="${i}" aria-label="Mondo ${i+1}: ${name}${i>unlocked?' bloccato':''}" ${i>unlocked?'disabled':''} aria-pressed="${world===i}" style="--dot:${color}">${worldIcon(i)}${String(i+1).padStart(2,'0')}</button>`).join('');
     $('world-picker').innerHTML=WORLDS.map(([name],i)=>`<option value="${i}" ${i>unlocked?'disabled':''} ${world===i?'selected':''}>${i+1} · ${name}${i>unlocked?' · bloccato':''}</option>`).join('');
     $('club-event').textContent='Gara '+(event.round+1)+'/5 · '+stars+'/15 stelle · 2 stelle per avanzare'+(world<9?' · prossimo mondo a '+STAR_GATE+' stelle':' · finale del tour');
     $('club-calendar').innerHTML=WORLDS[world][1].map((level,i)=>{
-      const id=world*5+i,n=profile.data.results[id],locked=i>0&&profile.data.results[id-1]<2;return `<li class="${id===session.clubRound?'current':''}"><button data-round="${id}" ${locked?'disabled':''} aria-pressed="${id===session.clubRound}"><small>GARA ${i+1} · ${'★'.repeat(n)+'☆'.repeat(3-n)}${locked?' · 2 STELLE NELLA GARA PRECEDENTE':''}</small><strong>${courseName(id)}</strong></button></li>`;
+      const id=world*5+i,n=profile.data.results[id],locked=i>0&&profile.data.results[id-1]<2;return `<li class="${id===session.clubRound?'current':''}"><button data-round="${id}" ${locked?'disabled':''} aria-pressed="${id===session.clubRound}">${trackIcon(level,id)}<span class="route-state">${locked?'Bloccata':id===session.clubRound?'In griglia':n?'Completata':'Disponibile'}</span><small>GARA ${i+1} · ${'★'.repeat(n)+'☆'.repeat(3-n)}${locked?' · 2 STELLE NELLA GARA PRECEDENTE':''}</small><strong>${courseName(id)}</strong><span>Motore consigliato · Lv. ${world+Math.floor((i+1)/3)}</span></button></li>`;
     }).join('');
   }
   $('level-list').hidden=!!event;$('free-circuits').hidden=!!event;$('club-calendar').hidden=!event;
   input.configure(session.players.length);$('local-help').hidden=!session.isLocal;$('coach-setting').value=session.guidance;const level=session.track.level;$('track-name').textContent=level.name;$('track-subtitle').textContent=level.subtitle;$('track-length').textContent=Math.round(session.track.length)+' M · '+session.track.laneCount+' CORSIE';$('footer-track').textContent=String(session.level+1).padStart(2,'0')+' — '+level.name.toUpperCase();$('mode').value=session.mode;$('difficulty').value=session.difficulty;$('assist').checked=session.assisted;$('hazards').checked=session.hazards;$('first-run').hidden=false;
   journey?.refresh();
-  $('level-list').innerHTML=LEVELS.map((l,i)=>`<button class="level-card" data-level="${i}" aria-pressed="${i===session.level}">${trackIcon(i)}<span><small>${l.tag}</small><strong>${l.name}</strong></span><span class="badge">${profile.data.medals[i]?'★'.repeat(profile.data.medals[i]):'↗'}</span></button>`).join('');
+  if(!event)$('level-list').innerHTML=LEVELS.map((l,i)=>`<button class="level-card" data-level="${i}" aria-pressed="${i===session.level}">${trackIcon(i)}<span><small>${l.tag}</small><strong>${l.name}</strong></span><span class="badge">${profile.data.medals[i]?'★'.repeat(profile.data.medals[i]):'↗'}</span></button>`).join('');
 }
 let advance = null;
 function startRound(round) {
@@ -149,6 +161,7 @@ function finish(tutorial){
   $('next-level').textContent=tutorial?'LA MIA PRIMA GARA':session.level<LEVELS.length-1?'PROSSIMO CIRCUITO':'CORRI ANCORA';}
 on($('level-list'),'click',e=>{const button=e.target.closest('[data-level]');if(button){session.configure({level:Number(button.dataset.level)});menu();window.scrollTo({top:0,behavior:'smooth'});}});
 function selectRound(id){advance=null;if(Number.isInteger(id)&&MEETINGS[id]?.world<=openWorld(profile.data.results)&&(id%5===0||profile.data.results[id-1]>=2)){session.clubRound=id;session.reset('campaign');menu();}}
+on($('atlas-stops'),'click',e=>{const b=e.target.closest('[data-world]');if(b)selectRound(Number(b.dataset.world)*5);});
 on($('world-picker'),'change',()=>selectRound(Number($('world-picker').value)*5));
 on($('club-calendar'),'click',e=>{const b=e.target.closest('[data-round]');if(b)selectRound(Number(b.dataset.round));});
 const workshop=new Workshop(profile,session,renderer,menu);

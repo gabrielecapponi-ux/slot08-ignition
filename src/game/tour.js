@@ -1,8 +1,9 @@
+import { SECTORS } from '../track/sectors.js';
 export const WORLDS=[
  ['Scuola del bosco',[0,1,5,6,13]],['Riviera GT',[3,2,12,8,4]],['Terre rosse',[4,7,9,3,14]],
  ['Valichi alpini',[1,6,11,5,13]],['Banchine del porto',[2,8,10,12,3]],['Circuiti notturni',[10,8,2,9,14]],
  ['Costa endurance',[12,3,4,7,13]],['Coppa delle spirali',[5,9,11,6,14]],['Maestri del ponte',[6,8,10,12,11]],['Finali del club',[13,7,9,11,14]]
-];
+].map(([,levels],i)=>[SECTORS[i][0],levels]);
 export const STAR_GATE=8;
 export const FLEET=[
  // Existing chassis IDs are stable across saved garages.

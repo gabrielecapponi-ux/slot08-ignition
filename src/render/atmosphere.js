@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { drawSector } from '../track/sectors.js';
 export const ATMOSPHERES={
  forest:{top:'#347b92',horizon:'#d4e9c6',sun:'#fff2b3',low:'#6b8c72'},
  alpine:{top:'#3974ad',horizon:'#e5f1f0',sun:'#ffffff',low:'#90acbd'},
@@ -8,7 +9,7 @@ export const ATMOSPHERES={
  desert:{top:'#4e9bb9',horizon:'#ffe0a5',sun:'#fff7d9',low:'#c6a77a'},
  night:{top:'#080f2c',horizon:'#354a78',sun:'#dfedff',low:'#1d2c4c'},
 };
-export function skyTexture(theme,variant=0,mobile=false){
+export function skyTexture(theme,variant=0,mobile=false,sector){
  const a=ATMOSPHERES[theme]??ATMOSPHERES.forest,c=document.createElement('canvas');c.width=mobile?1024:2048;c.height=mobile?512:1024;
  const ctx=c.getContext('2d');ctx.scale(c.width/2048,c.height/1024);const g=ctx.createLinearGradient(0,0,0,1024);g.addColorStop(0,a.top);g.addColorStop(.48,a.horizon);g.addColorStop(.65,a.low);g.addColorStop(1,a.low);ctx.fillStyle=g;ctx.fillRect(0,0,2048,1024);
  let seed=108+variant;const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
@@ -30,6 +31,7 @@ export function skyTexture(theme,variant=0,mobile=false){
  }
  ctx.globalAlpha=1;
  for(let layer=0;layer<3;layer++){ctx.fillStyle=[a.low+'55',a.low+'99',a.low][layer];ctx.beginPath();ctx.moveTo(0,700);for(let x=0;x<=2048;x+=8){const h=470+layer*23-Math.abs(Math.sin(x*.004+layer+variant))*(theme==='alpine'?90:42)-Math.sin(x*.015+layer)*13;ctx.lineTo(x,h);}ctx.lineTo(2048,1024);ctx.lineTo(0,1024);ctx.fill();}
+ if(Number.isInteger(sector))drawSector(ctx,2048,1024,sector);
  const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;texture.mapping=THREE.EquirectangularReflectionMapping;return texture;
 }
 

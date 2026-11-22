@@ -695,3 +695,11 @@ button{font-size:14px;border-radius:24px;font-weight:450;transition:background .
 @media(max-width:650px),(max-height:550px){#app #race-hud>.minimap-wrap{top:max(54px,calc(env(safe-area-inset-top) + 50px));width:116px;padding:4px 8px}#race-hud .minimap-wrap p{display:none}.map-speed b{font-size:20px}}
 @media(min-width:1101px) and (min-height:551px){#race-hud .camera-bar{right:calc(32px + clamp(116px,15vw,190px))}#race-hud .rivals{top:max(315px,calc(17vh + 160px))}}
 #race-camera{pointer-events:auto;touch-action:manipulation;display:block;width:100%;min-height:44px;margin:3px 0;padding:4px 0;border:0;border-bottom:1px solid #68818f;background:transparent;color:#fff;font:600 14px system-ui}#race-camera option{background:#101d28;color:white}
+#world-atlas{grid-column:1/-1;position:relative;isolation:isolate;overflow:hidden;border-radius:18px;border:1px solid #91b7bd66;background:#101d2b;color:#fff}
+#world-atlas canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+#world-atlas:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#081320ed,transparent 115%);z-index:-1}
+#world-atlas>div{padding:18px}#atlas-world{font-size:clamp(22px,4vw,38px);margin:0}#atlas-next{margin:5px 0 14px;color:#ebf4f8}
+#atlas-stops{display:flex;gap:5px;flex-wrap:wrap}#atlas-stops button{min-width:44px;min-height:44px;border-radius:50%;color:white;border:1px solid var(--dot);background:#132533;font-weight:700}#atlas-stops button:disabled{opacity:.55;border-style:dashed}#atlas-stops button[aria-pressed=true]{background:var(--dot);color:#0a1922}
+#app #club-calendar button svg{width:100%;height:50px}#club-calendar button:disabled svg{filter:grayscale(1)}#app #club-calendar .route-state{color:#95e5d7;font-weight:700}#app #club-calendar button:disabled{opacity:.7}#app #club-calendar button{align-content:start}#app #world-picker{display:none}
+
+#atlas-stops button{display:grid;justify-items:center;align-content:center;gap:2px;font-size:12px}#atlas-stops svg{width:19px;height:19px}#map-stage{color:#bccbd5;font-weight:700}

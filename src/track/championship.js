@@ -14,13 +14,27 @@ export const CHAPTERS=[
  ['Quattro rivali, un ponte','Ogni scambio conta. Scegli il ramo prima del bivio e difendi la tua corsia.'],
  ['L’ultima tessera','Il club ti conosce. Cinque finali, una coppa e una scuderia da completare.']
 ];
+import { stuntBase } from './stunts.js';
+const EXTREME={
+ 0:['Ion Slalom','Loop verticale e doppia esse',1,1.28],2:['Prisma Hairpin','Gomiti alternati e chicane stretta',0,1.05],
+ 3:['Vortice Zero','Spirale parabolica a due rotazioni',-1,2.7],5:['Orbita Gemella','Due loop e una esse in uscita',2,1.45],
+ 7:['Riviera Inversa','Dosso con backflip magnetico e tre tornanti',0,1.32],8:['Spirale Radente','Elica a due piani',-1,3.1]
+};
 const PLACES=['Foxwood','Riviera','Copper','Alpine','Docklands','Neon','Targa','Vortex','Skybridge','Crown'];
 const FORMS=['Club Sprint','Crossover','Chicane GP','Spiral Run','Twin Route'];
-export function courseRevision(id){return id>=10&&[0,2,4].includes(id%5)?16:14;}
-export function courseName(id){const name=courseRevision(id)===16?({0:'Sector Rally',2:'Switchback GP',4:'Split Chicane'}[id%5]):FORMS[id%5];return PLACES[Math.floor(id/5)]+' · '+name;}
-export function courseFeature(id){if(courseRevision(id)===16)return {0:'Tre settori, controcurve e dosso raccordato',2:'Doppia chicane e tornanti di raggio diverso',4:'Bivio per coppie di corsie e chicane in rientro'}[id%5];return ['Allungo e curve raccordate','Incrocio su due quote','Chicane e controcurve','Elica sopraelevata · '+(Math.floor(id/5)%2?'discesa':'salita'),'Due rami separati che si ricongiungono'][id%5];}
+export function courseRevision(id){if(EXTREME[id])return 17;return id>=10&&[0,2,4].includes(id%5)?16:14;}
+export function courseName(id){if(EXTREME[id])return EXTREME[id][0];const name=courseRevision(id)===16?({0:'Sector Rally',2:'Switchback GP',4:'Split Chicane'}[id%5]):FORMS[id%5];return PLACES[Math.floor(id/5)]+' · '+name;}
+export function courseFeature(id){if(EXTREME[id])return EXTREME[id][1];if(courseRevision(id)===16)return {0:'Tre settori, controcurve e dosso raccordato',2:'Doppia chicane e tornanti di raggio diverso',4:'Bivio per coppie di corsie e chicane in rientro'}[id%5];return ['Allungo e curve raccordate','Incrocio su due quote','Chicane e controcurve','Elica sopraelevata · '+(Math.floor(id/5)%2?'discesa':'salita'),'Due rami separati che si ricongiungono'][id%5];}
 export function championshipBase(id){
  const world=Math.floor(id/5),form=id%5,w=9+world*.8,h=4.2+world*.19,r=2.05+world*.065;
+ const extreme=EXTREME[id];
+ if(extreme){
+   const [,,loops,radius]=extreme;
+   if(loops<0)return new SpiralTrack({radius,width:13+world*2,height:7,lift:3.3,turns:2});
+   const points=[[-18,-8],[18,-8],[18,7],[10,7],[10,-1],[5,-1],[5,6],[0,6],[0,1],[-5,1],[-5,8],[-18,8]];
+   if(id===2||id===7)points[5]=[6,-3];
+   return stuntBase({points,radius:1.2+world*.15,turnRadius:radius,loops,flip:id===7});
+ }
  let base;
  if(form===0)base=new EnduranceTrack({points:[[-w,-h],[w,-h],[w+.5*world,h*.2],[w*.52,h],[-w*.62,h+world*.1],[-w,h*.22]],radius:r});
  if(form===1){base=new FigureEight({radius:2.8+world*.09,halfSpacing:6.2+world*.6,elevation:1.8+world*.07});base.switches=[0,base.halfLength].map((s,id)=>({id,start:s+.65,activationEnd:s+1.15,end:s+3.85}));}

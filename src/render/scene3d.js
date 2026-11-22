@@ -28,7 +28,6 @@ export class Scene3D {
     if(this.disposed){texture.dispose();return;}
     texture.mapping=THREE.EquirectangularReflectionMapping;texture.colorSpace=THREE.SRGBColorSpace;
     this.clubPanorama=texture;this.applyLighting();
-    if(this.track.meeting&&!this.garage)this.scene.background=texture;
     this.dirty=true;
   });this.atelier=atelierRoom();this.atelier.visible=false;this.scene.add(this.atelier);this.camera=new THREE.PerspectiveCamera(48,1,.02,500);this.rig=new CameraRig(this.camera,track);
   this.hemi=new THREE.HemisphereLight(0xe8f4ff,0xb39b7f,1.85);this.scene.add(this.hemi);
@@ -63,7 +62,7 @@ export class Scene3D {
  }
  fallbackCar(){const root=new THREE.Group();const b=new THREE.Mesh(new THREE.BoxGeometry(.3,.065,.15),new THREE.MeshStandardMaterial({name:'MAT_lime_enamel',color:0xc6f568,roughness:.25}));b.position.y=.06;root.add(b);const r=new THREE.Mesh(new THREE.BoxGeometry(.13,.045,.10),new THREE.MeshStandardMaterial({color:0x152b38}));r.position.y=.11;root.add(r);return root;}
  setTrack(track){this.trackEnvironmentTarget?.dispose();this.trackEnvironmentTarget=null;this.environmentPending=true;this.track=track;if(this.staticRoot){this.scene.remove(this.staticRoot);this.disposeRoot(this.staticRoot);}this.staticRoot=buildModularTrack(track,this.kit);this.staticRoot.updateMatrixWorld(true);this.staticRoot.traverse(o=>{o.matrixAutoUpdate=false;});this.world=new MiniatureWorld(track,this.kit);this.staticRoot.add(this.world.root);if(track.meeting)this.staticRoot.add(clubRoom(track));this.scene.add(this.staticRoot);
-  const theme=THEMES[track.theme]??THEMES.forest;this.sky?.dispose();this.sky=skyTexture(track.theme,track.index,this.mobile);this.scene.background=this.track.meeting&&this.clubPanorama?this.clubPanorama:this.sky;this.raceFog=new THREE.Fog(theme.sky,28,102);this.scene.fog=this.raceFog;this.ground.material.color.set(theme.floor);this.applyLighting();this.rig.setTrack(track);this.tuneTextures();this.dirty=true;
+  const theme=THEMES[track.theme]??THEMES.forest;this.sky?.dispose();this.sky=skyTexture(track.theme,track.index,this.mobile,track.meeting?.world);this.scene.background=this.sky;this.raceFog=new THREE.Fog(theme.sky,28,102);this.scene.fog=this.raceFog;this.ground.material.color.set(theme.floor);this.applyLighting();this.rig.setTrack(track);this.tuneTextures();this.dirty=true;
  }
  applyLighting(){
   if(!this.sun||!this.track)return;
@@ -100,7 +99,7 @@ export class Scene3D {
   finally{hidden.forEach((o,i)=>o.visible=visibility[i]);}
  }
  setView(view){this.rig.setMode(view);this.dirty=true;}
- setGarage(flag,appearance,upgrades,chassis=0){if(this.garage!==flag)this.rig.initial=true;this.garage=flag;this.rig.garage=flag;this.applyLighting();if(flag)this.garageCar={id:'workshop',name:'GT-08',ai:true,color:appearance.paint,appearance,upgrades,chassis};else{this.clearCars();this.camera.clearViewOffset();this.scene.background=this.track.meeting&&this.clubPanorama?this.clubPanorama:this.sky;}this.dirty=true;}
+ setGarage(flag,appearance,upgrades,chassis=0){if(this.garage!==flag)this.rig.initial=true;this.garage=flag;this.rig.garage=flag;this.applyLighting();if(flag)this.garageCar={id:'workshop',name:'GT-08',ai:true,color:appearance.paint,appearance,upgrades,chassis};else{this.clearCars();this.camera.clearViewOffset();this.scene.background=this.sky;}this.dirty=true;}
  setGarageView(angle){this.rig.detail=null;this.rig.zoom=1;this.rig.elevation=.28;this.rig.garageAngle=angle;this.rig.manual=true;this.dirty=true;}
  centerGarage(){this.setGarageView(.65);this.rig.initial=true;}
  inspect(key){this.rig.detail=key;this.rig.manual=false;this.rig.zoom=1;this.rig.garageAngle=key==='wing'||key==='motor'?2.5:.65;this.rig.elevation=['brake','under','grip'].includes(key)?-.65:key==='motor'?-.30:.28;this.dirty=true;}
@@ -136,6 +135,11 @@ export class Scene3D {
  submitFrame(rawDt){
   const frameDelta=this.lastSubmitted===undefined?rawDt:(this.lastTime-this.lastSubmitted)/1000;this.lastSubmitted=this.lastTime;
   if(frameDelta>0&&frameDelta<.2){this.frameSamples.push(frameDelta);if(this.frameSamples.length>180)this.frameSamples.shift();}
+  // Contact patches follow each car every frame; refresh the costly scene shadow less often on mobile.
+  this.renderer.shadowMap.autoUpdate=!this.mobile||this.garage;
+  if(this.mobile && (this.shadowTrack!==this.track || !this.lastShadow || this.lastTime-this.lastShadow>=66)){
+    this.renderer.shadowMap.needsUpdate=true;this.lastShadow=this.lastTime;this.shadowTrack=this.track;
+  }
   this.renderer.render(this.scene,this.camera);
   const cost=performance.now()-this.lastTime;
   if(this.quality.sample(rawDt,cost))this.resize();

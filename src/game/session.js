@@ -34,8 +34,10 @@ export class RaceSession {
       this.cars.push(createCar({ id: 'ai-1', name: 'Apex', color: COLORS.orange, lane: 1, ai: true, setup: carSetup(this.difficulty, this.upgrades) }));
       this.cars.push(createCar({ id: 'ai-2', name: 'Volt', color: COLORS.blue, lane: 0, ai: true, start: RACE.startDistance - 0.40, setup: carSetup(this.difficulty, this.upgrades) }));
       if(this.track.laneCount===4){this.cars[0].lane=1;this.cars[1].lane=2;this.cars[2].lane=0;this.cars.push(createCar({id:'ai-3',name:'Nitro',color:COLORS.pink,lane:3,ai:true,setup:carSetup(this.difficulty,this.upgrades)}));}
-      if(this.meeting) for(const [i,bot] of this.cars.slice(1).entries()){const level=Math.max(0,Math.min(20,this.meeting.world+Math.round(this.rivalRating[i]||0)));bot.rivalLevel=level;bot.setup=carSetup(this.difficulty,{motor:level,grip:level,brake:level});bot.maxGrip=bot.setup.gripForce;}
-      const d = DIFFICULTIES[this.difficulty];
+      if(this.meeting) for(const [i,bot] of this.cars.slice(1).entries()){const level=Math.max(0,Math.min(20,this.meeting.world+Math.floor((this.meeting.round+1)/3)+Math.round(this.rivalRating[i]||0)));bot.rivalLevel=level;bot.setup=carSetup(this.difficulty,{motor:level,grip:level,brake:level});bot.maxGrip=bot.setup.gripForce;}
+      const standard=DIFFICULTIES[this.difficulty];
+      const competitive=this.meeting && !this.assisted && this.difficulty!=='rookie';
+      const d=competitive?{...standard,pace:standard.pace+.025,reaction:standard.reaction*.78,errorRate:standard.errorRate*.55}:standard;
       this.drivers.set('ai-1', new AIDriver(this.track, d.pace, {reaction:d.reaction,errorRate:d.errorRate,seed:this.seed + this.raceNumber * 7919,tactical:true}));
       if(this.track.laneCount===4)this.drivers.set('ai-3',new AIDriver(this.track,d.pace-.01,{reaction:d.reaction*1.05,errorRate:d.errorRate,seed:this.seed+this.raceNumber*2357,tactical:true}));
       this.drivers.set('ai-2', new AIDriver(this.track, d.pace-.025, {reaction:d.reaction*1.15,errorRate:d.errorRate*1.1,seed:this.seed + this.raceNumber * 3571 + 17,tactical:true}));
@@ -125,7 +127,11 @@ export class RaceSession {
         if(!car.ai)this.toast(car.switchQueued?'SCAMBIO PRENOTATO · alla prossima X':'Scambio annullato');
       }
       if(car.switchQueued && (!car.ai || passingLaneClear(this.track,car,this.cars)) && this.physics.changeLane(car)){car.switchQueued=false;if(!car.ai)this.onEvent({type:'switch',car});}
-      if(!car.ai){const guide=this.assistant.input(car, dt);car.assistanceActive=(this.assisted||!!this.tutorial)&&input.throttle>guide.throttle+.05;if(this.assisted||this.tutorial)input={...input,throttle:Math.min(input.throttle,guide.throttle)};}
+      if(!car.ai && (this.assisted||this.tutorial)){
+        const guide=this.assistant.input(car,dt);
+        car.assistanceActive=input.throttle>guide.throttle+.05;
+        input={...input,throttle:Math.min(input.throttle,guide.throttle)};
+      }else car.assistanceActive=false;
 
       if(!car.ai&&updateCoach)car.coach=this.guidanceEnabled?brakingAdvice(this.track,car):null;
       const beforeDistance = car.distance;

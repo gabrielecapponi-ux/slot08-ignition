@@ -92,6 +92,10 @@ export function createTrack(index=0,{lanes=2,variant=-1,stunt=null}={}){
   track.level={...LEVELS[index],name,subtitle};if(spec){track.level.name=spec.name;track.level.subtitle=spec.loops===1?'Chicane nel bosco e giro della morte':'Due giri della morte sul rettilineo costiero';track.tunnels=track.tunnels.filter(t=>t.start>6+7*spec.loops);}
   track.index=index;track.variant=variant;
   if(variant>=0){track.level={...track.level,name:courseName(variant),subtitle:courseFeature(variant)};if(variant%5===4&&lanes===4)installFork(track);}
+  if(variant>=0 && [0,2,3,5,7,8].includes(variant)){
+    track.maxBank=[3,8].includes(variant)?1.02:.57;
+    track.tunnels=track.tunnels.filter(t=>t.start>21);
+  }
   const pts=Array.from({length:1000},(_,i)=>track.sample(i/1000*track.length));
   track.bounds={minX:Math.min(...pts.map(p=>p.x))-2,maxX:Math.max(...pts.map(p=>p.x))+2,minY:Math.min(...pts.map(p=>p.y))-2,maxY:Math.max(...pts.map(p=>p.y))+2};
   track.maxElevation=Math.max(...pts.map(p=>p.z));track.conditions=courseConditions(track);return track;
