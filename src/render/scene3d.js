@@ -123,7 +123,7 @@ export class Scene3D {
   diffuser.name='Estrattore in carbonio';diffuser.userData.ownMaterial=true;diffuser.userData.ownGeometry=true;root.add(diffuser);
   if(car.id==='workshop'){
     if(mechanicalView(this.rig.detail))root.traverse(node=>{
-      if(!node.isMesh||!inspectionShell(node.name,node.material.name))return;
+      if(!node.isMesh||installedGroup(node)||!(inspectionShell(node.name,node.material.name)||node.userData.ownGeometry))return;
       if(!node.userData.ownMaterial){node.material=node.material.clone();node.userData.ownMaterial=true;}
       node.material.transparent=true;node.material.opacity=.18;node.material.depthWrite=false;
     });

@@ -1,3 +1,4 @@
+import {setWeather} from '../track/weather.js';
 import {courseRevision} from '../track/championship.js';
 import { resolveContacts } from '../physics/contacts.js';
 import { MEETINGS, positionClubSwitches, passingLaneClear, trafficAhead } from './club.js';
@@ -22,6 +23,7 @@ export class RaceSession {
     if(this.meeting){this.level=this.meeting.level;}
     this.track = createTrack(this.level,{stunt:mode,lanes:['campaign','grandprix','elimination','race','masone','riviera'].includes(mode)?4:2,variant:this.meeting?this.clubRound:mode==='grandprix'&&Number.isInteger(this.mixCourse)?this.mixCourse:-1});
     if(!this.hazards)this.track.conditions=[];
+    setWeather(this.track,this.weatherChoice??'auto');
     if(this.meeting){this.track.meeting=this.meeting;positionClubSwitches(this.track);}
     this.physics = new PhysicsEngine(this.track);
     this.assistant = new AIDriver(this.track, .82);
@@ -79,7 +81,7 @@ export class RaceSession {
   configure({ hazards=this.hazards, level=this.level, difficulty=this.difficulty, assisted=this.assisted, upgrades=this.upgrades, appearance=this.appearance }={}) {
     this.hazards=hazards;this.appearance={...appearance};this.level=level; this.difficulty=difficulty; this.assisted=assisted; this.upgrades={...upgrades}; this.reset();
   }
-  get recordKey() {return [this.meeting?'club'+courseRevision(this.clubRound):'club14',this.phase,this.hazards?'conditions':'clean',this.meeting?this.clubRound:'free',this.carIndex,this.level,this.mode,this.difficulty,this.assisted?'assist':'manual',this.appearance.wheels||0,this.appearance.wing||0,...Object.values(this.upgrades)].join(':');}
+  get recordKey() {return [this.meeting?'club'+courseRevision(this.clubRound):'club14',this.phase,...(this.track.weather==='dry'?[]:[this.track.weather]),this.hazards?'conditions':'clean',this.meeting?this.clubRound:'free',this.carIndex,this.level,this.mode,this.difficulty,this.assisted?'assist':'manual',this.appearance.wheels||0,this.appearance.wing||0,...Object.values(this.upgrades)].join(':');}
   beginTutorial() { this.level=0; this.reset('time'); this.tutorial={step:0,initialLane:0}; this.status='running'; }
   get isLocal() { return this.mode==='local2'||this.mode==='local3'; }
   get players() { return this.cars.filter(c=>!c.ai); }

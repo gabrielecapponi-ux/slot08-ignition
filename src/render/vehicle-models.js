@@ -1,3 +1,4 @@
+import {finishTyres} from './paint-finish.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // Only cars on the starting grid or inspected in the garage need to be downloaded.
@@ -41,7 +42,7 @@ export class VehicleModels {
     const root=asset.scene.getObjectByName('CAR_GT');
     if(!root){disposeTemplate(asset.scene);throw new Error('Carrozzeria mancante');}
     root.traverse(node=>{if(node.isMesh&&node.material.name.startsWith('MAT_seat'))root.userData.hasSeats=true;});
-    root.removeFromParent();root.position.set(0,0,0);root.rotation.set(0,0,0);root.updateMatrixWorld(true);
+    finishTyres(root);root.removeFromParent();root.position.set(0,0,0);root.rotation.set(0,0,0);root.updateMatrixWorld(true);
     disposeTemplate(asset.scene);
     return root;
   }

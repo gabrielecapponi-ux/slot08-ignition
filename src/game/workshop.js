@@ -9,10 +9,10 @@ export const PARTS=Object.freeze({
  exhaust:{label:'Scarichi',names:['Automatico','Twin','Twin XL','Quad','Quad XL','Titanium','Laterali','Centrale','Triplo','Uscite alte','Sidewinder']},
 });
 export const PAINTS=['#c6f568','#ff854e','#8bbcff','#ef6763','#f1cf68','#f0eee2','#293b53','#c1a2ed','#51b5a0','#b7c3cd','#d65eaa','#7b4637','#dd9b65','#337593','#e9aaaf','#6f7856','#96ff00','#ff300a','#00dfff','#ff007c','#ffbe00','#6734ff'];
-export const DECALS=['Serie','Doppia striscia','Monostrip','Tricolore','Scacchi','Rally','Lampo','Carbon'];
+export const DECALS=['Serie','Doppia striscia','Monostrip','Tricolore','Scacchi','Rally','Lampo','Carbon','GTE Argento','Endurance Fucsia','GT Acqua'];
 export const TRIM={glass:[["#30404c","Fumé"],["#486881","Azzurro"],["#5d6952","Verde"]],seat:[["#333e49","Grafite"],["#a83232","Rosso corsa"],["#ae8157","Cuoio"]]};
 export const DEFAULT_APPEARANCE=Object.freeze({glass:"#30404c",seat:"#333e49",paint:PAINTS[0],decal:0,wing:0,wheels:0,hood:0,aero:0,lights:0,exhaust:0});
-export function sanitizeAppearance(raw={}){const a={...DEFAULT_APPEARANCE};for(const key of ["glass","seat"])if(TRIM[key].some(([color])=>color===raw[key]))a[key]=raw[key];if(PAINTS.includes(raw.paint))a.paint=raw.paint;a.decal=Math.max(0,Math.min(7,Math.floor(Number(raw.decal)||0)));for(const key of Object.keys(PARTS))a[key]=Math.max(0,Math.min(PARTS[key].names.length-1,Math.floor(Number(raw[key])||0)));return a;}
+export function sanitizeAppearance(raw={}){const a={...DEFAULT_APPEARANCE};for(const key of ["glass","seat"])if(TRIM[key].some(([color])=>color===raw[key]))a[key]=raw[key];if(PAINTS.includes(raw.paint))a.paint=raw.paint;a.decal=Math.max(0,Math.min(DECALS.length-1,Math.floor(Number(raw.decal)||0)));for(const key of Object.keys(PARTS))a[key]=Math.max(0,Math.min(PARTS[key].names.length-1,Math.floor(Number(raw[key])||0)));return a;}
 export function partPrice(variant){return [0,30,60,95,140,200,260,330,410,500,600][variant]??Infinity;}
 export function effectiveParts(car){const look=sanitizeAppearance(car.appearance),u=car.upgrades??{};return {...look,hood:look.hood||Math.min(10,Math.ceil((u.motor||0)/2)),exhaust:look.exhaust||Math.min(10,Math.floor((u.motor||0)/2)),wheels:look.wheels||Math.min(10,Math.ceil((u.grip||0)/2)),aero:look.aero||Math.min(10,Math.floor((u.brake||0)/2))};}
 

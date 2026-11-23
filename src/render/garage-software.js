@@ -37,7 +37,7 @@ export class SoftwareGarage {
     if(m.material.name.startsWith('MAT_lime_enamel'))color=vividPaint(car.color??look.paint);
     if(m.material.name.startsWith('MAT_smoked_glass'))color=new THREE.Color(look.glass);
     if(m.material.name.startsWith('MAT_seat'))color=new THREE.Color(look.seat);
-    const opacity=mechanicalView(cutaway)&&inspectionShell(m.name,m.material.name)?.18:m.material.transparent?m.material.opacity:1;
+    const opacity=mechanicalView(cutaway)&&!group&&(inspectionShell(m.name,m.material.name)||m.name.startsWith('GT_'))?.18:m.material.transparent?m.material.opacity:1;
     for(let i=0;i<a.count;i++)vertices.push(new THREE.Vector3().fromBufferAttribute(a,i).applyMatrix4(m.matrixWorld));
     for(let i=0;i<(index?.count??a.count);i+=3){
       const ia=base+(index?index.getX(i):i),ib=base+(index?index.getX(i+1):i+1),ic=base+(index?index.getX(i+2):i+2);
@@ -46,7 +46,10 @@ export class SoftwareGarage {
       const diffuse=.4+.88*Math.max(0,normal.dot(sun));
       const gloss=1-(m.material.roughness??1);
       const shine=Math.pow(Math.max(0,normal.dot(reflection)),10+48*gloss)*gloss;
-      const shaded=color.clone().multiplyScalar(diffuse).lerp(boxLight,shine*(.18+.40*(m.material.metalness??0)));
+      const baseColor=g.attributes.color?new THREE.Color().fromBufferAttribute(g.attributes.color,ia-base):color;
+      const enamel=m.material.name.startsWith('MAT_lime_enamel');
+      const strip=enamel?Math.pow(Math.max(0,1-Math.abs(normal.dot(reflection)-.72)*11),2)*.24:0;
+      const shaded=baseColor.clone().multiplyScalar(diffuse).lerp(boxLight,strip+shine*(enamel?.64:.18+.40*(m.material.metalness??0)));
       faces.push({ia,ib,ic,opacity,shade:'#'+shaded.getHexString(),depth:0});
     }
   });

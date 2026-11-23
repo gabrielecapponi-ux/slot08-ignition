@@ -770,3 +770,15 @@ button{font-size:14px;border-radius:24px;font-weight:450;transition:background .
 #garage[data-bay=scuderia] .garage-sheet>h2{background:linear-gradient(90deg,#071519f5,#10232788),url(assets/pit-gt20.webp) center 57%/cover}
 #garage[data-bay=officina] .garage-sheet>h2{background:linear-gradient(105deg,#19333af5,#101b1cce),url(assets/trackside-pbr.webp) center/cover}
 #garage[data-bay] .garage-sheet>h2{border-left:3px solid #96d7be;padding:12px 14px;border-radius:3px 10px 10px 3px}
+#weather-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#weather-fx[data-sky=rain]{background:linear-gradient(#4c789333,transparent 65%)}
+#weather-fx[data-sky=rain]::before,#weather-fx[data-sky=snow]::before{content:"";position:absolute;inset:-60px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='138' height='96'%3E%3Cpath stroke='%23d6f1ff' stroke-opacity='.43' d='m18 11-3 10m75 32-4 14m30-59-2 7m-67 47-3 8'/%3E%3C/svg%3E");animation:rain-pass .45s linear infinite}
+#weather-fx[data-sky=snow]::before{background-image:radial-gradient(circle at 20px 24px,#fff9 1.5px,transparent 2px),radial-gradient(circle at 69px 57px,#e8f3ffad 2px,transparent 3px);background-size:138px 96px;animation-duration:3s}
+#weather-fx[data-sky=heat]{background:linear-gradient(175deg,#ffc77722,transparent 45%)}
+#weather-fx[data-sky=sand]{background:linear-gradient(175deg,#cba67429,transparent 55%)}
+@keyframes rain-pass{to{background-position:0 96px}}
+@media(prefers-reduced-motion:reduce){#weather-fx::before{animation:none!important}}
+#part-bench{margin:0 0 16px;padding:10px;border:1px solid #637779;border-radius:14px;background:radial-gradient(ellipse at 48% 66%,#516471,#19252c 75%);text-align:center}
+#part-macro{width:100%;max-height:140px;object-fit:contain;display:block}
+#bench-caption{font-weight:600;color:#fff0d7;font-size:13px}
+#compare-fit{margin-top:7px;min-height:44px;color:#f0ddc2}

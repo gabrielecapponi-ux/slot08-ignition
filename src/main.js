@@ -1,3 +1,4 @@
+import { WEATHER } from './track/weather.js';
 import {raceId} from './game/tour.js';
 import {installGraphics} from './ui/graphics.js';
 import { Journey } from './ui/journey.js';
@@ -88,6 +89,7 @@ function menu(){
   $('tour-passport').innerHTML=`<div><span>LICENZA DI CLUB</span><strong>MONDO ${passportWorld+1} / 10</strong></div><p>${WORLDS[passportWorld][0]}</p><meter min="0" max="${STAR_GATE}" value="${Math.min(STAR_GATE,earned)}">${earned} stelle</meter><small>${earned} stelle · ${Math.max(0,STAR_GATE-earned)} alla promozione${nextCar?' · prossima auto: '+nextCar.name:''}</small>`;
   $('route-preview').innerHTML=trackIcon(session.level,session.meeting?session.clubRound:-1);$('track-length').dataset.lanes=session.track.laneCount;
   $('track-condition').textContent=session.track.conditions.length?session.track.conditions.map(z=>z.short+' · corsia '+(z.lane+1)).join(' / '):'Fondo pulito · cerca il punto di frenata';
+  $('track-condition').textContent=WEATHER[session.track.weather].label+' · '+$('track-condition').textContent;
   if(event&&session.hazards&&session.track.conditions.length)$('track-condition').textContent+=' · Podio senza uscite +75 CR';
   $('rival-development').hidden=!event;$('rival-development').textContent=event?'Scuderie rivali · '+session.cars.filter(c=>c.ai).map(c=>c.name+' Lv.'+c.upgrades.motor).join(' / '):'';
   $('club-event').hidden=!event;
@@ -204,7 +206,7 @@ on($('pause-view'),'change',e=>setView(e.target.value,true));
 on($('pause-power'),'input',e=>{input.setPower(0,Number(e.target.value)/100);$('pause-power-value').textContent=Math.round(input.power[0]*100)+'%';});
 for(const event of ['contextmenu','selectstart'])on($('app'),event,e=>{if(['running','countdown'].includes(session.status))e.preventDefault();});
 on($('back-menu'),'click',back);on($('resume'),'click',()=>{session.resume();focus();});on($('pause'),'click',pause);
-on($('mode'),'change',()=>{session.mixCourse=null;advance=null;if($('mode').value==='campaign')enterClub();else session.reset($('mode').value);menu();});on($('difficulty'),'change',()=>{session.configure({difficulty:$('difficulty').value});menu();});on($('hazards'),'change',()=>{session.configure({hazards:$('hazards').checked});menu();});on($('assist'),'change',()=>{session.configure({assisted:$('assist').checked});menu();});
+on($('mode'),'change',()=>{session.mixCourse=null;advance=null;if($('mode').value==='campaign')enterClub();else session.reset($('mode').value);menu();});on($('difficulty'),'change',()=>{session.configure({difficulty:$('difficulty').value});menu();});on($('weather-choice'),'change',()=>{session.weatherChoice=$('weather-choice').value;session.reset();menu();});on($('hazards'),'change',()=>{session.configure({hazards:$('hazards').checked});menu();});on($('assist'),'change',()=>{session.configure({assisted:$('assist').checked});menu();});
 on($('garage-open'),'click',()=>{advance=null;input.clear();workshop.open();window.scrollTo(0,0);});
 on($('help-open'),'click',()=>{input.clear();session.pause();$('help').showModal();});on($('help-close'),'click',()=>$('help').close());
 on($('coach-setting'),'change',()=>{session.guidance=$('coach-setting').value;});
@@ -254,7 +256,10 @@ on($('sound'),'click',()=>{
   try { local?.setItem('slot08.audio',audioWanted?'on':'off'); } catch {}
   showAudio(); void syncAudio(); focus();
 });
-loop=new FixedLoop(dt=>{for(const c of session.cars){c.previousDistance=c.distance;c.previousPose=c.pose;c.previousDrift=c.driftAngle;c.previousState=c.state;}session.update(dt,input.readAll());},(alpha,now)=>{loop.setRenderRate(graphics.fps);renderer.render(session,alpha);hud.render(now);updateAdvance(now);graphics.update(now);sound.update(session,session.status==='running');});
+loop=new FixedLoop(dt=>{for(const c of session.cars){c.previousDistance=c.distance;c.previousPose=c.pose;c.previousDrift=c.driftAngle;c.previousState=c.state;}session.update(dt,input.readAll());},(alpha,now)=>{loop.setRenderRate(graphics.fps);renderer.render(session,alpha);
+const fx=$('weather-fx'),weather=session.status==='running'&&!renderer.garage&&!session.track.tunnelAt(session.player.distance)?session.track.weather:'dry';
+if(fx.dataset.sky!==weather)fx.dataset.sky=weather;
+hud.render(now);updateAdvance(now);graphics.update(now);sound.update(session,session.status==='running');});
 enterClub();menu();await renderer.ready;renderer.render(session,1);document.querySelectorAll('[data-boot-disabled]').forEach(el=>el.disabled=false);$('start').disabled=false;$('tutorial-start').disabled=false;$('difficulty').disabled=false;loop.start();$('poster').hidden=true;
 const suspend=()=>{input.clear();session.pause();sound.update(session,false);};on(window,'blur',suspend);on(document,'visibilitychange',()=>{if(document.hidden){suspend();loop.stop();}else{loop.resetClock();loop.start();}});on(window,'pagehide',e=>{suspend();loop.stop();if(!e.persisted){workshop.destroy();input.destroy();renderer.destroy();sound.destroy();abort.abort();}});on(window,'pageshow',e=>{if(e.persisted)loop.start();});
 window.slot08=Object.freeze({snapshot:()=>({status:session.status,phase:session.phase,mode:session.mode,variant:session.track.variant,lanes:session.track.laneCount,track:session.level,assisted:session.assisted,time:session.elapsed,cars:session.cars.map(c=>({id:c.id,lane:c.lane,queued:c.switchQueued,changing:!!c.change,drift:c.driftAngle,instability:c.instability,state:c.state,speed:c.speed,distance:c.distance,laps:c.laps,crashes:c.crashes})),render:renderer.stats?.()??{type:'2d'}})});

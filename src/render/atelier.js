@@ -32,20 +32,21 @@ export function installHardware(root,car,hasSeats=false){
    block(root,'Dissipatore motore','#65747b',[.043,.005,.045],[-.062,.035,0],.75);
    for(let i=0;i<3+Math.floor(motor/4);i++)block(root,'Aletta dissipatore','#a6bcc1',[.002,.010+motor*.0004,.043],[-.08+i*.005,.040,0],.8);
  }
- if(grip)block(root,'Magnete di trazione','#58627a',[.017+grip*.001,.009,.076],[0,.002,0],.8);
- if(brake){block(root,'Scheda freno dinamico','#176656',[.032,.008,.036],[.042,.001,0]);
+ block(root,'Magnete di trazione','#58627a',[.017+grip*.001,.009,.076],[0,.002,0],.8);
+ {block(root,'Scheda freno dinamico','#176656',[.029+brake*.0008,.006+brake*.00022,.032+brake*.0006],[.042,.001,0]);
    for(const side of [-1,1])block(root,'Contatto freno','#e8ac45',[.024,.005,.006],[.042,-.004,side*.009]);
    for(const x of [-.091,.096])for(const side of [-1,1])block(root,'Pinza','#e66b36',[.009+brake*.00035,.016,.004],[x+.012,.033,side*.09]);
  }
- if(brush)for(const side of [-1,1]){
-   for(let strand=0;strand<4;strand++)block(root,'Treccia in rame','#c9874c',[.029+brush*.0004,.002,.0018],[.099,-.002,side*(.013+.002*strand)],.82);
+ for(const side of [-1,1]){
+   for(let strand=0;strand<4;strand++)block(root,'Treccia in rame','#c9874c',[.023+brush*.00075,.002,.0016+brush*.00007],[.099,-.002,side*(.013+.002*strand)],.82);
  }
- if(gearing){
-   const crown=mechanicalMesh(root,'Corona dentata',new THREE.CylinderGeometry(.017,.017,.007,24),metal('#c89c50'),[-.091,.033,.027]);
+ {
+   const radius=.012+.00032*gearing,teeth=10+gearing;
+   const crown=mechanicalMesh(root,'Corona dentata',new THREE.CylinderGeometry(radius,radius,.007,32),metal('#c89c50'),[-.091,.033,.027]);
    crown.rotation.x=Math.PI/2;
-   for(let i=0;i<12;i++){const a=i*Math.PI/6;block(root,'Dente corona','#dbad60',[.004,.004,.007],[-.091+.017*Math.cos(a),.033+.017*Math.sin(a),.027],.72);}
+   for(let i=0;i<teeth;i++){const a=i*2*Math.PI/teeth;block(root,'Dente corona','#dbad60',[.004,.004,.007],[-.091+radius*Math.cos(a),.033+radius*Math.sin(a),.027],.72);}
  }
- if(diffuser)for(let i=-2;i<=2;i++)block(root,'Deriva fondo','#394752',[.047,.008+diffuser*.00015,.002],[-.109,.007,i*.017],.55).rotation.z=-.12;
+ for(let i=-2;i<=2;i++)block(root,'Deriva fondo','#394752',[.032+.0012*diffuser,.006+diffuser*.00045,.002],[-.109,.007,i*.017],.55).rotation.z=-.12;
  if(hasSeats)return;
  const fabric=car.appearance?.seat||'#333e49';
  const profile=new THREE.Shape();

@@ -27,6 +27,7 @@ function stockAxles(source) {
 function rollingMaterial(material, pivots, turn) {
   const wheel = material.clone();
   wheel.onBeforeCompile = shader => {
+    material.onBeforeCompile(shader);
     shader.uniforms.slotAxles = { value: pivots };
     shader.uniforms.slotTurn = turn;
     shader.vertexShader = 'uniform vec4 slotAxles;\nuniform vec2 slotTurn;\n' + shader.vertexShader;
@@ -43,7 +44,7 @@ function rollingMaterial(material, pivots, turn) {
       transformed.xy = pivot + wheelRotation * (position.xy - pivot);
     `);
   };
-  wheel.customProgramCacheKey = () => 'slot-stock-wheel-v1';
+  wheel.customProgramCacheKey = () => 'slot-stock-wheel-v2-'+(material.userData.tyreFinish?'rubber':'metal');
   return wheel;
 }
 
@@ -55,7 +56,9 @@ export function installCarMotion(root, source) {
     if (!node.isMesh) return;
     const role = node.userData.carSurface;
     if (role === 'wheel' && axles) {
-      node.material = rollingMaterial(node.material, axles.pivots, motion.turn);
+      const original=node.material;
+      node.material = rollingMaterial(original, axles.pivots, motion.turn);
+      if(node.userData.ownMaterial)original.dispose();
       node.userData.ownMaterial = true;
     }
     if (role === 'stop' || role === 'headlight') {

@@ -1,6 +1,28 @@
+import {sidewallPrint} from './sidewall.js';
+import {finishTyres} from './paint-finish.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 /** Shared Blender meshes. Consumers own instances, never the underlying buffers. */
+function finishAssembly(root){
+ if(root.name.startsWith('PART_wheels_')&&root.children.length===4){
+   for(const hub of root.children)sidewallPrint(hub);
+ }
+ if(root.name==='PART_hood_5'){
+   const alloy=new THREE.MeshStandardMaterial({color:'#afc0c8',metalness:.78,roughness:.23});
+   const tube=new THREE.TorusGeometry(.008,.0028,8,22);
+   for(const side of [-1,1]){
+     const trumpet=new THREE.Mesh(tube,alloy);
+     trumpet.rotation.y=Math.PI/2;trumpet.position.set(.094,.104,side*.012);
+     root.add(trumpet);
+   }
+ }else if(root.name==='PART_lights_9'){
+   const glass=new THREE.MeshPhysicalMaterial({color:'#ffe6a8',clearcoat:1,roughness:.15,emissive:'#eac16a',emissiveIntensity:.4});
+   const lens=new THREE.SphereGeometry(.009,14,10);
+   for(const z of [-.037,-.013,.013,.037]){
+     const optic=new THREE.Mesh(lens,glass);optic.scale.x=.55;optic.position.set(.104,.110,z);root.add(optic);
+   }
+ }
+}
 export class AssetKit {
  constructor(){this.items=new Map();this.footprints=new Map();}
  async load(){
@@ -29,7 +51,7 @@ export class AssetKit {
   return this;
  }
  ingest(gltf){this.source=gltf.scene;
-  for(const root of [...gltf.scene.children]){if(!/^(PROP_|PART_|ANIM_)/.test(root.name))continue;root.removeFromParent();root.position.set(0,0,0);root.scale.setScalar(1);root.updateMatrixWorld(true);this.items.set(root.name,root);const size=new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());this.footprints.set(root.name,Math.hypot(size.x,size.z)/2);}return this;
+  for(const root of [...gltf.scene.children]){if(!/^(PROP_|PART_|ANIM_)/.test(root.name))continue;if(root.name.startsWith('PART_wheels_'))finishTyres(root);finishAssembly(root);root.removeFromParent();root.position.set(0,0,0);root.scale.setScalar(1);root.updateMatrixWorld(true);this.items.set(root.name,root);const size=new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());this.footprints.set(root.name,Math.hypot(size.x,size.z)/2);}return this;
  }
  footprint(name){return this.footprints.get(name)??.7;}
  clone(name){const template=this.items.get(name);if(!template)return new THREE.Group();const root=template.clone(true);root.traverse(o=>{if(o.isMesh){o.userData.sharedAssets=true;o.castShadow=true;o.receiveShadow=true;}});return root;}

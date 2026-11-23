@@ -1,5 +1,7 @@
 import { clamp, mod } from '../core/math.js';
 
+import { WEATHER } from './weather.js';
+
 const TYPES={
  rubber:{label:'TRAIETTORIA GOMMATA',short:'Gomma depositata',grip:1.13,color:'#3f4044'},
  grit:{label:'GRANIGLIA IN CORSIA',short:'Graniglia',grip:.76,color:'#b6ab96'},
@@ -35,7 +37,9 @@ export function surfaceAt(track,distance,lane){
 }
 export function surfaceGrip(track,distance,lane,setup){
  const surface=surfaceAt(track,distance,lane);
- return surface?1-(1-surface.grip)*(setup?.surfaceSensitivity??1):1;
+ const climate=WEATHER[track.weather]?.grip??1;
+ const ambient=track.weather==='rain'&&track.tunnelAt?.(distance)?1:climate;
+ return ambient*(surface?1-(1-surface.grip)*(setup?.surfaceSensitivity??1):1);
 }
 export function upcomingSurface(track,car){
  let nearest=null;

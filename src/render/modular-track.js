@@ -49,6 +49,9 @@ export function buildModularTrack(track,kit=null) {
   asphalt.roughnessMap=asphalt.bumpMap=roughness;asphalt.bumpScale=.0003;asphalt.clearcoatRoughnessMap=roughness;
   asphalt.addEventListener('dispose',()=>roughness.dispose());
   asphalt.color.set('#697078');asphalt.roughness=.48;asphalt.envMapIntensity=1.45;asphalt.name="Carbonio twill sotto trasparente";
+  if(track.weather==='rain'){
+    asphalt.color.set('#41525c');asphalt.roughness=.23;asphalt.clearcoatRoughness=.07;asphalt.envMapIntensity=1.8;
+  }
   const conductorMat=new THREE.MeshPhysicalMaterial({color:'#e1e5e6',metalness:1,roughness:.19,anisotropy:.7,anisotropyRotation:Math.PI/2,side:THREE.DoubleSide,vertexColors:true});
   conductorMat.envMapIntensity=1.6;
   // Longitudinal brushed scratches: mipmapped roughness, never flashing geometry.

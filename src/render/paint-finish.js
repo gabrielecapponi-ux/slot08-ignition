@@ -20,3 +20,22 @@ export function lacquerTexture(){
  map.generateMipmaps=true;map.minFilter=THREE.LinearMipmapLinearFilter;map.magFilter=THREE.LinearFilter;
  map.needsUpdate=true;return map;
 }
+
+// Model coordinates work on Blender tyres without UVs. Fine mould grain
+// changes the width of a highlight without changing the round tyre silhouette.
+export function finishTyres(root){
+ root.traverse(n=>{
+   const m=n.material;
+   if(!m||m.userData.tyreFinish||!/vulcanized_rubber|Graphite tyre compound|Embossed rubber/i.test(m.name))return;
+   m.roughness=.70;m.metalness=.025;m.userData.tyreFinish=true;
+   m.onBeforeCompile=shader=>{
+     shader.vertexShader='varying vec3 rubberLocal;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nrubberLocal=position;');
+     shader.fragmentShader='varying vec3 rubberLocal;\n'+shader.fragmentShader.replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+       vec3 tireCell=floor(rubberLocal*5200.);
+       float grain=fract(sin(dot(mod(tireCell,127.),vec3(13.3,31.1,7.7)))*1745.7);
+       float fade=1.-smoothstep(.3,2.,length(fwidth(rubberLocal))*5200.);
+       roughnessFactor+=(grain-.5)*.22*fade;`);
+   };
+   m.customProgramCacheKey=()=>'slot-rubber-finish';
+ });
+}
