@@ -68,9 +68,12 @@ layouts.push(
   ["Orbita finale", "A2B1baC", "hairpin"]
 );
 const features={loop:'Loop verticale e ritorno tecnico',double:'Doppia inversione e tornanti',up:'Avvitamento in salita',down:'Avvitamento in discesa',long:'Parabolica a raggio lungo',cross:'Scavalco, sottopasso e uscita a destra',hairpin:'Chicane ravvicinate e curve a gomito',jump:'Salto sul rettilineo · minimo 155 km/h'};
+// Two hillclimb stages in each world. The first hairpin climbs, the second
+// drops away, with the crest on the short link between the two reversals.
+const mountainStages=new Set([2,50,8,57,11,64,16,65,21,70,28,77,33,84,39,85,43,92,46,99]);
 export const courseName=id=>layouts[id][0];
-export const courseFeature=id=>features[layouts[id][2]];
-export const courseRevision=id=>[2,11,21,38,46].includes(id)?23:21;
+export const courseFeature=id=>features[layouts[id][2]]+(mountainStages.has(id)?' · Doppio tornante di valico':'');
+export const courseRevision=id=>mountainStages.has(id)?25:[2,11,21,38,46].includes(id)?23:21;
 export function championshipBase(id){
   const [,code,kind]=layouts[id],world=Math.floor(id%50/5),cross=kind==='cross';
   const step=10+(id%3)+(id>=50?1.5:0),w=(code.length+2)*step,h=12+world*.36;
@@ -89,7 +92,12 @@ export function championshipBase(id){
   // clear for the grid, forks, loops and jump.
   const endPoint=points[1];
   if(kind==='long'){endPoint[0]+=15;points[2]=[w-1,h+9];points[3]=[w-step*.5,h+5];}
-  if(!cross){
+  const mountain=mountainStages.has(id);
+  if(mountain){
+    const x=w*.43,gap=3.4+(id%4)*.20,depth=10+id%5;
+    points.splice(1,0,[x,0],[x,-depth],[x+gap,-depth],[x+gap,-1],
+      [x+2*gap,-1],[x+2*gap,-depth+1],[w-8,-depth+1]);
+  }else if(!cross){
     const x=w*.46,d=5+(id%5)*1.25;
     const approaches=[
       [[x,0],[x+7,-d],[w-9,-d]],
@@ -102,6 +110,7 @@ export function championshipBase(id){
   }
   const apex=points.indexOf(endPoint);
   const radius=points.map((_,i)=>i===apex?(kind==='long'?9:4):i===apex+1?4.5:2);
+  if(mountain)for(const corner of [2,3,4,5])radius[corner]=1.12+(id%4)*.09;
   const base=['loop','double'].includes(kind)?stuntBase({points,turnRadius:radius,radius:1.28+world*.025,loops:kind==='double'?2:1}):new EnduranceTrack({points,radius});
   if(kind==='jump')base.jump={start:12,length:1.25,minSpeed:155/64.8};
   const spiral=['up','down'].includes(kind),arc=base.segments[(apex-1)*2+1];
@@ -129,6 +138,19 @@ export function championshipBase(id){
     }
     return {...p,z,bridge:z>.08};
   };
+  if(mountain){
+    const sample=base.sample.bind(base);
+    const [first,second]=[3,7].map(i=>({start:base.segments[i].start,end:base.segments[i+2].start+base.segments[i+2].length}));
+    const bottom=first.start-3,crest=(first.end+second.start)/2,end=second.end+3;
+    const height=1.3+(world%4)*.16+(id>=50?.18:0);
+    base.hairpins=[{...first,climb:true},{...second,climb:false}];
+    base.sample=distance=>{
+      const p=sample(distance);
+      if(p.s<=bottom||p.s>=end)return p;
+      const t=p.s<=crest?(p.s-bottom)/(crest-bottom):(end-p.s)/(end-crest);
+      return {...p,z:p.z+height*t*t*(3-2*t),bridge:true};
+    };
+  }
   // A raised axial roll on the long launch straight. Entrance and exit have zero slope.
   if([2,11,21,38,46].includes(id)){
     const sample=base.sample.bind(base),start=6,span=14;

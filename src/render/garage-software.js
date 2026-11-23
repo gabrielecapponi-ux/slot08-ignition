@@ -50,7 +50,9 @@ export class SoftwareGarage {
       const baseColor=g.attributes.color?new THREE.Color().fromBufferAttribute(g.attributes.color,ia-base):m.material.map?texturePigment(m.material,g.attributes.uv,ia-base):color;
       const enamel=m.material.name.startsWith('MAT_lime_enamel');
       const strip=enamel?Math.pow(Math.max(0,1-Math.abs(normal.dot(reflection)-.72)*11),2)*.24:0;
+      const glazing=m.material.name.startsWith('MAT_smoked_glass');
       const shaded=baseColor.clone().multiplyScalar(diffuse).lerp(boxLight,strip+shine*(enamel?.64:.18+.40*(m.material.metalness??0)));
+      if(glazing)shaded.lerp(new THREE.Color('#a9c8d4'),.07+.19*Math.max(0,normal.y)**2);
       faces.push({ia,ib,ic,opacity,shade:'#'+shaded.getHexString(),depth:0});
     }
   });
@@ -138,11 +140,12 @@ export class SoftwareGarage {
   // RaceSession replaces cars on configuration or purchase. Cache with that lifetime.
   if(cached?.stock===stock&&cached.kit===this.kit)return cached.canvas;
   const mesh=this.mesh(stock,car,false),canvas=document.createElement('canvas');
-  canvas.width=240;canvas.height=160;
-  const ctx=canvas.getContext('2d'),scale=500;
+  const density=Math.min(2,Math.max(1,globalThis.devicePixelRatio||1));
+  canvas.width=Math.round(240*density);canvas.height=Math.round(160*density);
+  const ctx=canvas.getContext('2d'),scale=500*density;
   if(rear){
-    const scale=960;
-    mesh.vertices.forEach((v,i)=>mesh.screen[i].set(120+v.z*scale,99-(v.y*.92+v.x*.39)*scale,v.x*.92-v.y*.39));
+    const scale=960*density;
+    mesh.vertices.forEach((v,i)=>mesh.screen[i].set(120*density+v.z*scale,99*density-(v.y*.92+v.x*.39)*scale,v.x*.92-v.y*.39));
   }else mesh.vertices.forEach((v,i)=>mesh.screen[i].set(canvas.width*.5+v.x*scale,canvas.height*.5+(v.z-.26*v.y)*scale,-v.y-.26*v.z));
   this.project(mesh,ctx,true);cache.set(car,{stock,kit:this.kit,canvas});return canvas;
  }

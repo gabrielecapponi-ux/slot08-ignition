@@ -144,6 +144,24 @@ export function buildModularTrack(track,kit=null) {
     }
     mesh.name='Cordoli smussati';mesh.userData.ownTexture=phase===0;mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh);
   }
+  // Alternating edge paint on the outer shoulder shows the full radius beyond the crest.
+  if(track.base?.hairpins){
+    const verts=[],ink=[];
+    for(const bend of track.base.hairpins){
+      const side=-Math.sign(track.sample(bend.start+.12).curvature);
+      const count=Math.ceil((bend.end-bend.start+2)/.18);
+      for(let i=0;i<count;i++){
+        const s=bend.start-1+i*.18,a=track.sample(s),b=track.sample(s+.18);
+        const rgb=new THREE.Color(i%4===0?'#f2e8cd':bend.climb?'#cc792b':'#338e9a');
+        for(const [q,d] of [[a,.385],[a,.447],[b,.385],[b,.385],[a,.447],[b,.447]]){
+          verts.push(...position(q,(d+e)*side,.084));ink.push(rgb.r,rgb.g,rgb.b);
+        }
+      }
+    }
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));g.setAttribute('color',new THREE.Float32BufferAttribute(ink,3));g.computeVertexNormals();
+    const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.65,side:THREE.DoubleSide}));
+    m.name='Banchina di valico';m.receiveShadow=true;root.add(m);
+  }
   // Mould joins stop at the steel bands. Countersunk heads and slots are batched by finish.
   const seamCount=Math.floor(track.length/1.2);
   const spans=[];let left=-.348-e;for(const lane of lanes){if(track.fork&&left<0&&lane-.036>0){spans.push([left,-.001],[.001,lane-.036]);}else spans.push([left,lane-.036]);left=lane+.036;}spans.push([left,.348+e]);

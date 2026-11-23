@@ -46,7 +46,9 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
       const horizon=document.createElement('canvas');horizon.width=768;horizon.height=384;
       drawSector(horizon.getContext('2d'),768,384,id);horizons.set(id,horizon);
     }
-    ctx.drawImage(horizons.get(id),0,0,w,h);
+    const panorama=horizons.get(id),period=Math.max(w,h*2.4),shift=((heading/(2*Math.PI)%1+1)%1)*period;
+    ctx.drawImage(panorama,-shift,0,period,h);
+    if(period-shift<w)ctx.drawImage(panorama,period-shift,0,period,h);
   }
   const shapes=[];
   function strip(a,b,left,right,color,height=0){
@@ -73,6 +75,11 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
     if(a.tunnel){
       const wet=['coast','titan'].includes(track.theme);
       strip(a,b,-half-.22,half+.22,Math.floor(a.s/.22)%3===0?['#9bd7d7','#a8c6eb','#dda375'][Math.floor(a.s/2)%3]:wet?'#215969':'#454950',1.15);
+    }
+    const bend=track.base?.hairpins?.find(t=>a.s>=t.start-1&&a.s<t.end+1);
+    if(bend){
+      const outer=-Math.sign(track.sample(bend.start+.12).curvature);
+      strip(a,b,outer*(half+.015),outer*(half+.077),Math.floor(a.s/.18)%4===0?'#f2e8cd':bend.climb?'#cc792b':'#338e9a',.084);
     }
     for(const lane of track.lanes){
       const d=track.laneOffset(lane)+Math.sign(track.laneOffset(lane))*(a.fork?.offset||0)/2;

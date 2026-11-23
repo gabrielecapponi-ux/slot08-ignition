@@ -15,7 +15,8 @@ export function addCarStyle(root,car,kit){
      material.envMapIntensity=1.34;material.metalness=.29;material.roughness=.20;material.clearcoat=1;
    }else if(material.name.startsWith('MAT_smoked_glass')){
      material.depthWrite=false;
-     if(material.isMeshPhysicalMaterial)material.clearcoatRoughness=.075;
+     material.roughness=.11;material.envMapIntensity=1.22;
+     if(material.isMeshPhysicalMaterial){material.clearcoat=1;material.clearcoatRoughness=.055;material.ior=1.51;}
    }
  });
 
@@ -84,6 +85,28 @@ export function addCarStyle(root,car,kit){
    digits.forEach((glyph,col)=>[...glyph].forEach((pixel,i)=>{
      if(pixel==='1')patch(.073+(4-Math.floor(i/3))*.0044,.026+col*.012+(i%3)*.0033,.0045,.0034,'#12212c',.0018);
    }));
+   // Rear scrutineering plate and rain-light optics follow each body's tail profile.
+   const tailRay=new THREE.Raycaster(),forward=new THREE.Vector3(1,0,0);
+   const tail=new THREE.Box3().setFromObject(root),rearX=tail.min.x-.03;
+   const pad=(z,y,width,height,pigment,offset)=>{
+     const tint=new THREE.Color(pigment),v=[];
+     for(const [u,t] of [[0,0],[1,0],[0,1],[1,1]]){
+       const pz=z+width*u,py=y+height*t;
+       tailRay.set(new THREE.Vector3(rearX,py,pz),forward);
+       const hit=tailRay.intersectObjects(panels,false)[0];
+       if(!hit||hit.point.x>-.045)return;
+       v.push([hit.point.x-offset,py,pz]);
+     }
+     for(const i of [0,1,2,1,3,2]){vertices.push(...v[i]);colors.push(tint.r,tint.g,tint.b);}
+   };
+   pad(-.023,.048,.046,.014,'#1a2026',.0012);
+   pad(-.021,.049,.007,.011,'#e3692f',.0017);
+   for(const [col,glyph] of digits.entries())for(let i=0;i<glyph.length;i++){
+     if(glyph[i]==='1')pad(-.007+col*.012+(2-i%3)*.0028,.050+(4-Math.floor(i/3))*.002,.0029,.0021,'#f5eee2',.0022);
+   }
+   pad(-.009,.031,.018,.009,'#211719',.0018);
+   for(let row=0;row<2;row++)for(let col=0;col<5;col++)
+     pad(-.0078+col*.0032,.032+row*.0035,.0024,.0026,row?'#ff7967':'#e33138',.0024);
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.computeVertexNormals();
    const panel=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.32,side:THREE.DoubleSide}));
    panel.userData.ownGeometry=panel.userData.ownMaterial=true;root.add(panel);
