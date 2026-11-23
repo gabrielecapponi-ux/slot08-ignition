@@ -76,7 +76,7 @@ export const courseFeature=id=>features[layouts[id][2]]+(mountainStages.has(id)?
 export const courseRevision=id=>mountainStages.has(id)?25:[2,11,21,38,46].includes(id)?23:21;
 export function championshipBase(id){
   const [,code,kind]=layouts[id],world=Math.floor(id%50/5),cross=kind==='cross';
-  const step=10+(id%3)+(id>=50?1.5:0),w=(code.length+2)*step,h=12+world*.36;
+  const step=10+(id%3)+(id>=50?1.5:0)-([65,77].includes(id)?1.8:0),w=(code.length+2)*step,h=12+world*.36;
   const points=[[0,0],[w,0],[w+3,h],[w-step*.5,h+3]];
   for(const [i,k] of [...code].entries()){
     const x=w-(i+1.5)*step;
