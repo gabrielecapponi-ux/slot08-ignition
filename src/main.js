@@ -173,7 +173,7 @@ on($('qualifying-enabled'),'change',()=>journey.refresh());
 for(const kind of ['pointerdown','keydown'])on($('lobby'),kind,()=>{if(advance?.brief){advance=null;$('first-run').textContent='Scegli il tuo assetto, poi entra in pista.';}});
 for(const v of Object.keys(cameras))on($('view-'+v),'click',()=>{setView(v,true);focus();});
 on($('export-ae'),'click',()=>{
- const data=afterEffectsScript({track:session.track.level.name,lanes:session.track.laneCount,duration:session.elapsed,events:raceEvents,...(session.reward||{})});
+ const data=afterEffectsScript({vehicle:FLEET[profile.data.car].name,upgrades:profile.data.upgrades,track:session.track.level.name,lanes:session.track.laneCount,duration:session.elapsed,events:raceEvents,...(session.reward||{})});
  const url=URL.createObjectURL(new Blob([data],{type:'text/javascript;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='SLOT08-gara-after-effects.jsx';a.click();setTimeout(()=>URL.revokeObjectURL(url),15000);
  $('export-ae-note').textContent='File JSX scaricato. Sul Mac: After Effects → File → Script → Esegui file di script.';
 });

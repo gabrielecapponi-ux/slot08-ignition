@@ -1,6 +1,6 @@
 /** Export an editable AE composition. The desktop app is never driven from the browser. */
-export function afterEffectsScript({track,lanes,duration,events=[],rank,credits,stars}){
- const data={track:String(track),lanes:Number(lanes)||2,duration:Math.max(10,Math.min(10800,Number(duration)+9||10)),events:events.slice(0,256).map(e=>({time:Math.max(0,Number(e.time)||0),type:String(e.type),name:String(e.name||'')})),rank:Number(rank)||0,credits:Number(credits)||0,stars:Number(stars)||0};
+export function afterEffectsScript({track,vehicle,upgrades={},lanes,duration,events=[],rank,credits,stars}){
+ const data={vehicle:String(vehicle||'GT-08 Club'),levels:['motor','grip','brake'].map(k=>Number(upgrades[k])||0),track:String(track),lanes:Number(lanes)||2,duration:Math.max(10,Math.min(10800,Number(duration)+9||10)),events:events.slice(0,256).map(e=>({time:Math.max(0,Number(e.time)||0),type:String(e.type),name:String(e.name||'')})),rank:Number(rank)||0,credits:Number(credits)||0,stars:Number(stars)||0};
  return '// SLOT08 — composizione generata dalla gara. File > Script > Esegui file di script.\n'+
  '(function(){var race='+JSON.stringify(data).replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029')+';\n'+String(buildComposition)+'\nbuildComposition(race);})();';
 }
@@ -25,6 +25,11 @@ function buildComposition(race){
   // Optional real gameplay recording is the background; no synthetic replay is claimed.
   var video=File.openDialog('Seleziona una registrazione della gara (Annulla per la sola grafica)');
   if(video){var footage=app.project.importFile(new ImportOptions(video)),back=comp.layers.add(footage);back.moveToEnd();}
+  var plate=solid('Scheda vettura / fondo',[.035,.08,.095],570,150,350,860,0,2.85);
+  var slide=plate.property('ADBE Transform Group').property('ADBE Position');
+  slide.setValueAtTime(0,[-300,860]);slide.setValueAtTime(.32,[350,860]);
+  title(race.vehicle.toUpperCase(),98,854,48,.22,2.85);
+  title('MOTORE '+race.levels[0]+'     TENUTA '+race.levels[1]+'     FRENO '+race.levels[2],98,901,24,.38,2.85);
   title('SLOT 08 / '+race.lanes+' CORSIE',90,110,28,0,3);
   title(race.track.toUpperCase(),90,220,72,0,3);
   for(var i=0;i<5;i++){

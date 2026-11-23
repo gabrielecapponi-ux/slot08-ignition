@@ -716,3 +716,27 @@ button{font-size:14px;border-radius:24px;font-weight:450;transition:background .
 .featured-course>div{display:flex;gap:8px}.featured-course button{min-height:44px;min-width:48px;border-radius:10px;background:#193845;color:white}.featured-course #featured-race{flex:1;background:#95f5d2;color:#10252c;font-weight:700}
 
 #fleet-list button[data-locked=true] .fleet-thumb{filter:grayscale(.95);opacity:.6}#fleet-list button[data-locked=true] small{color:#ffd9a6}
+
+/* Pit-lane presentation: the controls remain usable throughout the entrance. */
+.ignition-intro{position:fixed;inset:0;z-index:500;pointer-events:none;display:grid;place-content:center;justify-items:center;background:#081416;color:#f4f4e9;animation:ignition-out 1.25s both}
+.ignition-intro b{font:italic 800 clamp(40px,9vw,100px)/1 "Slot Sans",sans-serif;letter-spacing:-.065em}
+.ignition-intro i{color:#a1f3d4}.ignition-intro span{display:block;width:100%;height:3px;background:#a1f3d4;margin-top:13px;transform-origin:left;animation:ignition-line .72s ease-out both}
+@keyframes ignition-line{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes ignition-out{0%,59%{opacity:1}100%{opacity:0;visibility:hidden}}
+.pit-cover{position:relative;overflow:hidden;isolation:isolate;border:1px solid #91b7bd45;border-radius:18px;background:#18282e;margin-bottom:12px;max-width:600px}
+.pit-cover img{display:block;width:100%;height:clamp(145px,24vh,245px);object-fit:cover;object-position:center 58%;animation:pit-arrive .9s ease-out both}
+.pit-cover:after{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(0deg,#06151bf0,transparent 48%);pointer-events:none}
+.home-title .pit-cover h1{position:absolute;z-index:1;left:16px;bottom:12px;margin:0;color:#fff;font-size:clamp(23px,3vw,41px);line-height:1;letter-spacing:-.04em}
+.home-title .pit-cover h1 em{color:#b5f8df}
+#mode-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
+#mode-choices button{border-radius:14px;min-height:82px;gap:10px;padding:10px;background:#142b31ef}
+#mode-choices button[data-play-mode=campaign]{grid-column:1/-1;background:linear-gradient(110deg,#294e48,#102e35);border-color:#81c9b2}
+#mode-choices .slot-icon{width:42px;height:42px;flex:none}#mode-choices strong{font-size:clamp(16px,1.55vw,23px)}#mode-choices small{font-size:13px}
+#garage[open] .garage-panel{animation:pit-sheet .42s cubic-bezier(.2,.85,.2,1) both}#garage[open] .atelier-nav{animation:pit-sheet .33s ease-out both}
+#fitting-status:not([hidden]){display:inline-block;color:#b9ffe3;background:#102d29ed;border:1px solid #8bd6b3;border-radius:7px;padding:6px 12px;font-weight:700;position:absolute;bottom:100%;left:0;margin-bottom:4px}
+@keyframes pit-arrive{from{transform:scale(1.09) translateX(1%)}to{transform:none}}
+@keyframes pit-sheet{from{opacity:.15;transform:translateY(15px)}to{opacity:1;transform:none}}
+@media(max-width:690px){#mode-choices button{gap:8px;padding:10px;align-items:flex-start}#mode-choices .slot-icon{width:29px;height:29px}#mode-choices small{font-size:12px}#mode-choices strong{font-size:17px}.pit-cover{order:0;margin:0}.home-title .pit-cover h1{font-size:27px}.featured-course{order:3}.home-save{order:4}}
+@media(max-height:550px) and (orientation:landscape){.pit-cover img{height:116px}#mode-choices button{min-height:54px}#mode-choices small{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.ignition-intro{display:none}.pit-cover img,#garage[open] .garage-panel,#garage[open] .atelier-nav{animation:none}}
+@media(min-width:691px) and (min-height:551px){.mode-home{align-items:start;overflow:auto;scrollbar-width:thin}.home-title .home-save{margin-top:14px;padding-top:12px}}

@@ -6,8 +6,8 @@ import { MEETINGS,openWorld } from '../game/tour.js';
 import { formatTime } from '../core/math.js';
 const $=id=>document.getElementById(id);
 const MODES=[
- ['mix','duel','Griglia a sorpresa','Pesca un circuito tra 50. Sei piloti e 35 crediti per ogni giro pulito.'],
  ['campaign','arcade','Arcade','Una tessera, dieci mondi. La tua storia al club.'],
+ ['mix','duel','Griglia a sorpresa','Pesca un circuito tra 50. Sei piloti e 35 crediti per ogni giro pulito.'],
  ['masone','wheel','Masone Verticale','Un giro della morte tra gli alberi.'],
  ['riviera','wheel','Riviera Doppio Loop','Due anelli verticali sul rettilineo costiero.'],
  ['time','chrono','Time Trial','Solo tu, tre settori e un tempo da battere.'],
@@ -38,7 +38,7 @@ export class Journey {
   let featured=0;
   const showFeatured=()=>{
     const track=createTrack(MEETINGS[featured].level,{variant:featured,lanes:4});
-    drawCourse($('featured-map'),track);
+    drawCourse($('featured-map'),track);this.animate('featured-map');
     $('featured-title').textContent=track.level.name;
     $('featured-info').textContent=track.level.subtitle+' · '+Math.round(track.length)+' m';
     $('featured-map').setAttribute('aria-label','Tracciato di '+track.level.name);

@@ -1,3 +1,4 @@
+import {pinVertices,pinTriangles} from './hood-fastener.js';
 import * as THREE from 'three';
 import { effectiveParts } from '../game/workshop.js';
 export function addCarStyle(root,car,kit){
@@ -17,7 +18,7 @@ export function addCarStyle(root,car,kit){
    }
  });
  for(const key of ['wing','wheels','hood','aero','lights','exhaust'])if(look[key]&&kit)root.add(kit.clone('PART_'+key+'_'+look[key]));
- if(!look.decal)return;
+
  // Cast each edge onto the selected body: the deck and canopy heights differ
  // between a touring car and a prototype. Stripes follow those surfaces.
  root.updateMatrixWorld(true);
@@ -28,6 +29,18 @@ export function addCarStyle(root,car,kit){
    ray.set(new THREE.Vector3(x,.30,z),direction);
    return (ray.intersectObjects(panels,false)[0]?.point.y??guess)+.00065;
  };
+ // Cast fasteners onto each chassis and align them with the actual bonnet slope.
+ if(panels.length){
+   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pinVertices,3));geo.setIndex(pinTriangles);geo.computeVertexNormals();
+   const steel=new THREE.MeshStandardMaterial({color:'#c9d2cd',metalness:.9,roughness:.24});
+   for(const side of [-1,1]){
+     const x=.084,z=side*.047,y=surface(x,z,.07),pin=new THREE.Mesh(geo,steel);
+     pin.name='Chiusura cofano a quarto di giro';pin.position.set(x,y,z);
+     pin.rotation.z=Math.atan2(surface(x+.002,z,y)-surface(x-.002,z,y),.004);
+     pin.userData.ownMaterial=true;pin.userData.ownGeometry=true;root.add(pin);
+   }
+ }
+ if(!look.decal)return;
  const mainColor=look.decal===7?'#18242c':look.decal===3?'#f4eee1':'#f4e5ca';
  const add=(x,z,width,length,color)=>{
    const steps=Math.max(2,Math.ceil(length/.008)),verts=[],indices=[];

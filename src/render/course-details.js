@@ -1,3 +1,4 @@
+import {bladeParts} from './apex-mesh.js';
 import * as THREE from 'three';
 import { PHYSICS } from '../core/config.js';
 
@@ -31,16 +32,33 @@ export function courseDetails(track){
   }
  }
  // Two measured boards before each sustained bend, on the outside shoulder.
- let last=-10;
+ const markers=[];let last=-10;
  for(let s=4;s<track.length;s+=.25){
   const p=track.sample(s),before=track.sample(s-.8);
   if(Math.abs(p.curvature)<.18||Math.abs(before.curvature)>.08||s-last<7||track.tunnelAt?.(s,2))continue;
   last=s;
+  const side=-Math.sign(p.curvature),q=track.sample(s+.25),offset=(.89+track.extraWidth)*side;
+  if(!q.fork?.offset)markers.push({x:q.x+q.nx*offset,z:q.y+q.ny*offset,y:q.z-.008,yaw:-Math.atan2(q.ty,q.tx)-Math.PI/2,mirror:-side});
   for(const distance of [1,2]){
    const q=track.sample(s-distance),side=-Math.sign(p.curvature);
    const plate=new THREE.Mesh(new THREE.BoxGeometry(.025,.16,.13),new THREE.MeshStandardMaterial({color:distance===1?'#e25f35':'#f3e7c9',roughness:.58}));
    plate.position.set(q.x+q.nx*side*(.53+track.extraWidth),q.z+.18,q.y+q.ny*side*(.53+track.extraWidth));plate.rotation.y=-Math.atan2(q.ty,q.tx);plate.castShadow=true;root.add(plate);
   }
+ }
+ // Each finish is instanced across every braking zone.
+ if(markers.length){
+  const groups=[[0],[1],[2],[3,4,5]],colors=['#35444a','#a0b4c0','#20292a','#91fff1'];
+  for(const side of [-1,1])groups.forEach((ids,index)=>{
+   const selected=markers.filter(m=>m.mirror===side);if(!selected.length)return;
+   const vertices=[],indices=[];
+   for(const id of ids){const [v,f]=bladeParts[id],offset=vertices.length/3;vertices.push(...v);indices.push(...f.map(i=>i+offset));}
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));g.setIndex(indices);g.computeVertexNormals();g.scale(side,1,1);
+   const material=new THREE.MeshStandardMaterial({color:colors[index],metalness:index===1?.83:.25,roughness:.30,side:THREE.DoubleSide,emissive:index===3?'#73dfc9':'#000',emissiveIntensity:1.3});
+   const mesh=new THREE.InstancedMesh(g,material,selected.length),transform=new THREE.Object3D();
+   selected.forEach((m,i)=>{transform.position.set(m.x,m.y,m.z);transform.rotation.y=m.yaw;
+    transform.scale.set(.78,.84,.8);transform.updateMatrix();mesh.setMatrixAt(i,transform.matrix);});
+   mesh.name='Segnale di curva / '+index;root.add(mesh);
+  });
  }
  return root;
 }

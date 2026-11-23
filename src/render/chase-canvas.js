@@ -15,7 +15,7 @@ function roadWindow(track,distance){
 }
 // Perspective race view for devices without WebGL. The road comes from the same
 // sampled course as the physics, including banks, forks and elevated crossings.
-export function drawChase(ctx, canvas, session) {
+export function drawChase(ctx, canvas, session, studio) {
   const {width:w,height:h}=canvas, {track,player}=session;
   const p=player.crash??player.pose, heading=p.launchAngle??p.angle;
   const tx=Math.cos(heading), ty=Math.sin(heading);
@@ -65,7 +65,7 @@ export function drawChase(ctx, canvas, session) {
   }
   for(const car of session.cars){
     const body=car.crash??car.pose,q=project(body.x,body.y,body.z+.055);
-    if(q)shapes.push({q,depth:q.depth-.13,color:car.color,skid:car.skid,crash:car.crash});
+    if(q)shapes.push({q,depth:q.depth-.13,color:car.color,skid:car.skid,crash:car.crash,car});
   }
   shapes.sort((a,b)=>b.depth-a.depth);
   for(const s of shapes){
@@ -73,15 +73,22 @@ export function drawChase(ctx, canvas, session) {
     if(s.q){const {x,y,depth}=s.q,size=.194*focal/depth;
       ctx.save();ctx.translate(x,y);ctx.scale(size,size);
       ctx.fillStyle='#080f17aa';ctx.beginPath();ctx.ellipse(0,.06,.61,.12,0,0,Math.PI*2);ctx.fill();
+      const sprite=studio?.raceSprite(s.car,true);
+      if(sprite){
+        ctx.save();
+        ctx.rotate(s.crash?Math.sin(s.crash.roll||0)*.7:Math.max(-.24,Math.min(.24,s.car.driftAngle||0)));
+        ctx.drawImage(sprite,-.67,-.59,1.34,.89);ctx.restore();
+      }else{
       for(const side of [-.52,.33]){ctx.fillStyle='#101720';ctx.fillRect(side,-.22,.19,.38);}
       const lacquer=ctx.createLinearGradient(0,-.48,0,.12);lacquer.addColorStop(0,'#d9edf1');lacquer.addColorStop(.26,s.color);lacquer.addColorStop(1,'#172331');
       ctx.fillStyle=lacquer;ctx.beginPath();ctx.moveTo(-.52,.06);ctx.lineTo(-.52,-.24);ctx.lineTo(-.36,-.39);ctx.lineTo(.36,-.39);ctx.lineTo(.52,-.24);ctx.lineTo(.52,.06);ctx.fill();
       ctx.fillStyle='#172630';ctx.fillRect(-.52,-.38,1.04,.065);
+      }
       if(s.skid>.29){ctx.fillStyle='#e0ebed52';for(const side of [-1,1]){ctx.beginPath();ctx.ellipse(side*.46,.11,.17,.10,0,0,Math.PI*2);ctx.fill();}}
       if(s.crash?.wallHits){ctx.strokeStyle='#ffd17c';ctx.lineWidth=.028;ctx.beginPath();for(let i=0;i<6;i++){ctx.moveTo(.44,0);ctx.lineTo(.5+i*.07,-.1-Math.abs(Math.sin(i+s.crash.angle))*.32);}ctx.stroke();}
       ctx.restore();
-      ctx.fillStyle='#263641';ctx.fillRect(x-size*.32,y-size*.56,size*.64,size*.23);
-      ctx.fillStyle='#ff5448';for(const side of [-.43,.23])ctx.fillRect(x+size*side,y-size*.18,size*.2,size*.09);
+      if(!sprite){ctx.fillStyle='#263641';ctx.fillRect(x-size*.32,y-size*.56,size*.64,size*.23);
+      ctx.fillStyle='#ff5448';for(const side of [-.43,.23])ctx.fillRect(x+size*side,y-size*.18,size*.2,size*.09);}
     }else{ctx.beginPath();s.points.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.closePath();ctx.fill();}
   }
 }

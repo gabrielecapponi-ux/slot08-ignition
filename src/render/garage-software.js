@@ -1,3 +1,4 @@
+import {installedGroup,fittingOffset} from './installation.js';
 import {vividPaint} from './paint-finish.js';
 import * as THREE from 'three';
 import { VehicleModels } from './vehicle-models.js';
@@ -15,7 +16,7 @@ export class SoftwareGarage {
   this.camera=new THREE.PerspectiveCamera(42,1,.01,10);
   this.rig=new CameraRig(this.camera,null);this.rig.garage=true;
   this.fleet=new VehicleModels(onReady);
-  this.sprites=new WeakMap();
+  this.sprites=new WeakMap();this.rearSprites=new WeakMap();
   this.ready=Promise.all([this.fleet.load(0),new AssetKit().load().then(kit=>{
     if(this.disposed)kit.destroy();else {this.kit=kit;onReady();}
   }).catch(()=>null)]);
@@ -24,12 +25,13 @@ export class SoftwareGarage {
   const root=stock.clone(true),look=effectiveParts(car);
   root.traverse(node=>{if(node.isMesh)node.visible=!hiddenStockPart(node.name,look)&&!(cutaway&&/^GT_(roof|glazing)/.test(node.name));});
   addCarStyle(root,car,this.kit);installHardware(root,car,stock.userData.hasSeats);root.updateMatrixWorld(true);
-  const vertices=[],faces=[],sun=new THREE.Vector3(.45,.9,.6).normalize();
+  const ranges=[],vertices=[],faces=[],sun=new THREE.Vector3(.45,.9,.6).normalize();
   const surface=new THREE.Vector3(),edge=new THREE.Vector3();
   const reflection=new THREE.Vector3(.12,.93,.35).normalize(),boxLight=new THREE.Color('#fff4dd');
   root.traverseVisible(m=>{
     if(!m.isMesh)return;
     const g=m.geometry,a=g.attributes.position,index=g.index,base=vertices.length;
+    const group=installedGroup(m);if(group)ranges.push({group,start:base,end:base+a.count});
     const normals=g.attributes.normal,normalMatrix=new THREE.Matrix3().getNormalMatrix(m.matrixWorld),smoothNormal=new THREE.Vector3(),oneNormal=new THREE.Vector3();
     let color=m.material.color;
     if(m.material.name.startsWith('MAT_lime_enamel'))color=vividPaint(car.color??look.paint);
@@ -49,7 +51,7 @@ export class SoftwareGarage {
     }
   });
   root.traverse(o=>{if(o.userData.ownGeometry)o.geometry.dispose();if(o.userData.ownMaterial)o.material.dispose();});
-  return {bounds:new THREE.Box3().setFromPoints(vertices),vertices,faces,screen:vertices.map(()=>new THREE.Vector3())};
+  return {bounds:new THREE.Box3().setFromPoints(vertices),vertices,faces,ranges,screen:vertices.map(()=>new THREE.Vector3())};
  }
  project(mesh,ctx,cullBack){
   const visible=[];
@@ -126,16 +128,19 @@ export class SoftwareGarage {
    ctx.closePath();ctx.fill();
   }
  }
- raceSprite(car){
+ raceSprite(car,rear=false){
   const stock=this.fleet.forChassis(car.chassis);if(!stock)return;
-  const cached=this.sprites.get(car);
+  const cache=rear?this.rearSprites:this.sprites;const cached=cache.get(car);
   // RaceSession replaces cars on configuration or purchase. Cache with that lifetime.
   if(cached?.stock===stock&&cached.kit===this.kit)return cached.canvas;
   const mesh=this.mesh(stock,car,false),canvas=document.createElement('canvas');
   canvas.width=240;canvas.height=160;
   const ctx=canvas.getContext('2d'),scale=500;
-  mesh.vertices.forEach((v,i)=>mesh.screen[i].set(canvas.width*.5+v.x*scale,canvas.height*.5+(v.z-.26*v.y)*scale,-v.y-.26*v.z));
-  this.project(mesh,ctx,true);this.sprites.set(car,{stock,kit:this.kit,canvas});return canvas;
+  if(rear){
+    const scale=960;
+    mesh.vertices.forEach((v,i)=>mesh.screen[i].set(120+v.z*scale,99-(v.y*.92+v.x*.39)*scale,v.x*.92-v.y*.39));
+  }else mesh.vertices.forEach((v,i)=>mesh.screen[i].set(canvas.width*.5+v.x*scale,canvas.height*.5+(v.z-.26*v.y)*scale,-v.y-.26*v.z));
+  this.project(mesh,ctx,true);cache.set(car,{stock,kit:this.kit,canvas});return canvas;
  }
  draw(ctx,w,h,car){
   const stock=this.fleet.forChassis(car.chassis);if(!stock)return false;
@@ -146,8 +151,12 @@ export class SoftwareGarage {
   const dt=Math.min(.06,(now-(this.last||now))/1000);this.last=now;
   this.rig.garageBounds=this.model.bounds;this.camera.aspect=w/h;this.rig.update(null,dt);this.camera.updateMatrixWorld();
   const vp=new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix,this.camera.matrixWorldInverse);
+  const yOffset=fittingOffset(this.fit?.key,now-(this.fit?.start??-2000));
+  const lifted=this.model.lifted??=new Float32Array(this.model.vertices.length);
+  if(yOffset||this.wasLifted){lifted.fill(0);for(const r of this.model.ranges)if(r.group===this.fit?.key)lifted.fill(yOffset,r.start,r.end);}
+  this.wasLifted=!!yOffset;
   this.model.vertices.forEach((v,i)=>{
-    const screen=this.model.screen[i];screen.copy(v);screen.y+=.23;screen.applyMatrix4(vp);
+    const screen=this.model.screen[i];screen.copy(v);screen.y+=.23+lifted[i];screen.applyMatrix4(vp);
     screen.x=(1+screen.x)*w/2;screen.y=(1-screen.y)*h/2;
   });
   ctx.setTransform(1,0,0,1,0,0);
