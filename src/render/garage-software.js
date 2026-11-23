@@ -1,3 +1,4 @@
+import {texturePigment} from './texture-pigment.js';
 import {installedGroup,fittingTravel,mechanicalView,inspectionShell} from './installation.js';
 import {vividPaint} from './paint-finish.js';
 import * as THREE from 'three';
@@ -46,7 +47,7 @@ export class SoftwareGarage {
       const diffuse=.4+.88*Math.max(0,normal.dot(sun));
       const gloss=1-(m.material.roughness??1);
       const shine=Math.pow(Math.max(0,normal.dot(reflection)),10+48*gloss)*gloss;
-      const baseColor=g.attributes.color?new THREE.Color().fromBufferAttribute(g.attributes.color,ia-base):color;
+      const baseColor=g.attributes.color?new THREE.Color().fromBufferAttribute(g.attributes.color,ia-base):m.material.map?texturePigment(m.material,g.attributes.uv,ia-base):color;
       const enamel=m.material.name.startsWith('MAT_lime_enamel');
       const strip=enamel?Math.pow(Math.max(0,1-Math.abs(normal.dot(reflection)-.72)*11),2)*.24:0;
       const shaded=baseColor.clone().multiplyScalar(diffuse).lerp(boxLight,strip+shine*(enamel?.64:.18+.40*(m.material.metalness??0)));

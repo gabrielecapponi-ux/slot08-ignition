@@ -1,3 +1,4 @@
+import {texturePigment} from './texture-pigment.js';
 import * as THREE from 'three';
 import {effectiveParts} from '../game/workshop.js';
 import {installHardware} from './atelier.js';
@@ -34,7 +35,7 @@ export function benchView(canvas,renderer,car,key){
     for(let i=0;i<(idx?.count??a.count);i+=3){
       const ia=offset+(idx?idx.getX(i):i),ib=offset+(idx?idx.getX(i+1):i+1),ic=offset+(idx?idx.getX(i+2):i+2);
       const normal=v.subVectors(pts[ib],pts[ia]).cross(edge.subVectors(pts[ic],pts[ia])).normalize();
-      const c=node.material.color.clone().multiplyScalar(.58+.72*Math.max(0,normal.dot(sun)));
+      const c=texturePigment(node.material,geo.attributes.uv,ia-offset).clone().multiplyScalar(.58+.72*Math.max(0,normal.dot(sun)));
       c.lerp(new THREE.Color(0xffefe0),Math.pow(Math.max(0,normal.dot(sun)),15)*.35);
       faces.push({ia,ib,ic,opacity:1,shade:'#'+c.getHexString()});
     }

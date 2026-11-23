@@ -10,6 +10,10 @@ function finishAssembly(root){
  if(root.name==='PART_hood_5'){
    const alloy=new THREE.MeshStandardMaterial({color:'#afc0c8',metalness:.78,roughness:.23});
    const tube=new THREE.TorusGeometry(.008,.0028,8,22);
+   const fin=new THREE.BoxGeometry(.003,.014,.056);
+   for(let i=0;i<6;i++){
+     const rib=new THREE.Mesh(fin,alloy);rib.position.set(.042+i*.007,.102,0);root.add(rib);
+   }
    for(const side of [-1,1]){
      const trumpet=new THREE.Mesh(tube,alloy);
      trumpet.rotation.y=Math.PI/2;trumpet.position.set(.094,.104,side*.012);
