@@ -1,4 +1,4 @@
-import {installedGroup,fittingOffset} from './installation.js';
+import {installedGroup,fittingTravel,mechanicalView,inspectionShell} from './installation.js';
 import {vividPaint} from './paint-finish.js';
 import * as THREE from 'three';
 import { VehicleModels } from './vehicle-models.js';
@@ -23,7 +23,7 @@ export class SoftwareGarage {
  }
  mesh(stock,car,cutaway){
   const root=stock.clone(true),look=effectiveParts(car);
-  root.traverse(node=>{if(node.isMesh)node.visible=!hiddenStockPart(node.name,look)&&!(cutaway&&/^GT_(roof|glazing)/.test(node.name));});
+  root.traverse(node=>{if(node.isMesh)node.visible=!hiddenStockPart(node.name,look)&&!(cutaway==='glass'&&/^GT_(roof|glazing)/.test(node.name));});
   addCarStyle(root,car,this.kit);installHardware(root,car,stock.userData.hasSeats);root.updateMatrixWorld(true);
   const ranges=[],vertices=[],faces=[],sun=new THREE.Vector3(.45,.9,.6).normalize();
   const surface=new THREE.Vector3(),edge=new THREE.Vector3();
@@ -37,7 +37,7 @@ export class SoftwareGarage {
     if(m.material.name.startsWith('MAT_lime_enamel'))color=vividPaint(car.color??look.paint);
     if(m.material.name.startsWith('MAT_smoked_glass'))color=new THREE.Color(look.glass);
     if(m.material.name.startsWith('MAT_seat'))color=new THREE.Color(look.seat);
-    const opacity=m.material.transparent?m.material.opacity:1;
+    const opacity=mechanicalView(cutaway)&&inspectionShell(m.name,m.material.name)?.18:m.material.transparent?m.material.opacity:1;
     for(let i=0;i<a.count;i++)vertices.push(new THREE.Vector3().fromBufferAttribute(a,i).applyMatrix4(m.matrixWorld));
     for(let i=0;i<(index?.count??a.count);i+=3){
       const ia=base+(index?index.getX(i):i),ib=base+(index?index.getX(i+1):i+1),ic=base+(index?index.getX(i+2):i+2);
@@ -144,19 +144,23 @@ export class SoftwareGarage {
  }
  draw(ctx,w,h,car){
   const stock=this.fleet.forChassis(car.chassis);if(!stock)return false;
-  const cutaway=this.rig.detail==='glass';
+  const cutaway=this.rig.detail;
   const key=JSON.stringify([stock.uuid,!!this.kit,car,cutaway]);
   if(key!==this.key){this.key=key;this.model=this.mesh(stock,car,cutaway);this.last=0;}
   const now=performance.now();if(now-(this.last||0)<50)return true;
   const dt=Math.min(.06,(now-(this.last||now))/1000);this.last=now;
   this.rig.garageBounds=this.model.bounds;this.camera.aspect=w/h;this.rig.update(null,dt);this.camera.updateMatrixWorld();
   const vp=new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix,this.camera.matrixWorldInverse);
-  const yOffset=fittingOffset(this.fit?.key,now-(this.fit?.start??-2000));
-  const lifted=this.model.lifted??=new Float32Array(this.model.vertices.length);
-  if(yOffset||this.wasLifted){lifted.fill(0);for(const r of this.model.ranges)if(r.group===this.fit?.key)lifted.fill(yOffset,r.start,r.end);}
-  this.wasLifted=!!yOffset;
+  const travel=fittingTravel(this.fit?.key,now-(this.fit?.start??0));
+  const model=this.model;
+  for(let i=0;i<model.vertices.length;i++)model.screen[i].copy(model.vertices[i]);
+  if(travel.some(v=>v!==0))for(const r of model.ranges){
+    if(r.group!==this.fit.key)continue;
+    const side=model.vertices[r.start].z<0?-1:1;
+    for(let i=r.start;i<r.end;i++){const v=model.screen[i];v.x+=travel[0];v.y+=travel[1];v.z+=travel[2]*side;}
+  }
   this.model.vertices.forEach((v,i)=>{
-    const screen=this.model.screen[i];screen.copy(v);screen.y+=.23+lifted[i];screen.applyMatrix4(vp);
+    const screen=this.model.screen[i];screen.y+=.23;screen.applyMatrix4(vp);
     screen.x=(1+screen.x)*w/2;screen.y=(1-screen.y)*h/2;
   });
   ctx.setTransform(1,0,0,1,0,0);

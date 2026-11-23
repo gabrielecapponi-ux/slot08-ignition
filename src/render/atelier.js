@@ -20,7 +20,7 @@ export function installHardware(root,car,hasSeats=false){
    const axle=mechanicalMesh(root,'Asse rettificato',new THREE.CylinderGeometry(.003,.003,.149,10),axleMaterial,[x,.033,0]);
    axle.rotation.x=Math.PI*.5;
  }
- const motorLength=.051+motor*.0008;
+ const motorLength=.051+Math.sqrt(motor)*.0053;
  const can=mechanicalMesh(root,'Cassa motore',new THREE.CylinderGeometry(.015,.015,motorLength,20),
    metal(motor?'#b99b76':'#677481'),[-.06,.019,0]);can.rotation.x=Math.PI*.5;
  const windMaterial=metal('#ce8746',.74,.24);
@@ -162,6 +162,16 @@ export function atelierRoom(){
    }
    add('dark',[1.78,.046,.073],[0,.78,z(.87)]);
    add('lamp',[1.72,.015,.061],[0,.751,z(.87)]);
+ }
+ // Suspended inspection grid and enamel drawer banks on both sides of the bench.
+ for(const side of [-1,1]){
+   for(let i=0;i<5;i++){
+     const x=(i-2)*.43;
+     add('steel',[.020,.035,1.85],[x,.83,0]);
+     add('lamp',[.012,.011,.57],[x,.807,side*.56]);
+     add('blue',[.405,.24,.11],[x,.02,side*1.25]);
+     for(let j=0;j<3;j++)add('steel',[.26,.009,.015],[x,-.05+j*.066,side*1.18]);
+   }
  }
  for(const [key,matrices] of batches){
    const [material,shape]=key.split(' '), mesh=new THREE.InstancedMesh(shapes[shape],mats[material],matrices.length);

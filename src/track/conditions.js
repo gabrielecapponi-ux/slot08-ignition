@@ -1,6 +1,8 @@
 import { clamp, mod } from '../core/math.js';
 
 const TYPES={
+ rubber:{label:'TRAIETTORIA GOMMATA',short:'Gomma depositata',grip:1.13,color:'#3f4044'},
+ grit:{label:'GRANIGLIA IN CORSIA',short:'Graniglia',grip:.76,color:'#b6ab96'},
  leaves:{label:'FOGLIE SULLA PISTA',short:'Foglie',grip:.79,color:'#a77b38'},
  dust:{label:'POLVERE IN CURVA',short:'Polvere',grip:.82,color:'#c7aa7b'},
  damp:{label:'TRATTO UMIDO',short:'Umidità',grip:.76,color:'#709ca5'}
@@ -16,7 +18,8 @@ export function courseConditions(track){
    if(Math.abs(p.curvature)<.10||p.z>.16||track.tunnelAt?.(s,2)||track.switches.some(g=>s>g.start-2&&s<g.end+2))continue;
    if(!best||Math.abs(p.curvature)>best.curve)best={start:s,length,curve:Math.abs(p.curvature)};
   }
-  if(best&&!zones.some(z=>Math.abs(z.start-best.start)<4))zones.push({...TYPES[type],...best,type,lane:(track.index+zones.length)%(track.laneCount??2)});
+  const surface=track.variant>=0&&track.variant%3!==0?(track.variant%3===1?'rubber':'grit'):type;
+  if(best&&!zones.some(z=>Math.abs(z.start-best.start)<4))zones.push({...TYPES[surface],...best,type:surface,lane:(track.index+zones.length)%(track.laneCount??2)});
  }
  return zones;
 }

@@ -21,7 +21,7 @@ export class QualityGovernor{
  sample(dt,costMs){
   if(!(dt>0&&dt<.1))return false;
   this.cadence.push(dt);if(this.cadence.length>180)this.cadence.shift();
-  if(this.cadence.length>=30&&++this.samples%30===0){const sorted=[...this.cadence].sort((a,b)=>a-b),fast=sorted[Math.floor(sorted.length*.10)];this.observedHz=fast<.0105?120:fast<.014?90:60;}
+  if(this.cadence.length>=30&&++this.samples%30===0){const sorted=[...this.cadence].sort((a,b)=>a-b),fast=sorted[Math.floor(sorted.length*.10)];this.observedHz=fast<.00915?120:fast<.01055?100:fast<.014?90:60;}
   this.seconds+=dt;this.frames++;this.cost+=costMs;
   if(this.seconds<3)return false;
   this.fps=this.frames/this.seconds;this.renderMs=this.cost/this.frames;

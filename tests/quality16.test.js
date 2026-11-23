@@ -14,11 +14,12 @@ test('adaptive quality detects 60 Hz pacing without endlessly degrading and resp
  const q=new QualityGovernor();for(let i=0;i<720;i++)q.sample(1/60,2);assert.equal(q.scale,1);assert.equal(q.observedHz,60);
  for(let i=0;i<360;i++)q.sample(1/120,2);assert.equal(q.observedHz,120);
  for(let i=0;i<500;i++)q.sample(1/35,25);assert.ok(q.scale<1&&q.scale>=.55);
+ const desk=new QualityGovernor('ultra');for(let i=0;i<360;i++)desk.sample(.010,4);assert.equal(desk.observedHz,100);
  const u=new QualityGovernor('ultra');for(let i=0;i<400;i++)u.sample(1/25,30);assert.equal(u.scale,1);
 });
 test('render rate scheduling does not change fixed 120 Hz simulation speed',()=>{
  globalThis.requestAnimationFrame=()=>1;
- for(const screen of [60,120,144])for(const render of [60,120]){
+ for(const screen of [60,100,120,144])for(const render of [60,120]){
   let ticks=0,frames=0;const l=new FixedLoop(()=>ticks++,()=>frames++);l.setRenderRate(render);
   for(let i=0;i<=screen*3;i++)l.frame(i*1000/screen);
   assert.ok(Math.abs(ticks-360)<=1);assert.ok(Math.abs(frames-(Math.min(screen,render)*3+1))<=2,`${screen}/${render}: ${frames}`);

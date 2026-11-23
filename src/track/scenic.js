@@ -45,5 +45,12 @@ export class ScenicTrack extends SlotTrack {
     const lift=angle=>(.38+this.extraWidth)*Math.abs(Math.sin(angle));
     return {...p,fork:forkAt(this.fork,s),z:p.z+lift(bank),bank,grade:(b.z+lift(bb)-a.z-lift(ba))/(2*e),bankDerivative:(bb-ba)/(2*e),bankSecondDerivative:(bb-2*bank+ba)/(e*e),tunnel:this.tunnels.find(t=>s>=t.start&&s<=t.end)??null};
   }
+  pose(distance,lane,change=null){
+    const pose=super.pose(distance,lane,change);
+    if(!pose.stuntRoll)return pose;
+    const axis=this.sample(distance),offset=(pose.x-axis.x)*axis.nx+(pose.y-axis.y)*axis.ny;
+    const shift=offset*(Math.cos(pose.stuntRoll)-1);
+    return {...pose,x:pose.x+axis.nx*shift,y:pose.y+axis.ny*shift,z:pose.z-offset*Math.sin(pose.stuntRoll)};
+  }
   tunnelAt(distance,padding=0){const s=mod(distance,this.length);return this.tunnels.find(t=>s>=t.start-padding&&s<=t.end+padding)??null;}
 }

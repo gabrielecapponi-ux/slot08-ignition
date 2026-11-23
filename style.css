@@ -758,3 +758,15 @@ button{font-size:14px;border-radius:24px;font-weight:450;transition:background .
  #mode-home #mode-choices button{align-items:center;min-height:60px}
  #mode-home .featured-course{order:2}#mode-home .home-save{order:3}
 }
+
+#app #countdown.countdown{position:absolute;left:50%;top:clamp(62px,12vh,116px);width:min(62vw,368px);padding:0;background:transparent;border:0;box-shadow:none;backdrop-filter:none;pointer-events:none;transform:translateX(-50%);text-align:center}
+#countdown .start-lights{position:relative;width:100%;aspect-ratio:816/240;margin:0;background:url(assets/starter23.webp) center/contain no-repeat;display:block;animation:starter-lower .7s cubic-bezier(.2,.8,.25,1) both}
+#countdown .start-lights i{position:absolute;top:62.5%;width:10.4%;height:auto;aspect-ratio:1;border:0;transform:translate(-50%,-50%);margin:0;box-shadow:none;background:transparent}
+#countdown .start-lights i:nth-child(1){left:15.88%}#countdown .start-lights i:nth-child(2){left:32.94%}#countdown .start-lights i:nth-child(3){left:50%}#countdown .start-lights i:nth-child(4){left:67.06%}#countdown .start-lights i:nth-child(5){left:84.12%}
+#countdown .start-lights i.on{background:radial-gradient(circle,#fff4ce 0%,#ff8764 22%,#ff3517 54%,#b0160d 88%);box-shadow:0 0 12px #ff481f99}
+#countdown #grid-name{display:none}#countdown #countdown-value{font-size:22px;text-shadow:0 2px 5px #000}#countdown>span{display:inline-block;background:#0b141ccc;border-radius:4px;padding:3px 7px;margin:1px}
+@keyframes starter-lower{from{transform:translateY(-125%)}to{transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){#countdown .start-lights{animation:none}}
+#garage[data-bay=scuderia] .garage-sheet>h2{background:linear-gradient(90deg,#071519f5,#10232788),url(assets/pit-gt20.webp) center 57%/cover}
+#garage[data-bay=officina] .garage-sheet>h2{background:linear-gradient(105deg,#19333af5,#101b1cce),url(assets/trackside-pbr.webp) center/cover}
+#garage[data-bay] .garage-sheet>h2{border-left:3px solid #96d7be;padding:12px 14px;border-radius:3px 10px 10px 3px}

@@ -53,6 +53,21 @@ export class MiniatureWorld {
    const type=['night','harbor'].includes(track.theme)?'streetlamp':track.theme==='forest'?(s%8<4?'fern':'mushroom'):track.theme==='alpine'?'boulder':track.theme==='desert'?'tortoise':'flower';
    add(type,{x,y,z:field.height(x,y),angle:-Math.atan2(p.ty,p.tx),scale:.65});
   }
+  // Outside bends get layered silhouettes, with gaps at crossings and buildings.
+  const scenery={
+    forest:['pine','oak','fern'],coast:['palm','boulder','flower'],alpine:['pine','boulder','boulder'],
+    harbor:['crate','warehouse','streetlamp'],night:['streetlamp','crate','warehouse'],
+    desert:['boulder','cactus','boulder']
+  }[track.theme]??['boulder','pine','fern'];
+  for(let s=3;s<track.length;s+=8.7){
+    const p=track.sample(s);if(Math.abs(p.curvature)<.08)continue;
+    const outside=-Math.sign(p.curvature);
+    for(let i=0;i<3;i++){
+      const d=outside*(2.2+i*.81),x=p.x+p.nx*d+p.tx*i*.47,y=p.y+p.ny*d+p.ty*i*.47;
+      if(x<b.minX-1||x>b.maxX+1||y<b.minY-1||y>b.maxY+1||distance(x,y)<1.6||occupied.some(q=>Math.hypot(x-q.x,y-q.y)<q.size+1))continue;
+      add(scenery[i],{x,y,z:field.height(x,y),angle:s*.71+i,scale:.65+i*.22});
+    }
+  }
   // Portals are editable Blender models; the curved roof is swept along the same slot path.
   // Open portal jambs leave the racing line and camera corridor unobstructed.
   if(kit){for(const [name,list]of groups)kit.instance(name,list,this.root);
@@ -64,7 +79,7 @@ export class MiniatureWorld {
   this.roofs=new THREE.Group();this.root.add(this.roofs);this.roofMat=new THREE.MeshStandardMaterial({color:track.theme==='night'?'#364968':this.theme.hill,roughness:.78,side:THREE.DoubleSide});
   const ribs=[];
   for(const t of track.tunnels){
-    const count=Math.max(2,Math.ceil((t.end-t.start)/.85));
+    const count=Math.max(2,Math.ceil((t.end-t.start)/.54));
     for(let i=0;i<=count;i++)ribs.push(track.sample(t.start+(t.end-t.start)*i/count));
   }
   if(ribs.length){
@@ -74,7 +89,7 @@ export class MiniatureWorld {
     const mesh=new THREE.InstancedMesh(geometry,new THREE.MeshStandardMaterial({color:'#b2c6d0',metalness:.8,roughness:.28,side:THREE.DoubleSide}),ribs.length);
     ribs.forEach((p,i)=>{
       o.position.set(p.x,p.z-.017,p.y);o.rotation.set(0,-Math.atan2(p.ny,p.nx),0);
-      o.scale.set((.65+e)/.65,1,1);o.updateMatrix();mesh.setMatrixAt(i,o.matrix);
+      o.scale.set((.65+e)/.65,1,1);o.updateMatrix();mesh.setMatrixAt(i,o.matrix);mesh.setColorAt(i,new THREE.Color(['#6bdeea','#79bafb','#ffac73'][Math.floor(i/4)%3]));
     });
     this.roofs.add(mesh);
   }

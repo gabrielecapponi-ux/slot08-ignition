@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { FLEET, MEETINGS, WORLDS, nextCampaignRace, openWorld } from '../src/game/tour.js';
 import { Profile } from '../src/game/profile.js';
 
-test('each world offers five different races and needs eight local stars',()=>{
-  assert.equal(MEETINGS.length,50);
+test('each world offers ten different races and needs eight local stars',()=>{
+  assert.equal(MEETINGS.length,100);for(let w=0;w<10;w++)assert.equal(MEETINGS.filter(m=>m.world===w).length,10);
   for(const [,levels] of WORLDS)assert.equal(new Set(levels).size,5);
-  const stars=Array(50).fill(0);
+  const stars=Array(100).fill(0);
   stars.splice(0,5,3,2,1,1,0);
   assert.equal(openWorld(stars),0);
   stars[4]=1;
@@ -80,10 +80,10 @@ test('gravity slows a climbing car and accelerates it downhill in every race mod
 });
 
 test('campaign continues, retries and respects world gates on saved results',()=>{
- const stars=Array(50).fill(0);
+ const stars=Array(100).fill(0);
  stars[0]=1; assert.equal(nextCampaignRace(0,stars),0);
  stars[0]=2; assert.equal(nextCampaignRace(0,stars),1);
- stars.splice(0,5,2,1,0,1,2);assert.equal(nextCampaignRace(4,stars),2);
- stars[2]=2;assert.equal(nextCampaignRace(4,stars),5);
- stars.fill(2);assert.equal(nextCampaignRace(49,stars),null);
+ stars.splice(0,5,2,1,0,1,2);assert.equal(nextCampaignRace(4,stars),50);
+ stars[2]=2;assert.equal(nextCampaignRace(54,stars),54);
+ stars.fill(2);assert.equal(nextCampaignRace(99,stars),null);
 });

@@ -9,11 +9,15 @@ export class ImpactEffects {
       const positions=new Float32Array(14*3);
       const geometry=new THREE.BufferGeometry();
       geometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));
-      const material=new THREE.PointsMaterial({map:this.map,size:.098,depthWrite:false,
+      const material=new THREE.PointsMaterial({map:this.map,size:.054,depthWrite:false,
         blending:THREE.AdditiveBlending,transparent:true,toneMapped:false});
       const mesh=new THREE.Points(geometry,material);
       mesh.frustumCulled=false;mesh.visible=false;scene.add(mesh);
-      return {mesh,positions,crash:null,burst:-1};
+      const tails=new Float32Array(14*6),ribbon=new THREE.BufferGeometry();
+      ribbon.setAttribute('position',new THREE.BufferAttribute(tails,3).setUsage(THREE.DynamicDrawUsage));
+      const lines=new THREE.LineSegments(ribbon,new THREE.LineBasicMaterial({color:0xffa451,transparent:true,opacity:.7,depthWrite:false,blending:THREE.AdditiveBlending}));
+      lines.frustumCulled=false;mesh.add(lines);
+      return {mesh,positions,tails,lines,crash:null,burst:-1};
     });
   }
   update(cars,enabled) {
@@ -32,6 +36,7 @@ export class ImpactEffects {
           emitter.positions[i*3+1]=p.z+.083+t*(.5+i%3*.19)-t*t*3;
           emitter.positions[i*3+2]=p.y-p.ty*back+p.ny*spread;
         }
+        this.streaks(emitter,p.x-p.tx*.09,p.z+.083,p.y-p.ty*.09);mesh.material.color.setRGB(1,.85,.54);
         mesh.geometry.attributes.position.needsUpdate=true;mesh.material.opacity=.8;mesh.visible=true;return;
       }
       if(emitter.crash!==crash){emitter.crash=crash;emitter.burst=-1;}
@@ -48,8 +53,20 @@ export class ImpactEffects {
         emitter.positions[i*3+2]=emitter.z+Math.sin(angle)*t*speed;
       }
       mesh.geometry.attributes.position.needsUpdate=true;
-      mesh.material.opacity=1-t/.38;mesh.visible=true;
+      this.streaks(emitter,emitter.x,emitter.y,emitter.z);
+      mesh.material.color.setRGB(1,.94-t*1.4,.77-t*1.8);mesh.material.opacity=(1-t/.38)**1.4;mesh.visible=true;
     });
   }
-  destroy(){for(const {mesh} of this.emitters){mesh.removeFromParent();mesh.material.dispose();mesh.geometry.dispose();}this.map.dispose();}
+  streaks(emitter,x,y,z){
+    const {positions,tails,lines}=emitter;
+    for(let i=0;i<14;i++){
+      const a=i*3,k=i*6,length=.16+(i%4)*.045;
+      tails[k]=positions[a];tails[k+1]=positions[a+1];tails[k+2]=positions[a+2];
+      tails[k+3]=positions[a]+(x-positions[a])*length;
+      tails[k+4]=positions[a+1]+(y-positions[a+1])*length;
+      tails[k+5]=positions[a+2]+(z-positions[a+2])*length;
+    }
+    lines.geometry.attributes.position.needsUpdate=true;
+  }
+  destroy(){for(const {mesh,lines} of this.emitters){lines.geometry.dispose();lines.material.dispose();mesh.removeFromParent();mesh.material.dispose();mesh.geometry.dispose();}this.map.dispose();}
 }

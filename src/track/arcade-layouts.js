@@ -15,13 +15,65 @@ const layouts=[
  ['Arco sospeso','A26c5','cross'],['Viadotto Est','2aC54','jump'],['Ritorno a destra','C4b16','cross'],['Balcone orbitale','6c3A2','long'],['Scala di Orione','B2a6C','up'],
  ['Corona interna','c4A62','loop'],['Pendolo solare','B6a4C2','hairpin'],['Eclisse','3C2b5','down'],['Transito radente','a2B65','cross'],['Ultima parabola','6A3cB5','double']
 ];
+layouts.push(
+  ["Sentiero delle felci", "b1253a", "long"],
+  ["Trincea del muschio", "64C3acB", "up"],
+  ["Ramo sospeso", "C4Ca12", "hairpin"],
+  ["Tornante del gufo", "C12c54b", "cross"],
+  ["Anello della radura", "6514a2", "jump"],
+  ["Porta del sale", "562A3b4", "loop"],
+  ["Approdo corallo", "114Ca5", "double"],
+  ["Onda di ritorno", "4cA1A1B", "long"],
+  ["Gorgo blu", "A6B1a2", "up"],
+  ["Faro gemello", "bBa1A64", "hairpin"],
+  ["Dorso di basalto", "abA465", "jump"],
+  ["Ponte delle cave", "43cbB1A", "down"],
+  ["Cresta di rame", "C5234A", "loop"],
+  ["Forra ocra", "1b1A413", "double"],
+  ["Pietra rovescia", "6ba453", "long"],
+  ["Passo del corvo", "6cA5a4B", "hairpin"],
+  ["Cengia di vetro", "Cc5B12", "cross"],
+  ["Galleria glaciale", "C3b4A6b", "jump"],
+  ["Croce di neve", "b2B5A4", "down"],
+  ["Cresta nord", "C3cb42a", "loop"],
+  ["Argine delle gru", "C43aB1", "long"],
+  ["Corridoio container", "C62B51c", "up"],
+  ["Molo dei cavi", "C5ab62", "hairpin"],
+  ["Bacino numero tre", "154c3Ca", "cross"],
+  ["Dogana alta", "A5Bc1C", "jump"],
+  ["Sottovia laser", "65B24A3", "loop"],
+  ["Reticolo viola", "53BbA4", "double"],
+  ["Slalom ionico", "cB2A61b", "long"],
+  ["Bifora elettrica", "6aB532", "up"],
+  ["Arco di mercurio", "33144C5", "hairpin"],
+  ["Bocca del faro", "Abb5C5", "jump"],
+  ["Tuffo pelagico", "21A65ac", "down"],
+  ["Baia delle ancore", "aA2CbB", "loop"],
+  ["Risacca stretta", "54abBc2", "double"],
+  ["Promontorio ovest", "42a65A", "long"],
+  ["Spira doppia", "623aCcb", "hairpin"],
+  ["Pendio cobalto", "AaBcb4", "cross"],
+  ["Gradino elicoidale", "Bb214C6", "jump"],
+  ["Volta di quarzo", "4AcC1b", "down"],
+  ["Chiocciola alta", "b5326B1", "loop"],
+  ["Pilastri sospesi", "25CbB3", "long"],
+  ["Ansa del viadotto", "caC21A3", "up"],
+  ["Torre di strallo", "35CcaA", "hairpin"],
+  ["Rampa dei tiranti", "156A4cB", "cross"],
+  ["Sotto le campate", "3cB6Ca", "jump"],
+  ["Zenit rosso", "1A4C6Bb", "loop"],
+  ["Frontiera orbitale", "6B2b34", "double"],
+  ["Anello di plasma", "4B5aA2c", "long"],
+  ["Croce dei pianeti", "A1C42a", "up"],
+  ["Orbita finale", "A2B1baC", "hairpin"]
+);
 const features={loop:'Loop verticale e ritorno tecnico',double:'Doppia inversione e tornanti',up:'Avvitamento in salita',down:'Avvitamento in discesa',long:'Parabolica a raggio lungo',cross:'Scavalco, sottopasso e uscita a destra',hairpin:'Chicane ravvicinate e curve a gomito',jump:'Salto sul rettilineo · minimo 155 km/h'};
 export const courseName=id=>layouts[id][0];
 export const courseFeature=id=>features[layouts[id][2]];
-export const courseRevision=()=>21;
+export const courseRevision=id=>[2,11,21,38,46].includes(id)?23:21;
 export function championshipBase(id){
-  const [,code,kind]=layouts[id],world=Math.floor(id/5),cross=kind==='cross';
-  const step=10+(id%3),w=(code.length+2)*step,h=12+world*.36;
+  const [,code,kind]=layouts[id],world=Math.floor(id%50/5),cross=kind==='cross';
+  const step=10+(id%3)+(id>=50?1.5:0),w=(code.length+2)*step,h=12+world*.36;
   const points=[[0,0],[w,0],[w+3,h],[w-step*.5,h+3]];
   for(const [i,k] of [...code].entries()){
     const x=w-(i+1.5)*step;
@@ -77,5 +129,16 @@ export function championshipBase(id){
     }
     return {...p,z,bridge:z>.08};
   };
+  // A raised axial roll on the long launch straight. Entrance and exit have zero slope.
+  if([2,11,21,38,46].includes(id)){
+    const sample=base.sample.bind(base),start=6,span=14;
+    base.rollZone={start,end:start+span,span,radius:1.2,axial:true};
+    base.sample=distance=>{
+      const p=sample(distance),u=(p.s-start)/span;
+      if(u<=0||u>=1)return p;
+      const t=u*u*(3-2*u),roll=(id%2?1:-1)*2*Math.PI*t;
+      return {...p,z:p.z+1.42*Math.sin(Math.PI*u)**2,stuntRoll:roll,bridge:true};
+    };
+  }
   return base;
 }

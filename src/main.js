@@ -1,3 +1,4 @@
+import {raceId} from './game/tour.js';
 import {installGraphics} from './ui/graphics.js';
 import { Journey } from './ui/journey.js';
 import { icon } from './ui/icons.js';
@@ -67,9 +68,9 @@ import {SECTORS,drawSector,worldIcon} from './track/sectors.js';
 const routeIcons=new Map();
 function trackIcon(index,variant=-1){const key=index+':'+variant;if(routeIcons.has(key))return routeIcons.get(key);const t=createTrack(index,{lanes:4,variant}),b=t.bounds;const points=Array.from({length:110},(_,i)=>{const p=t.sample(i/109*t.length);return`${((p.x-b.minX)/(b.maxX-b.minX)*60).toFixed(1)},${((p.y-b.minY)/(b.maxY-b.minY)*38).toFixed(1)}`;}).join(' ');const svg=`<svg viewBox="0 0 60 38" aria-hidden="true"><polyline points="${points}" fill="none" stroke="${LEVELS[index].color}" stroke-width="3" stroke-linejoin="round"/></svg>`;routeIcons.set(key,svg);return svg;}
 function enterClub(){
-  const world=openWorld(profile.data.results),first=profile.data.results.slice(world*5,world*5+5).findIndex(s=>s<2);
+  const world=openWorld(profile.data.results),first=WORLDS[world][1].findIndex((_,i)=>(profile.data.results[raceId(world,i)]||0)<2);
   session.carIndex=profile.data.car;
-  session.clubRound=world*5+Math.max(0,first);
+  session.clubRound=raceId(world,Math.max(0,first));
   session.reset('campaign');
 }
 function presentResult(){
@@ -78,7 +79,7 @@ function presentResult(){
   $('finish-stars').innerHTML=Array.from({length:3},(_,i)=>`<span class="${i<r.stars?'earned':''}" style="--star-delay:${.25+i*.22}s">★</span>`).join('');
   $('finish-panel').dataset.rank=String(r.rank);
   const stars=session.meeting?worldStars(profile.data.results,session.meeting.world):r.stars;
-  $('finish-progress').innerHTML=session.meeting?`<div><span>MONDO ${session.meeting.world+1} · ${r.gainedStars?`+${r.gainedStars} stelle · +${r.gainedStars*40} CR`:'risultato registrato'}</span><b>${stars} / ${STAR_GATE}</b></div><meter min="0" max="${STAR_GATE}" value="${Math.min(STAR_GATE,stars)}">${stars} stelle</meter>`:'';
+  $('finish-progress').innerHTML=session.meeting?`<div><span>MONDO ${session.meeting.world+1} · ${r.gainedStars?`+${r.gainedStars} stelle · +${r.gainedStars*40} CR`:'risultato registrato'}${r.surfaceBonus?' · Podio tecnico +75 CR':''}</span><b>${stars} / ${STAR_GATE}</b></div><meter min="0" max="${STAR_GATE}" value="${Math.min(STAR_GATE,stars)}">${stars} stelle</meter>`:'';
   $('finish-unlock').textContent=r.unlockedCars.length?'SBLOCCATA · '+r.unlockedCars.join(' / '):r.newWorld?'NUOVO MONDO APERTO':r.rank===1?'VITTORIA · IL CLUB SI RICORDERÀ DI QUESTO GIRO.':session.player.crashes?'Un giro più pulito vale una stella in più.':'Torna in pista per conquistare il primo posto.';
 }
 function menu(){
@@ -87,6 +88,7 @@ function menu(){
   $('tour-passport').innerHTML=`<div><span>LICENZA DI CLUB</span><strong>MONDO ${passportWorld+1} / 10</strong></div><p>${WORLDS[passportWorld][0]}</p><meter min="0" max="${STAR_GATE}" value="${Math.min(STAR_GATE,earned)}">${earned} stelle</meter><small>${earned} stelle · ${Math.max(0,STAR_GATE-earned)} alla promozione${nextCar?' · prossima auto: '+nextCar.name:''}</small>`;
   $('route-preview').innerHTML=trackIcon(session.level,session.meeting?session.clubRound:-1);$('track-length').dataset.lanes=session.track.laneCount;
   $('track-condition').textContent=session.track.conditions.length?session.track.conditions.map(z=>z.short+' · corsia '+(z.lane+1)).join(' / '):'Fondo pulito · cerca il punto di frenata';
+  if(event&&session.hazards&&session.track.conditions.length)$('track-condition').textContent+=' · Podio senza uscite +75 CR';
   $('rival-development').hidden=!event;$('rival-development').textContent=event?'Scuderie rivali · '+session.cars.filter(c=>c.ai).map(c=>c.name+' Lv.'+c.upgrades.motor).join(' / '):'';
   $('club-event').hidden=!event;
   $('world-picker').hidden=!event;
@@ -94,18 +96,18 @@ function menu(){
   if(event){
     const world=event.world,stars=worldStars(profile.data.results,world);
     const [title,accent]=SECTORS[world];
-    $('map-stage').textContent='M'+(world+1)+' · GARA '+(event.round+1)+'/5';
+    $('map-stage').textContent='M'+(world+1)+' · GARA '+(event.round+1)+'/10';
     const banner=$('atlas-art');if(banner.dataset.world!==String(world)){
       drawSector(banner.getContext('2d'),banner.width,banner.height,world);banner.dataset.world=world;
     }
     $('world-atlas').style.setProperty('--sector',accent);
     $('atlas-world').textContent='Mondo '+(world+1)+' / 10 · '+title;
-    $('atlas-next').textContent=(world<9?'Prossimo mondo · '+SECTORS[world+1][0]+' · '+Math.min(stars,STAR_GATE)+'/'+STAR_GATE+' stelle':'Ultimo mondo')+' · Gara '+(event.round+1)+' di 5';
+    $('atlas-next').textContent=(world<9?'Prossimo mondo · '+SECTORS[world+1][0]+' · '+Math.min(stars,STAR_GATE)+'/'+STAR_GATE+' stelle':'Ultimo mondo')+' · Gara '+(event.round+1)+' di 10';
     $('atlas-stops').innerHTML=SECTORS.map(([name,color],i)=>`<button data-world="${i}" aria-label="Mondo ${i+1}: ${name}${i>unlocked?' bloccato':''}" ${i>unlocked?'disabled':''} aria-pressed="${world===i}" style="--dot:${color}">${worldIcon(i)}${String(i+1).padStart(2,'0')}</button>`).join('');
     $('world-picker').innerHTML=WORLDS.map(([name],i)=>`<option value="${i}" ${i>unlocked?'disabled':''} ${world===i?'selected':''}>${i+1} · ${name}${i>unlocked?' · bloccato':''}</option>`).join('');
-    $('club-event').textContent='Gara '+(event.round+1)+'/5 · '+stars+'/15 stelle · 2 stelle per avanzare'+(world<9?' · prossimo mondo a '+STAR_GATE+' stelle':' · finale del tour');
+    $('club-event').textContent='Gara '+(event.round+1)+'/10 · '+stars+'/30 stelle · 2 stelle per avanzare'+(world<9?' · prossimo mondo a '+STAR_GATE+' stelle':' · finale del tour');
     $('club-calendar').innerHTML=WORLDS[world][1].map((level,i)=>{
-      const id=world*5+i,n=profile.data.results[id],locked=i>0&&profile.data.results[id-1]<2;return `<li class="${id===session.clubRound?'current':''}"><button data-round="${id}" ${locked?'disabled':''} aria-pressed="${id===session.clubRound}">${trackIcon(level,id)}<span class="route-state">${locked?'Bloccata':id===session.clubRound?'In griglia':n?'Completata':'Disponibile'}</span><small>GARA ${i+1} · ${'★'.repeat(n)+'☆'.repeat(3-n)}${locked?' · 2 STELLE NELLA GARA PRECEDENTE':''}</small><strong>${courseName(id)}</strong><span>Motore consigliato · Lv. ${world+Math.floor((i+1)/3)}</span></button></li>`;
+      const id=raceId(world,i),n=profile.data.results[id],locked=i>0&&profile.data.results[raceId(world,i-1)]<2;return `<li class="${id===session.clubRound?'current':''}"><button data-round="${id}" ${locked?'disabled':''} aria-pressed="${id===session.clubRound}">${trackIcon(level,id)}<span class="route-state">${locked?'Bloccata':id===session.clubRound?'In griglia':n?'Completata':'Disponibile'}</span><small>GARA ${i+1} · ${'★'.repeat(n)+'☆'.repeat(3-n)}${locked?' · 2 STELLE NELLA GARA PRECEDENTE':''}</small><strong>${courseName(id)}</strong><span>Motore consigliato · Lv. ${world+Math.floor((i+1)/3)}</span></button></li>`;
     }).join('');
   }
   $('level-list').hidden=!!event;$('free-circuits').hidden=!!event;$('club-calendar').hidden=!event;
@@ -145,7 +147,7 @@ function finish(tutorial){
   $('auto-start-note').hidden = true;
   $('finish-progress').textContent='';$('finish-unlock').textContent='';
   if(session.isLocal){const order=session.standings();$('finish-kicker').textContent='GARA LOCALE · STESSO SCHERMO';$('finish-title').textContent=order[0].name+' vince!';$('finish-stars').textContent='🏁';$('finish-summary').textContent=order.map((c,i)=>`${i+1}° ${c.name} · ${c.finishedAt===null?'non arrivato':formatTime(c.finishedAt)} · ${c.crashes} uscite`).join('\n');$('finish-reward').textContent='Stessa macchina e stessa fisica per tutti.';$('next-level').textContent='RIVINCITA';return;}const r=session.reward;$('finish-kicker').textContent=tutorial?'SCUOLA GUIDA COMPLETATA':session.track.level.name.toUpperCase();$('finish-title').textContent=tutorial?'Ora sei al volante.':r.rank===1?'Il podio è tuo.':'Ogni giro conta.';$('finish-stars').textContent=tutorial?'✓':'★'.repeat(r.stars)+'☆'.repeat(3-r.stars);$('finish-summary').textContent=tutorial?'Gas, rilascio, scambio: hai provato tutti i comandi.':`${r.rank}° posto · ${formatTime(session.elapsed)} · ${session.player.crashes} uscite`;$('finish-reward').textContent=tutorial?'La prima gara ti aspetta.':`+${r.credits} CR${r.unlocked?' · TAPPA SUCCESSIVA RAGGIUNTA':''}`;if(session.meeting){
-    $('finish-reward').textContent='+'+r.credits+' CR · saldo '+profile.data.credits+' CR · '+worldStars(profile.data.results,session.meeting.world)+'/15 stelle nel mondo';
+    $('finish-reward').textContent='+'+r.credits+' CR · saldo '+profile.data.credits+' CR · '+worldStars(profile.data.results,session.meeting.world)+'/30 stelle nel mondo';
     const round = nextCampaignRace(session.clubRound,profile.data.results);
     const replay = round === session.clubRound;
     const label = round === null ? 'Rientro ai box' : (replay ? 'Rivincita' : 'Partenza') + ' · ' + courseName(round);
@@ -160,13 +162,13 @@ function finish(tutorial){
   }
   $('next-level').textContent=tutorial?'LA MIA PRIMA GARA':session.level<LEVELS.length-1?'PROSSIMO CIRCUITO':'CORRI ANCORA';}
 on($('level-list'),'click',e=>{session.mixCourse=null;const button=e.target.closest('[data-level]');if(button){session.configure({level:Number(button.dataset.level)});menu();window.scrollTo({top:0,behavior:'smooth'});}});
-function selectRound(id){advance=null;if(Number.isInteger(id)&&MEETINGS[id]?.world<=openWorld(profile.data.results)&&(id%5===0||profile.data.results[id-1]>=2)){session.clubRound=id;session.reset('campaign');menu();}}
+function selectRound(id){advance=null;if(Number.isInteger(id)&&MEETINGS[id]?.world<=openWorld(profile.data.results)&&(MEETINGS[id].round===0||profile.data.results[raceId(MEETINGS[id].world,MEETINGS[id].round-1)]>=2)){session.clubRound=id;session.reset('campaign');menu();}}
 on($('atlas-stops'),'click',e=>{const b=e.target.closest('[data-world]');if(b)selectRound(Number(b.dataset.world)*5);});
 on($('world-picker'),'change',()=>selectRound(Number($('world-picker').value)*5));
 on($('club-calendar'),'click',e=>{const b=e.target.closest('[data-round]');if(b)selectRound(Number(b.dataset.round));});
 const workshop=new Workshop(profile,session,renderer,menu);
 journey=new Journey({session,profile,choose:(mode,featured)=>{session.mixCourse=null;if(mode==='featured'){session.mixCourse=featured;session.level=MEETINGS[featured].level;session.reset('grandprix');}else if(mode==='mix'){
-  if(!session.courseBag?.length){session.courseBag=Array.from({length:50},(_,i)=>i);for(let i=49;i>0;i--){const j=Math.floor(Math.random()*(i+1));[session.courseBag[i],session.courseBag[j]]=[session.courseBag[j],session.courseBag[i]];}}
+  if(!session.courseBag?.length){session.courseBag=Array.from({length:MEETINGS.length},(_,i)=>i);for(let i=session.courseBag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[session.courseBag[i],session.courseBag[j]]=[session.courseBag[j],session.courseBag[i]];}}
   session.mixCourse=session.courseBag.pop();session.level=MEETINGS[session.mixCourse].level;session.reset('grandprix');
 }else if(mode==='campaign')enterClub();else session.reset(mode);menu();},grid:()=>{input.clear();session.startGrid();setView(preferred);focus();startAudio();},home:()=>{advance=null;input.clear();session.reset();menu();},restore:()=>{session.configure({upgrades:profile.data.upgrades,appearance:profile.data.appearance});enterClub();menu();}});
 on($('qualifying-enabled'),'change',()=>journey.refresh());
@@ -252,7 +254,7 @@ on($('sound'),'click',()=>{
   try { local?.setItem('slot08.audio',audioWanted?'on':'off'); } catch {}
   showAudio(); void syncAudio(); focus();
 });
-loop=new FixedLoop(dt=>{for(const c of session.cars){c.previousPose=c.pose;c.previousDrift=c.driftAngle;c.previousState=c.state;}session.update(dt,input.readAll());},(alpha,now)=>{loop.setRenderRate(graphics.fps);renderer.render(session,alpha);hud.render(now);updateAdvance(now);graphics.update(now);sound.update(session,session.status==='running');});
+loop=new FixedLoop(dt=>{for(const c of session.cars){c.previousDistance=c.distance;c.previousPose=c.pose;c.previousDrift=c.driftAngle;c.previousState=c.state;}session.update(dt,input.readAll());},(alpha,now)=>{loop.setRenderRate(graphics.fps);renderer.render(session,alpha);hud.render(now);updateAdvance(now);graphics.update(now);sound.update(session,session.status==='running');});
 enterClub();menu();await renderer.ready;renderer.render(session,1);document.querySelectorAll('[data-boot-disabled]').forEach(el=>el.disabled=false);$('start').disabled=false;$('tutorial-start').disabled=false;$('difficulty').disabled=false;loop.start();$('poster').hidden=true;
 const suspend=()=>{input.clear();session.pause();sound.update(session,false);};on(window,'blur',suspend);on(document,'visibilitychange',()=>{if(document.hidden){suspend();loop.stop();}else{loop.resetClock();loop.start();}});on(window,'pagehide',e=>{suspend();loop.stop();if(!e.persisted){workshop.destroy();input.destroy();renderer.destroy();sound.destroy();abort.abort();}});on(window,'pageshow',e=>{if(e.persisted)loop.start();});
 window.slot08=Object.freeze({snapshot:()=>({status:session.status,phase:session.phase,mode:session.mode,variant:session.track.variant,lanes:session.track.laneCount,track:session.level,assisted:session.assisted,time:session.elapsed,cars:session.cars.map(c=>({id:c.id,lane:c.lane,queued:c.switchQueued,changing:!!c.change,drift:c.driftAngle,instability:c.instability,state:c.state,speed:c.speed,distance:c.distance,laps:c.laps,crashes:c.crashes})),render:renderer.stats?.()??{type:'2d'}})});

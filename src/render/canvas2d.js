@@ -1,3 +1,4 @@
+import {QualityGovernor,renderSize} from './quality.js';
 import { drawChase } from './chase-canvas.js';
 import { SoftwareGarage } from './garage-software.js';
 import {dioramaTiles,groundSwatch} from './diorama-surface.js';
@@ -8,14 +9,18 @@ import { PHYSICS } from '../core/config.js';
 import { racePose } from './race-pose.js';
 /** Playable no-WebGL fallback. Never runs concurrently with the 3D renderer. */
 export class Canvas2D {
-  constructor(canvas,track,{onStatus}={}){this.kind='2d';this.canvas=canvas;this.track=track;this.glintSites=railSites(track);this.motion=window.matchMedia('(prefers-reduced-motion: reduce)');this.ctx=canvas.getContext('2d');this.view='top';this.studio=new SoftwareGarage(()=>{this.dirty=true;});this.ready=this.studio.ready;this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas.parentElement);this.resize();onStatus?.('VISTA 2D · COMPATIBILITÀ');}
-  resize(){this.backdrop=null;this.dirty=true;const r=this.canvas.getBoundingClientRect();const d=Math.min(devicePixelRatio||1,2);this.canvas.width=r.width*d;this.canvas.height=r.height*d;const b=this.track.bounds;this.scale=Math.min(this.canvas.width/(b.maxX-b.minX+1),this.canvas.height/(b.maxY-b.minY+3));}
+  constructor(canvas,track,{onStatus}={}){this.kind='2d';this.quality=new QualityGovernor();this.canvas=canvas;this.track=track;this.glintSites=railSites(track);this.motion=window.matchMedia('(prefers-reduced-motion: reduce)');this.ctx=canvas.getContext('2d');this.view='top';this.studio=new SoftwareGarage(()=>{this.dirty=true;});this.ready=this.studio.ready;this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas.parentElement);this.resize();onStatus?.('VISTA 2D · COMPATIBILITÀ');}
+  resize(){this.backdrop=null;this.dirty=true;const r=this.canvas.getBoundingClientRect();const dimensions=renderSize({width:r.width,height:r.height,dpr:devicePixelRatio||1,mobile:window.matchMedia('(pointer:coarse)').matches,profile:this.quality.id,scale:this.quality.scale});
+    const budget=this.garage?Math.min(1,1600/Math.max(dimensions.width,dimensions.height)):1;
+    this.canvas.width=Math.max(1,Math.round(dimensions.width*budget));this.canvas.height=Math.max(1,Math.round(dimensions.height*budget));const b=this.track.bounds;this.scale=Math.min(this.canvas.width/(b.maxX-b.minX+1),this.canvas.height/(b.maxY-b.minY+3));}
+  setQuality(id){this.quality.setProfile(id);this.resize();}
+  stats(){return {width:this.canvas.width,height:this.canvas.height,fps:this.quality.fps||0};}
   setView(mode){this.view=mode;this.dirty=true;}
   fitPart(key){this.studio.fit={key,start:performance.now()};}
-  setGarage(flag,appearance,upgrades,chassis=0){if(!flag)this.studio.fit=null;this.garage=flag;this.preview={appearance,upgrades,chassis};this.dirty=true;}
+  setGarage(flag,appearance,upgrades,chassis=0){if(!flag)this.studio.fit=null;if(this.garage!==flag){this.garage=flag;this.resize();}this.preview={appearance,upgrades,chassis};this.dirty=true;}
   setGarageView(angle){this.studio.rig.detail=null;this.studio.rig.zoom=1;this.studio.rig.elevation=.28;this.studio.rig.manual=true;this.studio.rig.garageAngle=angle;}
   centerGarage(){this.setGarageView(.65);this.studio.rig.initial=true;}
-  inspect(key){const r=this.studio?.rig;if(!r)return;r.detail=key;r.garageAngle=key==='motor'?2.5:.65;r.elevation=['under','brake','motor','grip','brush','gearing','diffuser'].includes(key)?-.58:.28;r.manual=false;r.zoom=1;}
+  inspect(key){const r=this.studio?.rig;if(!r)return;r.detail=key;r.garageAngle=key==='motor'?2.5:.65;r.elevation=['under','brake','motor','grip','brush','gearing','diffuser'].includes(key)?-.58:.28;r.manual=true;r.zoom=1;}
   orbit(dx,dy){const r=this.studio.rig;r.manual=true;r.garageAngle=(r.garageAngle??.85)+dx;r.elevation=Math.max(-1.3,Math.min(1.3,(r.elevation??.45)+dy));}
   magnify(f){const r=this.studio.rig;r.zoom=Math.max(.6,Math.min(2.1,(r.zoom||1)*f));}
   path(start,end,offset=0){const c=this.ctx;c.beginPath();for(let s=start;s<=end+.015;s+=.025){const p=this.track.sample(Math.min(s,end));const x=p.x+p.nx*offset,y=p.y+p.ny*offset-p.z*.45;if(s===start)c.moveTo(x,y);else c.lineTo(x,y);}}
@@ -214,6 +219,11 @@ export class Canvas2D {
     } finally {this.ctx=live;}
     return bitmap;
   }
-  render(session,alpha=1){if(this.track!==session.track){this.track=session.track;this.glintSites=railSites(this.track);this.resize();}if(this.garage){const c=this.ctx,w=this.canvas.width,h=this.canvas.height;if(this.studio.draw(c,w,h,this.preview))return;c.setTransform(1,0,0,1,0,0);c.fillStyle='#152330';c.fillRect(0,0,w,h);c.save();c.translate(w*(w/h<.9?.5:.7),h*(w/h<.9?.22:.5));const size=Math.min(w*.85,h)*1.5;c.scale(size,size);this.drawCar({...session.player,color:this.preview.appearance.paint,pose:{x:0,y:0,z:0,angle:0,tx:1,ty:0},driftAngle:0});c.restore();return;}const key=[session.status,session.mode,session.player.distance,session.player.state].join('|');if(!['running','countdown'].includes(session.status)&&!this.dirty&&this.lastKey===key)return;this.lastKey=key;this.dirty=false;const c=this.ctx,w=this.canvas.width,h=this.canvas.height;c.setTransform(1,0,0,1,0,0);if(['chase','drone'].includes(this.view) && ['running','countdown','paused'].includes(session.status)){drawChase(c,this.canvas,session,this.studio,alpha,this.view);return;}this.backdrop??=this.landscape();c.drawImage(this.backdrop,0,0);c.setTransform(this.scale,0,0,this.scale,this.originX,this.originY);if(session.status==='running'&&!this.motion.matches)this.drawGlints(session.cars);session.cars.forEach(a=>this.drawCar(a,alpha)); }
+  render(session,alpha=1){
+    const now=performance.now(),dt=(now-(this.lastFrame??now))/1000;this.lastFrame=now;
+    this.drawFrame(session,alpha);
+    if(session.status==='running'&&!this.garage&&this.quality.sample(dt,performance.now()-now))this.resize();
+  }
+  drawFrame(session,alpha=1){if(this.track!==session.track){this.track=session.track;this.glintSites=railSites(this.track);this.resize();}if(this.garage){const c=this.ctx,w=this.canvas.width,h=this.canvas.height;if(this.studio.draw(c,w,h,this.preview))return;c.setTransform(1,0,0,1,0,0);c.fillStyle='#152330';c.fillRect(0,0,w,h);c.save();c.translate(w*(w/h<.9?.5:.7),h*(w/h<.9?.22:.5));const size=Math.min(w*.85,h)*1.5;c.scale(size,size);this.drawCar({...session.player,color:this.preview.appearance.paint,pose:{x:0,y:0,z:0,angle:0,tx:1,ty:0},driftAngle:0});c.restore();return;}const key=[session.status,session.mode,session.player.distance,session.player.state].join('|');if(!['running','countdown'].includes(session.status)&&!this.dirty&&this.lastKey===key)return;this.lastKey=key;this.dirty=false;const c=this.ctx,w=this.canvas.width,h=this.canvas.height;c.setTransform(1,0,0,1,0,0);if(['chase','drone'].includes(this.view) && ['running','countdown','paused'].includes(session.status)){drawChase(c,this.canvas,session,this.studio,alpha,this.view);return;}this.backdrop??=this.landscape();c.drawImage(this.backdrop,0,0);c.setTransform(this.scale,0,0,this.scale,this.originX,this.originY);if(session.status==='running'&&!this.motion.matches)this.drawGlints(session.cars);session.cars.forEach(a=>this.drawCar(a,alpha)); }
   destroy(){this.resizeObserver.disconnect();this.studio.destroy();}
 }

@@ -9,7 +9,7 @@ export class SkidEffects {
     this.puffs = Array.from({ length: 96 }, () => ({ life: 0 }));
     this.ink = new THREE.InstancedMesh(new THREE.PlaneGeometry(.09, .014),
       new THREE.MeshBasicMaterial({ color: '#0a0c10', transparent: true, opacity: .74, depthWrite: false }), this.marks.length);
-    const pixels=new Uint8Array(32*32*4);for(let y=0;y<32;y++)for(let x=0;x<32;x++){const d=Math.hypot((x-15.5)/15.5,(y-15.5)/15.5);const i=(y*32+x)*4;pixels.set([255,255,255,Math.round(255*Math.max(0,1-d)**2)],i);}
+    const pixels=new Uint8Array(32*32*4);for(let y=0;y<32;y++)for(let x=0;x<32;x++){const d=Math.hypot((x-15.5)/15.5,(y-15.5)/15.5);const i=(y*32+x)*4;pixels.set([255,255,255,Math.round(255*Math.max(0,1-d)**1.65*(.75+.15*Math.sin(x*.43+2*Math.sin(y*.31))+.1*Math.cos(y*.58+x*.24)))],i);}
     this.smokeTexture=new THREE.DataTexture(pixels,32,32);this.smokeTexture.needsUpdate=true;
     this.smoke = new THREE.InstancedMesh(new THREE.PlaneGeometry(2,2),
       new THREE.MeshBasicMaterial({ color: '#d9dce0',map:this.smokeTexture,transparent:true,opacity:.48,depthWrite:false,side:THREE.DoubleSide }), this.puffs.length);
@@ -50,9 +50,9 @@ export class SkidEffects {
     this.puffs.forEach((p, i) => {
       if(!p.life)return;
       p.life = Math.max(0, p.life - dt);
-      if (p.life) { p.x += p.vx * dt; p.z += p.vz * dt; p.y += .09 * dt; }
+      if (p.life) { p.x += p.vx * dt; p.z += p.vz * dt; p.y += (.10+.12*(.72-p.life))*dt; }
       this.matrix.position.set(p.x || 0, p.y || 0, p.z || 0); if(camera)this.matrix.quaternion.copy(camera.quaternion);else this.matrix.rotation.set(0, i, i);
-      this.matrix.scale.setScalar(p.life ? (.025 + (.72 - p.life) * .09) * Math.min(1, p.life / .18) : 0);
+      this.matrix.scale.setScalar(p.life ? (.031 + (.72 - p.life) * .19) * Math.min(1, p.life / .18) : 0);
       this.matrix.updateMatrix(); this.smoke.setMatrixAt(i, this.matrix.matrix);
     });
     this.ink.instanceMatrix.needsUpdate = true; this.smoke.instanceMatrix.needsUpdate = true;

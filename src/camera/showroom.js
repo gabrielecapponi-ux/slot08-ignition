@@ -14,7 +14,9 @@ export function fitShowroom(bounds,angle,elevation,aspect,frame,zoom=1,detail){
  const center=detail?new THREE.Vector3(...detail):box.getCenter(new THREE.Vector3());
  const eyeDirection=new THREE.Vector3(Math.cos(angle)*Math.cos(elevation),Math.sin(elevation),Math.sin(angle)*Math.cos(elevation));
  const fov=38,tanY=Math.tan(fov*Math.PI/360),tanX=tanY*aspect;
- const min=detail?center.clone().addScalar(-.065):box.min,max=detail?center.clone().addScalar(.065):box.max;
+ // Keep the chassis in shot when the mechanic brings the replacement into place.
+ const min=box.min,max=box.max;
+ if(detail)center.lerp(box.getCenter(new THREE.Vector3()),.68);
  // Fit the complete orbit envelope once: the room must not breathe in/out as
  // a rotating car changes apparent width. The target remains the body centre.
  const radius=Math.hypot((max.x-min.x)/2,(max.z-min.z)/2),halfHeight=(max.y-min.y)/2;

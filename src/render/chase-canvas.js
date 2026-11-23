@@ -19,13 +19,13 @@ function roadWindow(track,distance){
 export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
   const {width:w,height:h}=canvas, {track,player}=session;
   let p=player.crash??racePose(player,alpha), heading=p.launchAngle??p.guideAngle??p.angle;
-  const zone=track.base?.loopZone,local=player.pose.s,side=zone&&!player.crash&&local>=zone.start-1.5&&local<=zone.end+.7;
+  const zone=track.base?.loopZone??track.base?.rollZone,local=player.pose.s,side=zone&&!player.crash&&local>=zone.start-1.5&&local<=zone.end+.7;
   const drone=view==='drone';let reach=drone?.82:1.45;
   if(side){
     const i=Math.max(0,Math.min(Math.round((zone.end-zone.start)/zone.span)-1,Math.floor((local-zone.start)/zone.span)));
-    p=track.sample(zone.start+(i+.5)*zone.span);
+    p=track.sample(zone.axial?local:zone.start+(i+.5)*zone.span);
     reach=Math.max(4.8,3.8*h/w)*zone.radius;
-    p={...p,z:p.z-zone.radius+reach*.22};heading=Math.atan2(-p.ny,-p.nx);
+    p={...p,z:p.z-(zone.axial?0:zone.radius)+reach*.22};heading=Math.atan2(-p.ny,-p.nx);
   }
   const tx=Math.cos(heading), ty=Math.sin(heading);
   const focal=Math.min(h*.97,w*1.16), pitch=side?.22:drone?.49:.32;
@@ -50,7 +50,7 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
   }
   const shapes=[];
   function strip(a,b,left,right,color,height=0){
-    const xy=(s,d)=>project(s.x+s.nx*d,s.y+s.ny*d,s.z+height-d*Math.sin(s.bank||0));
+    const xy=(s,d)=>{const roll=s.stuntRoll||0,offset=d*Math.cos(roll)+height*Math.sin(roll);return project(s.x+s.nx*offset,s.y+s.ny*offset,s.z+height*Math.cos(roll)-d*Math.sin((s.bank||0)+roll));};
     const points=[xy(a,left),xy(b,left),xy(b,right),xy(a,right)];
     if(points.some(q=>!q))return;
     shapes.push({points,color,depth:(points[0].depth+points[1].depth)/2});
@@ -72,7 +72,7 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
     }
     if(a.tunnel){
       const wet=['coast','titan'].includes(track.theme);
-      strip(a,b,-half-.22,half+.22,Math.floor(a.s/.22)%7===0?'#adfffb':wet?'#215969':'#454950',1.15);
+      strip(a,b,-half-.22,half+.22,Math.floor(a.s/.22)%3===0?['#9bd7d7','#a8c6eb','#dda375'][Math.floor(a.s/2)%3]:wet?'#215969':'#454950',1.15);
     }
     for(const lane of track.lanes){
       const d=track.laneOffset(lane)+Math.sign(track.laneOffset(lane))*(a.fork?.offset||0)/2;
@@ -94,7 +94,7 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
       const sprite=studio?.raceSprite(s.car,true);
       if(sprite){
         ctx.save();
-        ctx.rotate(s.crash?(s.crash.roll||0):side?-(s.car.pose.loopPitch||0):Math.max(-.24,Math.min(.24,s.car.driftAngle||0)));
+        ctx.rotate(s.crash?(s.crash.roll||0):side?(s.car.pose.stuntRoll||-(s.car.pose.loopPitch||0)):Math.max(-.24,Math.min(.24,s.car.driftAngle||0)));
         ctx.drawImage(sprite,-.67,-.59,1.34,.89);ctx.restore();
       }else{
       for(const side of [-.52,.33]){ctx.fillStyle='#101720';ctx.fillRect(side,-.22,.19,.38);}
@@ -102,7 +102,8 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
       ctx.fillStyle=lacquer;ctx.beginPath();ctx.moveTo(-.52,.06);ctx.lineTo(-.52,-.24);ctx.lineTo(-.36,-.39);ctx.lineTo(.36,-.39);ctx.lineTo(.52,-.24);ctx.lineTo(.52,.06);ctx.fill();
       ctx.fillStyle='#172630';ctx.fillRect(-.52,-.38,1.04,.065);
       }
-      if(s.skid>.29){ctx.fillStyle='#e0ebed52';for(const side of [-1,1]){ctx.beginPath();ctx.ellipse(side*.46,.11,.17,.10,0,0,Math.PI*2);ctx.fill();}}
+      if(s.skid>.29){for(const flank of [-1,1]){const drift=(s.car.distance*.83)%1,r=.22+drift*.16,x=flank*(.43+drift*.12),y=.08-drift*.12;
+        const mist=ctx.createRadialGradient(x,y,0,x,y,r);mist.addColorStop(0,'#e1e5e48a');mist.addColorStop(.48,'#c4c9ca43');mist.addColorStop(1,'#afb8bd00');ctx.fillStyle=mist;ctx.fillRect(x-r,y-r,r*2,r*2);}}
       if(s.crash?.wallHits || (s.skid>.37 && Math.floor(s.car.distance*22)%3===0)){ctx.strokeStyle='#ffd17c';ctx.lineWidth=.028;ctx.beginPath();for(let i=0;i<6;i++){ctx.moveTo(.44,0);ctx.lineTo(.5+i*.07,-.1-Math.abs(Math.sin(i+(s.crash?.angle||s.car.distance)))*.32);}ctx.stroke();}
       ctx.restore();
       if(!sprite){ctx.fillStyle='#263641';ctx.fillRect(x-size*.32,y-size*.56,size*.64,size*.23);

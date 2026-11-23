@@ -78,7 +78,7 @@ export function createTrack(index=0,{lanes=2,variant=-1,stunt=null}={}){
   let base;
   const spec=STUNTS[stunt];
   if(spec)base=stuntBase(spec);
-  else if(Number.isInteger(variant)&&variant>=0&&variant<50)base=championshipBase(variant);
+  else if(Number.isInteger(variant)&&variant>=0&&variant<100)base=championshipBase(variant);
   else if(index===0){base=new OvalTrack();}
   else if([1,6,8,10,12].includes(index)){
     const size={1:[2.8,6],6:[3,10],8:[3,13],10:[3,15],12:[3,17]}[index];
@@ -88,7 +88,7 @@ export function createTrack(index=0,{lanes=2,variant=-1,stunt=null}={}){
   else if(index===2)base=new EnduranceTrack({points:[[-10,-6],[10,-6],[10,6],[2,6],[2,0],[-10,0]],radius:2.2});
   else base=new EnduranceTrack(ENDURANCE_LAYOUTS[index-3]);
   const [theme,name,subtitle,bank]=WORLDS[index];
-  const track=new ScenicTrack(base,{theme:spec?.theme??theme,bank,tunnelCount:index<3?1:2,feature:subtitle});
+  const track=new ScenicTrack(base,{theme:spec?.theme??theme,bank,tunnelCount:variant>=0?3+(variant%2):index<3?1:2,feature:subtitle});
   track.laneCount=lanes===4?4:2;track.width=.70+2*track.extraWidth;if(track.laneCount===4)track.maxBank=Math.min(bank,.28);
   track.level={...LEVELS[index],name,subtitle};if(spec){track.level.name=spec.name;track.level.subtitle=spec.loops===1?'Chicane nel bosco e giro della morte':'Due giri della morte sul rettilineo costiero';track.tunnels=track.tunnels.filter(t=>t.start>6+7*spec.loops);}
   track.index=index;track.variant=variant;
@@ -98,8 +98,13 @@ export function createTrack(index=0,{lanes=2,variant=-1,stunt=null}={}){
     track.tunnels=track.tunnels.filter(t=>t.start>21);
   }
   if(variant>=0){
-    track.theme=SECTORS[Math.floor(variant/5)][3];
+    track.theme=SECTORS[Math.floor(variant%50/5)][3];
     track.maxBank=base.spiral ? .86 : .36;
+    if(base.rollZone){
+      track.level.subtitle+=' · Tonneau sopraelevato';
+      track.tunnels=track.tunnels.filter(t=>t.end<base.rollZone.start||t.start>base.rollZone.end);
+      track.switches=track.switches.filter(t=>t.end<base.rollZone.start||t.start>base.rollZone.end);
+    }
     track.jump=base.jump;
     if(track.jump)track.switches=track.switches.filter(g=>g.end<track.jump.start-3||g.start>track.jump.start+4);
   }

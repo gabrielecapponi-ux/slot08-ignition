@@ -1,4 +1,4 @@
-import {installedGroup,fittingOffset} from './installation.js';
+import {installedGroup,fittingTravel,mechanicalView,inspectionShell} from './installation.js';
 import {diffuserVertices,diffuserTriangles} from './portal-mesh.js';
 import {QualityGovernor,renderSize} from './quality.js';
 import {vividPaint,lacquerTexture} from './paint-finish.js';
@@ -104,12 +104,12 @@ export class Scene3D {
  setGarage(flag,appearance,upgrades,chassis=0){if(this.garage!==flag){this.rig.initial=true;this.fit=null;this.garageEntry=performance.now();}this.garage=flag;this.rig.garage=flag;this.applyLighting();if(flag)this.garageCar={id:'workshop',name:'GT-08',ai:true,color:appearance.paint,appearance,upgrades,chassis};else{this.clearCars();this.camera.clearViewOffset();this.scene.background=this.sky;}this.dirty=true;}
  setGarageView(angle){this.rig.detail=null;this.rig.zoom=1;this.rig.elevation=.28;this.rig.garageAngle=angle;this.rig.manual=true;this.dirty=true;}
  centerGarage(){this.setGarageView(.65);this.rig.initial=true;}
- inspect(key){this.rig.detail=key;this.rig.manual=false;this.rig.zoom=1;this.rig.garageAngle=key==='wing'||key==='motor'?2.5:.65;this.rig.elevation=['brake','under','grip','brush','gearing','diffuser'].includes(key)?-.65:key==='motor'?-.30:.28;this.dirty=true;}
+ inspect(key){this.rig.detail=key;this.rig.manual=true;this.rig.zoom=1;this.rig.garageAngle=key==='wing'||key==='motor'?2.5:.65;this.rig.elevation=['brake','under','grip','brush','gearing','diffuser'].includes(key)?-.65:key==='motor'?-.30:.28;this.dirty=true;}
  orbit(dx,dy){this.rig.manual=true;this.rig.garageAngle=(this.rig.garageAngle??.8)+dx;this.rig.elevation=THREE.MathUtils.clamp((this.rig.elevation??.45)+dy,-1.3,1.35);this.dirty=true;}
  magnify(factor){this.rig.zoom=THREE.MathUtils.clamp((this.rig.zoom||1)*factor,.6,2.1);this.dirty=true;}
  disposeCar(root){root.removeFromParent();const gs=new Set(),ms=new Set();root.traverse(o=>{if(o.userData.ownGeometry)gs.add(o.geometry);if(o.userData.ownMaterial){if(o.userData.beacon)o.material.map?.dispose();ms.add(o.material);}});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());}
  clearCars(){for(const root of this.cars.values())this.disposeCar(root);this.cars.clear();}
- modelFor(car){const source=this.fleet?.forChassis(car.chassis),existing=this.cars.get(car.id);if(car.id!=='workshop'&&existing?.userData.owner===car&&existing.userData.sourceId===source?.uuid)return existing;const look=effectiveParts(car),key=JSON.stringify([source?.uuid,look,car.color,car.chassis,car.upgrades,car.id==='workshop'&&this.rig.detail==='glass']),old=this.cars.get(car.id);if(old&&old.userData.key===key)return old;if(old)this.disposeCar(old);
+ modelFor(car){const source=this.fleet?.forChassis(car.chassis),existing=this.cars.get(car.id);if(car.id!=='workshop'&&existing?.userData.owner===car&&existing.userData.sourceId===source?.uuid)return existing;const look=effectiveParts(car),key=JSON.stringify([source?.uuid,look,car.color,car.chassis,car.upgrades,car.id==='workshop'&&this.rig.detail]),old=this.cars.get(car.id);if(old&&old.userData.key===key)return old;if(old)this.disposeCar(old);
   const root=source?this.batch(source,o=>!hiddenStockPart(o.name,look)&&!(car.id==='workshop'&&this.rig.detail==='glass'&&/^GT_(roof|glazing)/.test(o.name))):this.prototype.clone(true);root.userData.key=key;root.userData.owner=car;root.userData.sourceId=source?.uuid;root.rotation.order='YZX';
   root.traverse(o=>{if(o.isMesh&&/^(MAT_lime_enamel|MAT_smoked_glass|MAT_seat)/.test(o.material.name)){o.material=o.material.clone();o.material.color.set(o.material.name.startsWith("MAT_smoked_glass")?look.glass:o.material.name.startsWith("MAT_seat")?look.seat:vividPaint(car.color??look.paint));o.userData.ownMaterial=true;}});addCarStyle(root,car,this.kit);
   root.traverse(node=>{
@@ -122,8 +122,15 @@ export class Scene3D {
   const diffuser=new THREE.Mesh(fins,new THREE.MeshStandardMaterial({color:'#424950',metalness:.52,roughness:.3,side:THREE.DoubleSide}));
   diffuser.name='Estrattore in carbonio';diffuser.userData.ownMaterial=true;diffuser.userData.ownGeometry=true;root.add(diffuser);
   if(car.id==='workshop'){
+    if(mechanicalView(this.rig.detail))root.traverse(node=>{
+      if(!node.isMesh||!inspectionShell(node.name,node.material.name))return;
+      if(!node.userData.ownMaterial){node.material=node.material.clone();node.userData.ownMaterial=true;}
+      node.material.transparent=true;node.material.opacity=.18;node.material.depthWrite=false;
+    });
     root.userData.fittings=[];
-    for(const node of root.children){const group=installedGroup(node);if(group)root.userData.fittings.push({node,group,base:node.position.y});}
+    for(const node of root.children){const group=installedGroup(node);if(!group)continue;
+      const parts=group==='wheels'&&node.children.length?node.children:[node];
+      for(const part of parts)root.userData.fittings.push({node:part,group,base:part.position.clone()});}
   }
   root.userData.bodyBounds=new THREE.Box3().setFromObject(root);
   if(!car.ai){const label=document.createElement('canvas');label.width=96;label.height=64;const ctx=label.getContext('2d');ctx.fillStyle=car.color;ctx.beginPath();ctx.roundRect(9,3,78,46,12);ctx.fill();ctx.beginPath();ctx.moveTo(39,49);ctx.lineTo(48,62);ctx.lineTo(57,49);ctx.fill();ctx.fillStyle='#11151d';ctx.font='bold 29px sans-serif';ctx.textAlign='center';ctx.fillText(car.id==='player'?'P1':car.id.toUpperCase(),48,36);const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(label),depthTest:false,depthWrite:false,toneMapped:false}));sprite.userData.ownMaterial=true;sprite.userData.beacon=true;sprite.renderOrder=10;root.add(sprite);root.userData.beacon=sprite;}
@@ -151,8 +158,8 @@ export class Scene3D {
   const frameDelta=this.lastSubmitted===undefined?rawDt:(this.lastTime-this.lastSubmitted)/1000;this.lastSubmitted=this.lastTime;
   if(frameDelta>0&&frameDelta<.2){this.frameSamples.push(frameDelta);if(this.frameSamples.length>180)this.frameSamples.shift();}
   // Contact patches follow each car every frame; refresh the costly scene shadow less often on mobile.
-  this.renderer.shadowMap.autoUpdate=!this.mobile||this.garage;
-  if(this.mobile && (this.shadowTrack!==this.track || !this.lastShadow || this.lastTime-this.lastShadow>=66)){
+  this.renderer.shadowMap.autoUpdate=this.garage;
+  if(!this.garage && (this.shadowTrack!==this.track || !this.lastShadow || this.lastTime-this.lastShadow>=(this.mobile?66:40))){
     this.renderer.shadowMap.needsUpdate=true;this.lastShadow=this.lastTime;this.shadowTrack=this.track;
   }
   this.renderer.render(this.scene,this.camera);
@@ -160,14 +167,19 @@ export class Scene3D {
   if(this.quality.sample(rawDt,cost))this.resize();
  }
  render(session,alpha=1){const now=performance.now(),rawDt=(now-this.lastTime)/1000,dt=Math.min(.05,rawDt);this.lastTime=now;
-  if(session.track!==this.track){this.clearCars();this.setTrack(session.track);}
+  if(!this.garage&&session.track!==this.track){this.clearCars();this.setTrack(session.track);}
   if(this.garage)this.glints.root.visible=false;
   this.atelier.visible=this.garage;this.staticRoot.visible=!this.garage;this.ground.visible=!this.garage;this.stage.visible=this.garage;this.garageLight.intensity=this.garage?1.2:0;this.skidEffects.ink.visible=!this.garage;this.skidEffects.smoke.visible=!this.garage;
   this.impacts.update(session.cars,!this.garage&&!this.rig.motion.matches);
   if(this.garage&&!this.dirty&&this.rig.motion.matches)return;
   if(this.garage){this.dirty=false;this.scene.background=this.garageBackground;this.scene.fog=null;for(const m of this.cars.values())m.visible=false;const car=this.modelFor(this.garageCar);car.visible=true;car.position.set(0,.23,0);const entry=this.rig.motion.matches?0:Math.max(0,1-(now-this.garageEntry)/680)**3;
    car.rotation.set(0,-.32*entry,0);
-   for(const {node,group,base} of car.userData.fittings??[])node.position.y=base+(group===this.fit?.key?fittingOffset(group,now-this.fit.start):0);
+   const travel=fittingTravel(this.fit?.key,now-(this.fit?.start??0));
+   for(const {node,group,base} of car.userData.fittings??[]){
+     node.position.copy(base);
+     if(group===this.fit?.key){node.position.x+=travel[0];node.position.y+=travel[1];node.position.z+=travel[2]*(base.z<0?-1:1);}
+   }
+   if(this.rig.elevation<0)this.stage.visible=false;
    this.rig.garageBounds=car.userData.bodyBounds;this.switchGlow.visible=false;this.brakeMarks.visible=false;this.rig.update(session,dt);this.submitFrame(rawDt);return;}
   if(!this.scene.fog)this.scene.fog=this.raceFog;
   if(this.raceCars!==session.cars){this.raceCars=session.cars;this.skidEffects.reset();}this.skidEffects.update(session.cars,session.status==='running'?dt:0,this.camera);this.world.update(dt,this.rig.mode,['running','ready'].includes(session.status),session.players.some(c=>this.track.tunnelAt?.(c.distance,1.8)));this.rig.update(session,dt,alpha);
@@ -175,11 +187,11 @@ export class Scene3D {
   for(const [i,mat] of (this.staticRoot.userData.startLights??[]).entries())mat.emissiveIntensity=i<lit?2.7:0;
   this.glints.update(session,this.camera,this.sun,session.status==='running'&&!this.rig.motion.matches);
   const ids=new Set(session.cars.map(c=>c.id));for(const [id,m]of this.cars)if(!ids.has(id)){this.disposeCar(m);this.cars.delete(id);}
-  for(const car of session.cars){const m=this.modelFor(car),p=car.pose;updateCarMotion(m,car,dt);m.visible=car.state!=='eliminated';if(m.userData.contactShadow)m.userData.contactShadow.visible=!car.crash;const beacon=m.userData.beacon;if(beacon){beacon.visible=session.isLocal;const size=['top','iso'].includes(this.rig.mode)?Math.max(.65,this.camera.position.y*.022):.5;beacon.position.set(0,.35,0);beacon.scale.set(size,size*2/3,1);}
+  for(const car of session.cars){const m=this.modelFor(car),p=car.pose;updateCarMotion(m,car,dt,alpha);m.visible=car.state!=='eliminated';if(m.userData.contactShadow)m.userData.contactShadow.visible=!car.crash;const beacon=m.userData.beacon;if(beacon){beacon.visible=session.isLocal;const size=['top','iso'].includes(this.rig.mode)?Math.max(.65,this.camera.position.y*.022):.5;beacon.position.set(0,.35,0);beacon.scale.set(size,size*2/3,1);}
    if(car.crash){const c=car.crash;m.position.set(c.x,c.z,c.y);m.rotation.set(c.roll||0,-c.angle,0,"YXZ");}
-   else{const body=racePose(car,alpha);const pitch=body.loopPitch??0,shift=.077*Math.sin(pitch);m.position.set(body.x-body.tx*shift,body.z+.077*Math.cos(pitch),body.y-body.ty*shift);const load=Math.min(1,car.gripRatio||0)*Math.sign(p.curvature||0);
+   else{const body=racePose(car,alpha);const pitch=body.loopPitch??0,shift=.077*Math.sin(pitch),roll=body.stuntRoll||0,side=.077*Math.sin(roll);m.position.set(body.x-body.tx*shift+body.nx*side,body.z+.077*Math.cos(pitch)*Math.cos(roll),body.y-body.ty*shift+body.ny*side);const load=Math.min(1,car.gripRatio||0)*Math.sign(p.curvature||0);
     m.userData.lean=THREE.MathUtils.damp(m.userData.lean||0,load*.034,11,dt);
-    m.rotation.set((body.bank||0)+m.userData.lean,-body.angle,body.pitch||0,"YZX");}
+    m.rotation.set((body.bank||0)+(body.stuntRoll||0)+m.userData.lean,-body.angle,body.pitch||0,"YZX");}
   }
   this.switchGlow.visible=session.player.switchQueued;if(this.switchGlow.visible){const p=this.track.sample(session.player.distance+this.track.nextSwitchDistance(session.player.distance));this.switchGlow.position.set(p.x,p.z+.09,p.y);}
   const advice=session.player.coach;this.brakeMarks.visible=!!(session.guidanceEnabled&&advice&&advice.point!==null&&advice.action!=='go'&&session.status==='running');

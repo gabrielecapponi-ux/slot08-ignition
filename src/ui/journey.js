@@ -7,7 +7,7 @@ import { formatTime } from '../core/math.js';
 const $=id=>document.getElementById(id);
 const MODES=[
  ['campaign','arcade','Arcade','Una tessera, dieci mondi. La tua storia al club.'],
- ['mix','duel','Griglia a sorpresa','Pesca un circuito tra 50. Sei piloti e 35 crediti per ogni giro pulito.'],
+ ['mix','duel','Griglia a sorpresa','Pesca un circuito tra 100. Sei piloti e 35 crediti per ogni giro pulito.'],
  ['masone','wheel','Masone Verticale','Un giro della morte tra gli alberi.'],
  ['riviera','wheel','Riviera Doppio Loop','Due anelli verticali sul rettilineo costiero.'],
  ['time','chrono','Time Trial','Solo tu, tre settori e un tempo da battere.'],
@@ -43,7 +43,7 @@ export class Journey {
     $('featured-info').textContent=track.level.subtitle+' · '+Math.round(track.length)+' m';
     $('featured-map').setAttribute('aria-label','Tracciato di '+track.level.name);
   };
-  for(const [id,step] of [['featured-prev',-1],['featured-next',1]])$(id).addEventListener('click',()=>{featured=(featured+step+50)%50;showFeatured();});
+  for(const [id,step] of [['featured-prev',-1],['featured-next',1]])$(id).addEventListener('click',()=>{featured=(featured+step+MEETINGS.length)%MEETINGS.length;showFeatured();});
   $('featured-race').addEventListener('click',()=>{choose('featured',featured);this.hideHome();});
   showFeatured();
   $('mode-choices').innerHTML=MODES.map(([id,symbol,title,copy])=>`<button data-play-mode="${id}" disabled data-boot-disabled>${icon(symbol)}<span><strong>${title}</strong><small>${copy}</small></span></button>`).join('');
@@ -65,7 +65,7 @@ export class Journey {
   const s=this.session,world=s.meeting?.world;
   $('chapter-title').textContent=world!=null?SECTORS[world][0]:MODES.find(m=>m[0]===s.mode)?.[2]||'Il tuo club';
   $('chapter-copy').textContent=world!=null?s.track.level.name+' · '+s.track.level.subtitle:MODES.find(m=>m[0]===s.mode)?.[3]||'Scegli il circuito e porta la tua auto in griglia.';
-  $('chapter-kicker').textContent=world!=null?'CAPITOLO '+(world+1)+' · GARA '+(s.meeting.round+1)+' / 5':'SESSIONE LIBERA';
+  $('chapter-kicker').textContent=world!=null?'CAPITOLO '+(world+1)+' · GARA '+(s.meeting.round+1)+' / 10':'SESSIONE LIBERA';
   $('qualifying-setting').hidden=!['campaign','grandprix'].includes(s.mode);
   $('start-label').textContent=['campaign','grandprix'].includes(s.mode)&&$('qualifying-enabled').checked?'QUALIFICHE · 2 GIRI':s.mode==='time'?'ENTRA IN PISTA':'IN GRIGLIA';
   drawCourse($('circuit-preview'),s.track);

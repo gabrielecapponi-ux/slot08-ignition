@@ -7,7 +7,7 @@ import { MEETINGS } from '../src/game/tour.js';
 import { RACE } from '../src/core/config.js';
 const store=()=>{const m=new Map();return {getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v),m};};
 
-test('50 campaign courses have unique geometry, closed lanes and traversable branch joins',()=>{
+test('100 campaign courses have unique geometry, closed lanes and traversable branch joins',()=>{
  const signatures=new Set();
  for(const [id,meeting] of MEETINGS.entries()){
   const t=createTrack(meeting.level,{lanes:4,variant:id});
@@ -15,7 +15,7 @@ test('50 campaign courses have unique geometry, closed lanes and traversable bra
   for(const lane of t.lanes){const a=t.pose(0,lane),b=t.pose(t.length,lane);assert.ok(Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z)<1e-6);for(let s=0;s<t.length;s+=.15){const p=t.pose(s,lane);assert.ok(Number.isFinite(p.x+p.y+p.z+p.metric+p.curvature));assert.ok(p.metric>.4);}}
   if(id%5===4){assert.ok(t.fork);const mid=(t.fork.start+t.fork.end)/2,a=t.pose(mid,1),b=t.pose(mid,2);assert.ok(Math.hypot(a.x-b.x,a.y-b.y)>1.7);for(const g of t.switches)assert.ok(g.end<t.fork.start||g.start>t.fork.end);}
  }
- assert.equal(signatures.size,50);
+ assert.equal(signatures.size,100);
 });
 
 test('two timed laps create a sorted grid and a fresh three-lap race',()=>{

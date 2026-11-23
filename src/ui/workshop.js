@@ -33,7 +33,7 @@ export class Workshop {
   panel.addEventListener('touchcancel',()=>{start=null;},touchOptions);
   panel.addEventListener('touchstart',e=>{start=null;if(e.touches.length===1&&!e.target.closest('#part-options,select,input'))start=[e.touches[0].clientX,e.touches[0].clientY];},touchOptions);
   panel.addEventListener('touchend',e=>{if(start){const dx=e.changedTouches[0].clientX-start[0],dy=e.changedTouches[0].clientY-start[1];if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.4)move(dx<0?1:-1);}start=null;},touchOptions);
-  on('part-options','click',e=>{const button=e.target.closest('[data-choice]');if(button){this.choice=Number(button.dataset.choice);this.focus=this.category;this.render();this.renderer.inspect?.(this.focus);}});
+  on('part-options','click',e=>{const button=e.target.closest('[data-choice]');if(button){this.choice=Number(button.dataset.choice);this.focus=this.category;this.render();this.renderer.inspect?.(this.focus);this.previewMotion(this.focus);}});
   on('part-buy','click',()=>{if(this.profile.equip(this.category,this.choice)){this.commit();this.render();this.fitted(this.category,PARTS[this.category].names[this.choice]);}});
   on('paint-options','click',e=>{const button=e.target.closest('[data-paint]');if(button&&this.profile.equip('paint',button.dataset.paint)){this.commit();this.render();}});
   on('decal-options','change',()=>{this.profile.equip('decal',Number($('decal-options').value));this.commit();this.render();});
@@ -41,7 +41,7 @@ export class Workshop {
    if(this.profile.equip(b.dataset.trim,b.value)){this.commit();this.render();this.renderer.inspect?.(b.dataset.trim==='glass'?'glazing':'glass');$('trim-options').querySelector('[value="'+b.value+'"]')?.focus({preventScroll:true});}});
   on('upgrades','click',e=>{
     const preview=e.target.closest('[data-preview-upgrade]'),buy=e.target.closest('[data-upgrade]');
-    if(preview){this.focus=preview.dataset.previewUpgrade;this.mechanicalPreview=this.focus;this.render();this.renderer.inspect?.(this.focus);}
+    if(preview){this.focus=preview.dataset.previewUpgrade;this.mechanicalPreview=this.focus;this.render();this.renderer.inspect?.(this.focus);this.previewMotion(this.focus);}
     if(buy){this.focus=buy.dataset.upgrade;const bought=this.profile.upgrade(this.focus);if(bought)this.commit();this.mechanicalPreview=null;this.render();this.renderer.inspect?.(this.focus);if(bought)this.fitted(this.focus,({motor:'Motore',grip:'Tenuta',brake:'Freno motore',brush:'Spazzole',gearing:'Trasmissione',diffuser:'Fondo aerodinamico'})[this.focus]+' · livello '+this.profile.data.upgrades[this.focus]);}
     const tune=e.target.closest('[data-tuning]');if(tune&&this.profile.setTuning(tune.dataset.tuning)){this.commit();this.render();}
     if(e.target.closest('[data-reset-preview]')){this.mechanicalPreview=null;this.render();}
@@ -74,18 +74,20 @@ export class Workshop {
   const delta=target.left<visible.left?target.left-visible.left:Math.max(0,target.right-visible.right);
   if(delta)rail.scrollBy({left:delta,behavior:reduce?'instant':'smooth'});
  }
+ previewMotion(key){if(!matchMedia('(prefers-reduced-motion: reduce)').matches)this.renderer.fitPart?.(key);}
  fitted(key,name){
-  const note=$('fitting-status');note.textContent='Montaggio completato · '+name;note.hidden=false;
+  const note=$('fitting-status');note.textContent='Montaggio · '+name;note.hidden=false;
   clearTimeout(this.fittingTimer);
   if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
    this.renderer.fitPart?.(key);note.getAnimations?.().forEach(a=>a.cancel());
    note.animate?.([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:240});
   }
-  this.fittingTimer=setTimeout(()=>note.hidden=true,2300);
+  this.fittingTimer=setTimeout(()=>{note.textContent='Montato · '+name;this.fittingTimer=setTimeout(()=>note.hidden=true,1250);},1200);
  }
- commit(){this.session.tuning=this.profile.vehicle.tuning;this.session.configure({upgrades:this.profile.data.upgrades,appearance:this.profile.data.appearance});this.onChange();}
+ commit(){this.pendingSetup=true;}
+ applySetup(){this.pendingSetup=false;this.session.tuning=this.profile.vehicle.tuning;this.session.configure({upgrades:this.profile.data.upgrades,appearance:this.profile.data.appearance});this.onChange();}
  open(){this.previewCar=this.profile.data.car;this.session.pause();this.choice=this.profile.data.appearance[this.category];$('app').dataset.garage='true';document.body.classList.add('garage-open');$('garage').showModal();this.select(this.department);}
- exit(){clearTimeout(this.fittingTimer);$('fitting-status').hidden=true;this.transition?.cancel();document.body.classList.remove('garage-open');delete $('app').dataset.garage;this.renderer.setGarage?.(false);}
+ exit(){if(this.pendingSetup)this.applySetup();clearTimeout(this.fittingTimer);$('fitting-status').hidden=true;this.transition?.cancel();document.body.classList.remove('garage-open');delete $('app').dataset.garage;this.renderer.setGarage?.(false);}
  close(){this.exit();$('garage').close();}
  render(){const p=this.profile,d=p.data,catalog=PARTS[this.category];
   const active=document.activeElement;
@@ -124,6 +126,7 @@ export class Workshop {
    else if(replacement?.disabled)replacement.parentElement.querySelector('button:not(:disabled)')?.focus({preventScroll:true});
   }
   const previewUpgrades=shown!==d.car?(d.vehicles[shown]?.upgrades||{motor:0,grip:0,brake:0}):this.mechanicalPreview?{...d.upgrades,[this.mechanicalPreview]:Math.min(UPGRADE_LIMIT,d.upgrades[this.mechanicalPreview]+1)}:d.upgrades;
+  document.querySelector('#garage').dataset.bay=dep==='fleet'?'scuderia':'officina';
   this.renderer.setGarage?.(true,PARTS[dep]?{...d.appearance,[dep]:this.choice}:d.appearance,previewUpgrades,shown);
  }
  destroy(){this.abort.abort();}

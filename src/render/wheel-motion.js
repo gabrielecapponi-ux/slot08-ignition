@@ -86,15 +86,17 @@ export function installCarMotion(root, source) {
   return motion;
 }
 
-export function updateCarMotion(root, car, dt) {
+export function updateCarMotion(root, car, dt,alpha=1) {
   const motion = root.userData.motion;
   if (!motion) return;
   if (Number.isFinite(car.distance)) {
-    if (motion.distance !== null && car.distance >= motion.distance) {
-      const travel = (car.distance - motion.distance) * (car.pose?.metric || 1);
+    const continuous=Number.isFinite(car.previousDistance)&&Math.abs(car.distance-car.previousDistance)<1;
+    const distance=continuous?car.previousDistance+(car.distance-car.previousDistance)*alpha:car.distance;
+    if (motion.distance !== null && distance >= motion.distance) {
+      const travel = (distance - motion.distance) * (car.pose?.metric || 1);
       motion.angle = (motion.angle - travel / motion.radius) % (2 * Math.PI);
     }
-    motion.distance = car.distance;
+    motion.distance = distance;
     motion.turn.value.set(Math.cos(motion.angle), Math.sin(motion.angle));
     for (const { rotor, sign } of motion.wheels) rotor.rotation.z = sign * motion.angle;
   }

@@ -9,13 +9,13 @@ const THREE=await import('three');
 const {buildSafetyRail,trackPoint}=await import('../src/render/safety-rail.js');
 function dispose(root){const gs=new Set(),ms=new Set();root.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});gs.forEach(g=>g.dispose());ms.forEach(m=>{m.map?.dispose();m.dispose();});}
 
-test('opaque closed safety rails and anchored posts cover all 50 campaign tracks',()=>{
+test('opaque closed safety rails and anchored posts cover all 100 campaign tracks',()=>{
  for(const [id,m]of MEETINGS.entries()){
   const track=createTrack(m.level,{lanes:4,variant:id}),rails=buildSafetyRail(track);
   assert.equal(rails.children.filter(o=>o.name==='Guardrail Aegis 08').length,2);
   rails.traverse(o=>{if(o.material){assert.equal(o.material.transparent,false);assert.equal(o.material.depthWrite,true);}const p=o.geometry?.attributes.position;if(p)for(const v of p.array)assert.ok(Number.isFinite(v),`track ${id}`);});
   assert.ok(rails.userData.postPlacements.length>track.length*2);
-  for(const p of rails.userData.postPlacements){assert.ok(Math.abs(p.top[1]-p.foot[1]-.202)<1e-8);assert.equal(p.top[0],p.foot[0]);assert.equal(p.top[2],p.foot[2]);}
+  for(const p of rails.userData.postPlacements){assert.ok(Math.abs(Math.hypot(...p.top.map((v,i)=>v-p.foot[i]))-.202)<1e-8);}
   if(track.fork){
    const f=track.fork,at=(f.start+f.end)/2,p=track.sample(at);
    const left=trackPoint(p,.018-.034,.20,1),right=trackPoint(p,-.018+.034,.20,-1);

@@ -33,20 +33,22 @@ export class CameraRig {
     const ready=session.status==='ready',intro=ready&&!this.motion.matches&&this.age<4.4;
     const moving=!ready&&session.status!=='finished'&&session.status!=='tutorial-complete';
     const heading=p.launchAngle??p.guideAngle??p.angle??0,tx=Math.cos(heading),ty=Math.sin(heading),ground=(p.z||0)+.08;
-    const zone=this.track.base?.loopZone,local=zone?this.track.sample(session.player.distance).s:0;
+    const current=session.player.distance,previous=session.player.previousDistance;
+    const distance=Number.isFinite(previous)&&Math.abs(current-previous)<1?previous+(current-previous)*alpha:current;
+    const zone=this.track.base?.loopZone??this.track.base?.rollZone,local=zone?this.track.sample(distance).s:0;
     const sideView=moving&&zone&&!session.isLocal&&!session.player.crash&&['chase','drone','rail'].includes(this.mode)&&local>=zone.start-1.5&&local<=zone.end+.7;
     if(sideView){
       const index=Math.min(Math.floor((zone.end-zone.start)/zone.span)-1,Math.max(0,Math.floor((local-zone.start)/zone.span)));
-      const axis=this.track.sample(zone.start+zone.span*(index+.5));
+      const axis=this.track.sample(zone.axial?local:zone.start+zone.span*(index+.5));
       const reach=Math.max(4.1,3.3/aspect)*zone.radius;
-      look.set(axis.x,axis.z-zone.radius+.08,axis.y);
+      look.set(axis.x,axis.z-(zone.axial?0:zone.radius)+.08,axis.y);
       pos.set(axis.x+axis.nx*reach,look.y+reach*.18,axis.y+axis.ny*reach);fov=46;
     }else if(intro){const u=smootherstep(clamp((this.age-.7)/3.7,0,1));const close=new THREE.Vector3(p.x+tx*.5-ty*.65,ground+.32,p.y+ty*.5+tx*.65);pos.lerpVectors(close,pos,u);look.lerpVectors(new THREE.Vector3(p.x,ground+.06,p.y),look,u);}
     else if(moving && this.mode==='chase'){
-      const near=this.track.tunnelAt?.(session.player.distance,1.2);
+      const near=this.track.tunnelAt?.(distance,1.2);
       const pace=clamp(session.player.speed/5,0,1);
       const lead=near?.9:1.25+pace*.9;
-      const road=this.track.pose(session.player.distance+lead,session.player.lane);
+      const road=this.track.pose(distance+lead,session.player.lane);
       const reach=near?.72:aspect<1?1.36:1.08;
       pos.set(p.x-tx*reach,ground+(near?.28:aspect<1?.86:.67),p.y-ty*reach);
       look.set(p.x+tx*lead*.45+(road.x-p.x)*.55,ground+.06+clamp(road.z-p.z,-.55,.7)*.55,p.y+ty*lead*.45+(road.y-p.y)*.55);
@@ -65,9 +67,9 @@ export class CameraRig {
       const v=session.player.speed,reach=.73+Math.min(v,5)*.025;pos.set(p.x-tx*reach,ground+(aspect<.9?.54:.46)+Math.min(v,5)*.014,p.y-ty*reach);
       look.set(p.x,ground+.055,p.y);fov=aspect<.9?48:42;
       // Raise the following drone over the upper deck while the car is underneath.
-      if(this.track.tunnelAt?.(session.player.distance,1.6)){pos.set(p.x-tx*.8,ground+.39,p.y-ty*.8);look.set(p.x,ground+.055,p.y);fov=66;}
+      if(this.track.tunnelAt?.(distance,1.6)){pos.set(p.x-tx*.8,ground+.39,p.y-ty*.8);look.set(p.x,ground+.055,p.y);fov=66;}
     }else if(moving&&this.mode==='rail'){
-      pos.set(p.x-tx*.65-ty*1.5,ground+.62,p.y-ty*.65+tx*1.5);look.set(p.x+tx*.75,ground+.05,p.y+ty*.75);fov=52;if(this.track.tunnelAt?.(session.player.distance,1.6)){pos.set(p.x-tx*.8,ground+.39,p.y-ty*.8);fov=66;}
+      pos.set(p.x-tx*.65-ty*1.5,ground+.62,p.y-ty*.65+tx*1.5);look.set(p.x+tx*.75,ground+.05,p.y+ty*.75);fov=52;if(this.track.tunnelAt?.(distance,1.6)){pos.set(p.x-tx*.8,ground+.39,p.y-ty*.8);fov=66;}
     }else if((this.mode==='top'||this.mode==='macro'&&session.isLocal)&&moving){pos.set((b.minX+b.maxX)/2,Math.max(width/aspect,height)*1.38,(b.minY+b.maxY)/2+.001);look.set((b.minX+b.maxX)/2,0,(b.minY+b.maxY)/2);}
     if(moving&&session.isLocal&&['top','iso'].includes(this.mode)){const ps=session.players.map(car=>car.crash??car.pose),xs=ps.map(q=>q.x),ys=ps.map(q=>q.y),loX=Math.min(...xs),hiX=Math.max(...xs),loY=Math.min(...ys),hiY=Math.max(...ys),cx=(loX+hiX)/2,cy=(loY+hiY)/2;const framing=Math.max((hiX-loX+9)/aspect,hiY-loY+8);pos.set(cx,framing*1.42,cy+(this.mode==='iso'?framing*.5:.001));look.set(cx,0,cy);}
     if(session.status==='finished'&&!session.isLocal&&!this.motion.matches){

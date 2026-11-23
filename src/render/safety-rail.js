@@ -4,8 +4,8 @@ import { BARRIER } from '../physics/barriers.js';
 
 // One coordinate convention for road shoulders, barriers and their anchors.
 export function trackPoint(p,offset,height=0,forkSide=Math.sign(offset)) {
- const d=offset+forkSide*(p.fork?.offset||0)/2,bank=p.bank||0;
- return new THREE.Vector3(p.x+p.nx*d*Math.cos(bank),p.z-d*Math.sin(bank)+height,p.y+p.ny*d*Math.cos(bank));
+ const d=offset+forkSide*(p.fork?.offset||0)/2,bank=(p.bank||0)+(p.stuntRoll||0);
+ const side=d*Math.cos(bank)+height*Math.sin(p.stuntRoll||0);return new THREE.Vector3(p.x+p.nx*side,p.z-d*Math.sin(bank)+height*Math.cos(p.stuntRoll||0),p.y+p.ny*side);
 }
 
 function hazardMap(){
@@ -58,14 +58,14 @@ export function buildSafetyRail(track){
  const reflectors=new THREE.InstancedMesh(new THREE.BoxGeometry(.027,.032,.006),yellow,placements.length);
  placements.forEach(({p,offset,side,forkSide},i)=>{
   const angle=-Math.atan2(p.ty,p.tx);
-  dummy.rotation.set(0,angle,0);dummy.position.copy(trackPoint(p,offset,.132,forkSide));dummy.updateMatrix();posts.setMatrixAt(i,dummy.matrix);
+  dummy.rotation.set(p.stuntRoll||0,angle,0,'YXZ');dummy.position.copy(trackPoint(p,offset,.132,forkSide));dummy.updateMatrix();posts.setMatrixAt(i,dummy.matrix);
   // Base shoes are on the shoulder at .028 m, posts start at .031 m.
   dummy.rotation.order='YZX';dummy.rotation.set(p.bank||0,angle,Math.atan(p.grade||0));
   dummy.position.copy(trackPoint(p,offset,.032,forkSide));dummy.updateMatrix();shoes.setMatrixAt(i,dummy.matrix);
   for(let j=0;j<2;j++){
    dummy.position.copy(trackPoint(p,offset,.039,forkSide));dummy.position.x+=p.tx*(j?.023:-.023);dummy.position.z+=p.ty*(j?.023:-.023);dummy.updateMatrix();bolts.setMatrixAt(i*2+j,dummy.matrix);
   }
-  dummy.rotation.set(0,angle,0);dummy.position.copy(trackPoint(p,offset-side*.046,.198,forkSide));dummy.updateMatrix();reflectors.setMatrixAt(i,dummy.matrix);
+  dummy.rotation.set(p.stuntRoll||0,angle,0,'YXZ');dummy.position.copy(trackPoint(p,offset-side*.046,.198,forkSide));dummy.updateMatrix();reflectors.setMatrixAt(i,dummy.matrix);
  });
  posts.name='Montanti ancorati';shoes.name='Piedini imbullonati';bolts.name='Bulloni dei montanti';reflectors.name='Catadiottri ambra';
  for(const mesh of [posts,shoes,bolts,reflectors]){mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh);}
