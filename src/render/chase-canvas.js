@@ -17,11 +17,19 @@ function roadWindow(track,distance){
 // sampled course as the physics, including banks, forks and elevated crossings.
 export function drawChase(ctx, canvas, session, studio) {
   const {width:w,height:h}=canvas, {track,player}=session;
-  const p=player.crash??player.pose, heading=p.launchAngle??p.angle;
+  let p=player.crash??player.pose, heading=p.launchAngle??p.angle;
+  const zone=track.base?.loopZone,local=player.pose.s,side=zone&&!player.crash&&local>=zone.start-1.5&&local<=zone.end+.7;
+  let reach=1.45;
+  if(side){
+    const i=Math.max(0,Math.min(Math.round((zone.end-zone.start)/zone.span)-1,Math.floor((local-zone.start)/zone.span)));
+    p=track.sample(zone.start+(i+.5)*zone.span);
+    reach=Math.max(4.8,3.8*h/w)*zone.radius;
+    p={...p,z:p.z-zone.radius+reach*.22};heading=Math.atan2(-p.ny,-p.nx);
+  }
   const tx=Math.cos(heading), ty=Math.sin(heading);
-  const focal=Math.min(h*.97,w*1.16), pitch=.32;
+  const focal=Math.min(h*.97,w*1.16), pitch=side?.22:.32;
   function project(x,y,z){
-    const ahead=(x-p.x)*tx+(y-p.y)*ty+1.45, up=z-p.z-.82;
+    const ahead=(x-p.x)*tx+(y-p.y)*ty+reach, up=z-p.z-(side?0:.82);
     const depth=ahead*Math.cos(pitch)-up*Math.sin(pitch);
     if(depth<.12)return null;
     return {x:w*.5+((x-p.x)*ty-(y-p.y)*tx)*focal/depth,
@@ -46,7 +54,7 @@ export function drawChase(ctx, canvas, session, studio) {
     if(points.some(q=>!q))return;
     shapes.push({points,color,depth:(points[0].depth+points[1].depth)/2});
   }
-  const sample=roadWindow(track,player.distance),half=.37+track.extraWidth;
+  const sample=roadWindow(track,side?zone.start-2:player.distance),half=.37+track.extraWidth;
   let a=sample(0);
   for(let i=1;i<=125;i++){
     const b=sample(i);
@@ -55,6 +63,10 @@ export function drawChase(ctx, canvas, session, studio) {
       const offset=sign*(a.fork?.offset||0)/2;
       strip(a,b,offset,offset+sign*half,'#303941');
       strip(a,b,offset+sign*half,offset+sign*(half+.07),i%4<2?'#f0c76a':'#413e39',.045);
+    }
+    if(a.tunnel){
+      const wet=['coast','titan'].includes(track.theme);
+      strip(a,b,-half-.22,half+.22,i%7===0?'#adfffb':wet?'#215969':'#454950',1.15);
     }
     for(const lane of track.lanes){
       const d=track.laneOffset(lane)+Math.sign(track.laneOffset(lane))*(a.fork?.offset||0)/2;
@@ -76,7 +88,7 @@ export function drawChase(ctx, canvas, session, studio) {
       const sprite=studio?.raceSprite(s.car,true);
       if(sprite){
         ctx.save();
-        ctx.rotate(s.crash?Math.sin(s.crash.roll||0)*.7:Math.max(-.24,Math.min(.24,s.car.driftAngle||0)));
+        ctx.rotate(s.crash?(s.crash.roll||0):side?-(s.car.pose.loopPitch||0):Math.max(-.24,Math.min(.24,s.car.driftAngle||0)));
         ctx.drawImage(sprite,-.67,-.59,1.34,.89);ctx.restore();
       }else{
       for(const side of [-.52,.33]){ctx.fillStyle='#101720';ctx.fillRect(side,-.22,.19,.38);}
@@ -85,7 +97,7 @@ export function drawChase(ctx, canvas, session, studio) {
       ctx.fillStyle='#172630';ctx.fillRect(-.52,-.38,1.04,.065);
       }
       if(s.skid>.29){ctx.fillStyle='#e0ebed52';for(const side of [-1,1]){ctx.beginPath();ctx.ellipse(side*.46,.11,.17,.10,0,0,Math.PI*2);ctx.fill();}}
-      if(s.crash?.wallHits){ctx.strokeStyle='#ffd17c';ctx.lineWidth=.028;ctx.beginPath();for(let i=0;i<6;i++){ctx.moveTo(.44,0);ctx.lineTo(.5+i*.07,-.1-Math.abs(Math.sin(i+s.crash.angle))*.32);}ctx.stroke();}
+      if(s.crash?.wallHits || (s.skid>.37 && Math.floor(s.car.distance*22)%3===0)){ctx.strokeStyle='#ffd17c';ctx.lineWidth=.028;ctx.beginPath();for(let i=0;i<6;i++){ctx.moveTo(.44,0);ctx.lineTo(.5+i*.07,-.1-Math.abs(Math.sin(i+(s.crash?.angle||s.car.distance)))*.32);}ctx.stroke();}
       ctx.restore();
       if(!sprite){ctx.fillStyle='#263641';ctx.fillRect(x-size*.32,y-size*.56,size*.64,size*.23);
       ctx.fillStyle='#ff5448';for(const side of [-.43,.23])ctx.fillRect(x+size*side,y-size*.18,size*.2,size*.09);}

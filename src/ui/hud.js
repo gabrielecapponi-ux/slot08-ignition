@@ -89,5 +89,10 @@ export class HUD {
       this.mapTrack=s.track;this.mapPath=new Path2D();
       for(let i=0;i<=300;i++){const p=xy(s.track.sample(i/300*s.track.length));if(i)this.mapPath.lineTo(...p);else this.mapPath.moveTo(...p);}
     }
-    c.strokeStyle='#d7e4ef';c.stroke(this.mapPath);for(const car of s.cars){const p=xy(car.crash??car.pose);c.fillStyle=car.color;c.beginPath();c.arc(...p,car.ai?3:5,0,Math.PI*2);c.fill();}const [x,y]=xy(s.track.sample(.08));c.fillStyle='#fff';c.fillRect(x-3,y-5,6,10);}
+    c.strokeStyle='#d7e4ef';c.stroke(this.mapPath);
+    for(const car of [...s.cars.filter(v=>v!==s.player),s.player]){
+      const pose=car.crash??car.pose,[x,y]=xy(pose);c.save();c.translate(x,y);c.rotate(pose.angle||0);
+      c.fillStyle=car.color;c.strokeStyle=car===s.player?'white':'#10171e';c.lineWidth=2;
+      const size=car===s.player?8:5;c.beginPath();c.moveTo(size,0);c.lineTo(-size*.7,-size*.65);c.lineTo(-size*.7,size*.65);c.closePath();c.fill();c.stroke();c.restore();
+    }const [x,y]=xy(s.track.sample(.08));c.fillStyle='#fff';c.fillRect(x-3,y-5,6,10);}
 }

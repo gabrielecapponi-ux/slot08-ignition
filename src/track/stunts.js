@@ -8,6 +8,7 @@ export const STUNTS = {
 export function stuntBase(spec) {
   const base=new EnduranceTrack({points:spec.points,radius:spec.turnRadius??2.4});
   const flat=base.sample.bind(base), start=6, span=7, radius=spec.radius;
+  base.loopZone=spec.loops?{start,end:start+span*spec.loops,span,radius}:null;
   base.sample=distance=>{
     const p=flat(distance), local=p.s-start;
     if(spec.flip && local>=0 && local<5){
@@ -15,12 +16,16 @@ export function stuntBase(spec) {
       return {...p,z:p.z+height,flipAngle:-(a-Math.sin(a)),bridge:true};
     }
     if(local<0 || local>=span*spec.loops)return p;
-    const u=(local%span)/span, a=2*Math.PI*u;
-    // Ease the rotation at the joins. Sideways separation clears the return deck.
-    const phase=a-Math.sin(a), rate=2*Math.PI*(1-Math.cos(a))/span;
-    const dx=radius*Math.sin(phase), dz=radius*(1-Math.cos(phase));
-    const side=.95*Math.sin(a)**3, forward=1+radius*Math.cos(phase)*rate;
-    const vertical=radius*Math.sin(phase)*rate, lateral=2*Math.PI/span*2.85*Math.sin(a)**2*Math.cos(a);
+    const t=(local%span)/span;
+    const u=Math.max(0,Math.min(1,(t-.24)/.52)), a=2*Math.PI*u;
+    const active=t>.24&&t<.76, rate=active?2*Math.PI/(span*.52):0;
+    const ease=u*u*(3-2*u);
+    const entry=span*.445,exit=span-entry;
+    const travel=t<=.24?entry*t/.24:t>=.76?exit+entry*(t-.76)/.24:entry+(exit-entry)*u+radius*Math.sin(a);
+    const dx=travel-t*span,dz=radius*(1-Math.cos(a));
+    const side=t>.76?.88*(1-(t-.76)/.24):.88*ease;
+    const forward=active?(exit-entry)/(span*.52)+radius*Math.cos(a)*rate:entry/(span*.24);
+    const vertical=radius*Math.sin(a)*rate,lateral=active?.88*6*u*(1-u)/(span*.52):t>.76?-.88/(span*.24):0;
     return {...p,x:p.x+p.tx*dx+p.nx*side,y:p.y+p.ty*dx+p.ny*side,z:p.z+dz,
       loopPitch:Math.atan2(vertical,forward),loopMetric:Math.hypot(forward,vertical,lateral),bridge:dz>.08};
   };

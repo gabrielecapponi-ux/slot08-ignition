@@ -740,3 +740,21 @@ button{font-size:14px;border-radius:24px;font-weight:450;transition:background .
 @media(max-height:550px) and (orientation:landscape){.pit-cover img{height:116px}#mode-choices button{min-height:54px}#mode-choices small{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.ignition-intro{display:none}.pit-cover img,#garage[open] .garage-panel,#garage[open] .atelier-nav{animation:none}}
 @media(min-width:691px) and (min-height:551px){.mode-home{align-items:start;overflow:auto;scrollbar-width:thin}.home-title .home-save{margin-top:14px;padding-top:12px}}
+
+/* Keep titles, circuit selection and mode cards in normal reading order. */
+#mode-home .pit-cover{display:grid;grid-template-rows:auto auto;background:#101e24}
+#mode-home .pit-cover:after{display:none}
+#mode-home .pit-cover h1{position:static;padding:9px 16px 13px;margin:0;line-height:1.12;overflow-wrap:anywhere}
+#mode-home .pit-cover img{height:clamp(96px,21vh,224px)}
+#mode-home #mode-choices button{height:auto;max-height:none;overflow:visible;min-width:0}
+#mode-home #mode-choices button>span{min-width:0}
+#mode-choices small,#mode-choices strong{overflow-wrap:anywhere;white-space:normal}
+#mode-home #mode-choices button:active{transform:scale(.98);background:#245251}
+.map-speed{text-align:center;font-variant-numeric:tabular-nums}
+@media(max-width:690px) and (orientation:portrait){
+ #app[data-home=true] #mode-home{position:absolute;display:grid!important;inset:calc(82px + env(safe-area-inset-top)) 0 0;padding:8px 16px calc(24px + env(safe-area-inset-bottom));grid-template-columns:minmax(0,1fr);align-content:start;gap:14px;overflow:auto}
+ #mode-home .home-title{display:contents}
+ #mode-home .pit-cover{order:0}#mode-home #mode-choices{order:1;grid-template-columns:minmax(0,1fr)}
+ #mode-home #mode-choices button{align-items:center;min-height:60px}
+ #mode-home .featured-course{order:2}#mode-home .home-save{order:3}
+}

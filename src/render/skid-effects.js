@@ -12,7 +12,7 @@ export class SkidEffects {
     const pixels=new Uint8Array(32*32*4);for(let y=0;y<32;y++)for(let x=0;x<32;x++){const d=Math.hypot((x-15.5)/15.5,(y-15.5)/15.5);const i=(y*32+x)*4;pixels.set([255,255,255,Math.round(255*Math.max(0,1-d)**2)],i);}
     this.smokeTexture=new THREE.DataTexture(pixels,32,32);this.smokeTexture.needsUpdate=true;
     this.smoke = new THREE.InstancedMesh(new THREE.PlaneGeometry(2,2),
-      new THREE.MeshBasicMaterial({ color: '#d9dce0',map:this.smokeTexture,transparent:true,opacity:.34,depthWrite:false,side:THREE.DoubleSide }), this.puffs.length);
+      new THREE.MeshBasicMaterial({ color: '#d9dce0',map:this.smokeTexture,transparent:true,opacity:.48,depthWrite:false,side:THREE.DoubleSide }), this.puffs.length);
     for (const mesh of [this.ink, this.smoke]) {
       mesh.frustumCulled = false; mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(mesh);
     }
@@ -28,15 +28,15 @@ export class SkidEffects {
   update(cars, dt, camera) {
     if (dt <= 0) return;
     for (const car of cars) {
-      if (car.state !== 'slotted' || car.skid < .16 || car.speed < .3) { this.last.delete(car.id); continue; }
+      if (car.state !== 'slotted' || car.skid < .10 || car.speed < .3) { this.last.delete(car.id); continue; }
       const p = bodyPose(car.pose, car.driftAngle), old = this.last.get(car.id);
       if (old && Math.hypot(p.x - old.x, p.y - old.y) < .055) continue;
       this.last.set(car.id, p);
       const tx = Math.cos(p.angle), ty = Math.sin(p.angle);
       for (const side of [-1, 1]) {
         const x = p.x - tx * .10 - ty * side * .058, z = p.y - ty * .10 + tx * side * .058;
-        Object.assign(this.marks[this.cursor++ % this.marks.length], { x, y: p.z + .079, z, angle: p.angle, life: 7 });
-        if (car.skid > .29) {
+        Object.assign(this.marks[this.cursor++ % this.marks.length], { x, y: p.z + .079, z, angle: p.angle, life: 12 });
+        if (car.skid > .21) {
           const i = this.puffCursor++ % this.puffs.length;
           Object.assign(this.puffs[i], { x, y: p.z + .10, z, vx: -tx * .10 + Math.sin(i) * .05, vz: -ty * .10 + Math.cos(i) * .05, life: .72 });
         }

@@ -1,5 +1,5 @@
 // Part names are shared by the Blender kit and the procedural powertrain.
-const hardware={motor:/Cassa motore|Avvolgimento|Dissipatore|Aletta dissipatore/,grip:/Magnete di trazione/,brake:/Scheda freno|Contatto freno|Pinza/};
+const hardware={brush:/Treccia in rame/,gearing:/Corona dentata|Dente corona/,diffuser:/Deriva fondo/,motor:/Cassa motore|Avvolgimento|Dissipatore|Aletta dissipatore/,grip:/Magnete di trazione/,brake:/Scheda freno|Contatto freno|Pinza/};
 export function installedGroup(node){
   for(let n=node;n;n=n.parent){
     const kit=/^PART_(wheels|hood|wing|lights|exhaust|aero)_/.exec(n.name);

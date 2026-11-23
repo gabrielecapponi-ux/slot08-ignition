@@ -23,8 +23,8 @@ export class AIDriver {
     const corner = Math.abs(car.pose?.curvature || 0) > .13;
     if (corner && !this.inCorner && this.random() < this.errorRate) {
       // An optimistic estimate lasts until the driver recognises the slide.
-      this.errorTime = 1.25 + this.random() * 1.2;
-      this.errorBoost = .45 + this.random() * .35;
+      this.errorTime = .35 + this.random() * .55;
+      this.errorBoost = .14 + this.random() * .20;
     }
     this.inCorner = corner; this.errorTime = Math.max(0, this.errorTime - dt);
     this.thinkIn -= dt;

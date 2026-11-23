@@ -462,6 +462,26 @@ def build(index):
    angle=-.73
    segment('GT_alloy_valve','alloy',(ax+.018*cos(angle),y+sign*.012,z+.018*sin(angle)),(ax+.0205*cos(angle),y+sign*.013,z+.0205*sin(angle)),.0007)
 
+ # Distinct lamp signatures and aero assemblies, integrated into each body shell.
+ if family=='hyper':
+  for sign in [-1,1]:
+   for branch in [-1,1]:
+    tube('GT_trident_light','lamp',[(.146,sign*.062,.048),(.130,sign*.062,.055),(.116,sign*(.061+.010*branch),.058)],.0019)
+   shell('GT_intake_blade','alloy',[(-.058,sign*.084,.038),(.037,sign*.079,.044),(-.048,sign*.082,.062)])
+ if family=='classic':
+  for sign in [-1,1]:
+   shell('GT_rear_spoiler','paint',[(-.156,sign*.001,.064),(-.165,sign*.001,.077),(-.158,sign*.077,.078),(-.143,sign*.074,.064)])
+   ring=[(.128+.012*cos(2*pi*j/32),sign*(.059+.010*sin(2*pi*j/32)),.063+.008*cos(2*pi*j/32)) for j in range(33)]
+   tube('GT_projector_surround','chrome',ring,.0019)
+   shell('GT_projector_lens','lamp',ring[:-1])
+ if family=='rally':
+  for sign in [-1,1]:
+   for offset in [.018,.048]:
+    ring=[(.146,sign*offset+.013*cos(2*pi*j/24),.074+.013*sin(2*pi*j/24)) for j in range(25)]
+    tube('GT_stage_lamp_cage','alloy',ring,.0027)
+    shell('GT_stage_lamp_lens','lamp',ring[:-1])
+   for axle in wheelx:
+    shell('GT_gravel_flap','tyre',[(axle-.032,sign*.089,.046),(axle-.032,sign*.061,.046),(axle-.039,sign*.060,.008),(axle-.039,sign*.091,.008)])
  root=bpy.data.objects.new('CAR_GT',None);bpy.context.collection.objects.link(root)
  for (group,material),(verts,faces) in buckets.items():
   mesh=bpy.data.meshes.new(group);mesh.from_pydata(verts,[],faces);mesh.update()

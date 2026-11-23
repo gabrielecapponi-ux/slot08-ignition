@@ -10,7 +10,7 @@ export function buildModularTrack(track,kit=null) {
   const e=track.extraWidth??0,lanes=track.lanes.map(l=>track.laneOffset(l));
   const mobile=globalThis.matchMedia?.('(pointer: coarse)')?.matches;
   const root = new THREE.Group(), n = Math.ceil(track.length / (mobile ? .14 : .09));
-  const position=(p,d,h)=>{d+=Math.sign(d)*(p.fork?.offset||0)/2;return [p.x+p.nx*d*Math.cos(p.bank||0),p.z-d*Math.sin(p.bank||0)+h,p.y+p.ny*d*Math.cos(p.bank||0)];};
+  const position=(p,d,h)=>{d+=Math.sign(d)*(p.fork?.offset||0)/2;const pitch=p.loopPitch||0,shift=h*Math.sin(pitch);return [p.x+p.nx*d*Math.cos(p.bank||0)-p.tx*shift,p.z-d*Math.sin(p.bank||0)+h*Math.cos(pitch),p.y+p.ny*d*Math.cos(p.bank||0)-p.ty*shift];};
   const orient=(object,p)=>{object.rotation.order='YZX';object.rotation.set(p.bank||0,-Math.atan2(p.ty,p.tx),Math.atan(p.grade||0));};
   const mat = (color, metalness = 0) => new THREE.MeshStandardMaterial({ color, metalness, roughness: metalness ? .32 : .83, side: THREE.DoubleSide });
   const asphalt = new THREE.MeshPhysicalMaterial({color:'#292e35',metalness:.06,roughness:.40,clearcoat:1,clearcoatRoughness:.18,side:THREE.DoubleSide}), rail = mat('#b8c1c3', .85), slot = mat('#090e14'), white = mat('#f4e8cf');

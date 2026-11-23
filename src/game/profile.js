@@ -3,10 +3,10 @@ import { FLEET,openWorld } from './tour.js';
 import { LEVELS } from '../track/catalog.js';
 import { UPGRADE_LIMIT, UPGRADE_PRICES, PARTS, DEFAULT_APPEARANCE, sanitizeAppearance, partPrice } from './workshop.js';
 const BACKUP='slot08.before-club14';
-const cleanVehicle=()=>({upgrades:{motor:0,grip:0,brake:0},appearance:{...DEFAULT_APPEARANCE},owned:[],wins:0,tuning:'balanced'});
+const cleanVehicle=()=>({upgrades:{motor:0,grip:0,brake:0,brush:0,gearing:0,diffuser:0},appearance:{...DEFAULT_APPEARANCE},owned:[],wins:0,tuning:'balanced'});
 const KEY='slot08.profile.v2';
 export class Profile {
- constructor(storage){this.storage=storage;this.data={results:Array(50).fill(0),car:0,clubWins:0,unlocked:0,credits:0,upgrades:{motor:0,grip:0,brake:0},appearance:{...DEFAULT_APPEARANCE},owned:[],tutorial:false,medals:Array(LEVELS.length).fill(0),records:{},season:0,vehicles:{},rivalRating:[0,0,0,0,0]};this.rewarded=new WeakSet();
+ constructor(storage){this.storage=storage;this.data={results:Array(50).fill(0),car:0,clubWins:0,unlocked:0,credits:0,upgrades:{motor:0,grip:0,brake:0,brush:0,gearing:0,diffuser:0},appearance:{...DEFAULT_APPEARANCE},owned:[],tutorial:false,medals:Array(LEVELS.length).fill(0),records:{},season:0,vehicles:{},rivalRating:[0,0,0,0,0]};this.rewarded=new WeakSet();
   try{const d=JSON.parse(storage?.getItem(KEY)||'null');if(d){this.data.season=d.season===14?14:0;this.data.rivalRating=[0,1,2,3,4].map(i=>Math.max(-1,Math.min(2,Number(d.rivalRating?.[i])||0)));
     for(const [id,v] of Object.entries(d.vehicles||{})){if(!FLEET[id])continue;const clean=cleanVehicle();for(const k of Object.keys(clean.upgrades))clean.upgrades[k]=Math.max(0,Math.min(UPGRADE_LIMIT,Math.floor(Number(v.upgrades?.[k])||0)));clean.appearance=sanitizeAppearance(v.appearance);clean.owned=Array.isArray(v.owned)?v.owned.filter(x=>/^(wing|wheels|hood|aero|lights|exhaust):([1-9]|10)$/.test(x)):[];clean.wins=Math.max(0,Math.floor(Number(v.wins)||0));clean.tuning=['balanced','sprint','endurance'].includes(v.tuning)?v.tuning:'balanced';this.data.vehicles[id]=clean;}
     this.data.clubWins=Number.isInteger(d.clubWins)?Math.max(0,Math.min(MEETINGS.length,d.clubWins)):0;if(Array.isArray(d.results)) this.data.results=this.data.results.map((_,i)=>Number.isInteger(d.results[i])?Math.max(0,Math.min(3,d.results[i])):0);
@@ -46,6 +46,7 @@ export class Profile {
     if(qualified && session.meeting.world<=openWorld(this.data.results)){
       const index=session.clubRound,previous=this.data.results[index];
       if(!previous){credits+=session.meeting.bonus;this.data.clubWins++;}
+      credits+=40*Math.max(0,stars-previous);
       this.data.results[index]=Math.max(previous,stars);
     }
     const newWorld=openWorld(this.data.results);

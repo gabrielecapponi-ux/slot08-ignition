@@ -12,7 +12,7 @@ function mechanicalMesh(root,name,geometry,material,position){
 }
 
 export function installHardware(root,car,hasSeats=false){
- const {motor=0,brake=0,grip=0}=car.upgrades??{};
+ const {motor=0,brake=0,grip=0,brush=0,gearing=0,diffuser=0}=car.upgrades??{};
  const metal=(color,metalness=.65,roughness=.25)=>new THREE.MeshStandardMaterial({color,metalness,roughness});
  block(root,'Piastra telaio','#3c4852',[.236,.006,.10],[0,.007,0]);
  const axleMaterial=metal('#a5abb0');
@@ -37,6 +37,15 @@ export function installHardware(root,car,hasSeats=false){
    for(const side of [-1,1])block(root,'Contatto freno','#e8ac45',[.024,.005,.006],[.042,-.004,side*.009]);
    for(const x of [-.091,.096])for(const side of [-1,1])block(root,'Pinza','#e66b36',[.009+brake*.00035,.016,.004],[x+.012,.033,side*.09]);
  }
+ if(brush)for(const side of [-1,1]){
+   for(let strand=0;strand<4;strand++)block(root,'Treccia in rame','#c9874c',[.029+brush*.0004,.002,.0018],[.099,-.002,side*(.013+.002*strand)],.82);
+ }
+ if(gearing){
+   const crown=mechanicalMesh(root,'Corona dentata',new THREE.CylinderGeometry(.017,.017,.007,24),metal('#c89c50'),[-.091,.033,.027]);
+   crown.rotation.x=Math.PI/2;
+   for(let i=0;i<12;i++){const a=i*Math.PI/6;block(root,'Dente corona','#dbad60',[.004,.004,.007],[-.091+.017*Math.cos(a),.033+.017*Math.sin(a),.027],.72);}
+ }
+ if(diffuser)for(let i=-2;i<=2;i++)block(root,'Deriva fondo','#394752',[.047,.008+diffuser*.00015,.002],[-.109,.007,i*.017],.55).rotation.z=-.12;
  if(hasSeats)return;
  const fabric=car.appearance?.seat||'#333e49';
  const profile=new THREE.Shape();

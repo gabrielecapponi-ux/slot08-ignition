@@ -5,12 +5,12 @@ const models=[
   new URL('../../assets/fleet-0.glb?v=15.0.0',import.meta.url).href,
   new URL('../../assets/fleet-1.glb?v=15.0.0',import.meta.url).href,
   new URL('../../assets/fleet-2.glb?v=15.0.0',import.meta.url).href,
-  new URL('../../assets/fleet-3.glb?v=15.0.0',import.meta.url).href,
-  new URL('../../assets/fleet-4.glb?v=15.0.0',import.meta.url).href,
+  new URL('../../assets/fleet-3.glb?v=21.0.0',import.meta.url).href,
+  new URL('../../assets/fleet-4.glb?v=21.0.0',import.meta.url).href,
   new URL('../../assets/fleet-5.glb?v=15.0.0',import.meta.url).href,
   new URL('../../assets/fleet-6.glb?v=15.0.0',import.meta.url).href,
   new URL('../../assets/fleet-7.glb?v=15.0.0',import.meta.url).href,
-  new URL('../../assets/fleet-8.glb?v=15.0.0',import.meta.url).href,
+  new URL('../../assets/fleet-8.glb?v=21.0.0',import.meta.url).href,
 ];
 const backup=new URL('../../assets/race-gt.glb',import.meta.url).href;
 

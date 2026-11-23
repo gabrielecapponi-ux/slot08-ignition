@@ -17,7 +17,7 @@ export class CameraRig {
     if(this.garage){
       const c=this.camera,width=c.aspect*1000,height=1000,frame=this.showroomFrame??showroomFrame();
       c.setViewOffset(width,height,width*(.5-frame.x),height*(.5-frame.y),width,height);
-      const targets={motor:[-.06,.01,0],brake:[.042,0,0],under:[0,.012,0],grip:[0,.006,0],wheels:[.095,.034,.075],hood:[.08,.073,0],wing:[-.12,.12,0],exhaust:[-.14,.045,0],glass:[0,.095,0],glazing:[0,.095,0],lights:[.13,.055,0],aero:[-.10,.03,0]};
+      const targets={brush:[.099,0,0],gearing:[-.091,.033,.027],diffuser:[-.109,.007,0],motor:[-.06,.01,0],brake:[.042,0,0],under:[0,.012,0],grip:[0,.006,0],wheels:[.095,.034,.075],hood:[.08,.073,0],wing:[-.12,.12,0],exhaust:[-.14,.045,0],glass:[0,.095,0],glazing:[0,.095,0],lights:[.13,.055,0],aero:[-.10,.03,0]};
       const point=this.detail==='under'?null:targets[this.detail];
       if(!this.manual&&!this.motion.matches)this.garageAngle=(this.garageAngle??.65)+dt*.18;
       const angle=this.garageAngle??.65,el=this.elevation??.28;
@@ -33,7 +33,15 @@ export class CameraRig {
     const ready=session.status==='ready',intro=ready&&!this.motion.matches&&this.age<4.4;
     const moving=!ready&&session.status!=='finished'&&session.status!=='tutorial-complete';
     const heading=p.launchAngle??p.guideAngle??p.angle??0,tx=Math.cos(heading),ty=Math.sin(heading),ground=(p.z||0)+.08;
-    if(intro){const u=smootherstep(clamp((this.age-.7)/3.7,0,1));const close=new THREE.Vector3(p.x+tx*.5-ty*.65,ground+.32,p.y+ty*.5+tx*.65);pos.lerpVectors(close,pos,u);look.lerpVectors(new THREE.Vector3(p.x,ground+.06,p.y),look,u);}
+    const zone=this.track.base?.loopZone,local=zone?this.track.sample(session.player.distance).s:0;
+    const sideView=moving&&zone&&!session.isLocal&&!session.player.crash&&['chase','drone','rail'].includes(this.mode)&&local>=zone.start-1.5&&local<=zone.end+.7;
+    if(sideView){
+      const index=Math.min(Math.floor((zone.end-zone.start)/zone.span)-1,Math.max(0,Math.floor((local-zone.start)/zone.span)));
+      const axis=this.track.sample(zone.start+zone.span*(index+.5));
+      const reach=Math.max(4.1,3.3/aspect)*zone.radius;
+      look.set(axis.x,axis.z-zone.radius+.08,axis.y);
+      pos.set(axis.x+axis.nx*reach,look.y+reach*.18,axis.y+axis.ny*reach);fov=46;
+    }else if(intro){const u=smootherstep(clamp((this.age-.7)/3.7,0,1));const close=new THREE.Vector3(p.x+tx*.5-ty*.65,ground+.32,p.y+ty*.5+tx*.65);pos.lerpVectors(close,pos,u);look.lerpVectors(new THREE.Vector3(p.x,ground+.06,p.y),look,u);}
     else if(moving && this.mode==='chase'){
       const near=this.track.tunnelAt?.(session.player.distance,1.2);
       const pace=clamp(session.player.speed/5,0,1);
@@ -85,7 +93,7 @@ export class CameraRig {
       fov=48+pullBack*9;
     }
     const t=this.initial||this.motion.matches?1:1-Math.exp(-dt*(moving?6:3.8));
-    const following=moving&&!session.isLocal&&!session.player.crash&&['chase','drone','macro','rail'].includes(this.mode);
+    const following=!sideView&&moving&&!session.isLocal&&!session.player.crash&&['chase','drone','macro','rail'].includes(this.mode);
     if(following){
       // Smooth only the camera arm, never delay world translation relative to the car.
       const arm=pos.clone().sub(look);

@@ -78,7 +78,7 @@ function presentResult(){
   $('finish-stars').innerHTML=Array.from({length:3},(_,i)=>`<span class="${i<r.stars?'earned':''}" style="--star-delay:${.25+i*.22}s">★</span>`).join('');
   $('finish-panel').dataset.rank=String(r.rank);
   const stars=session.meeting?worldStars(profile.data.results,session.meeting.world):r.stars;
-  $('finish-progress').innerHTML=session.meeting?`<div><span>MONDO ${session.meeting.world+1} · ${r.gainedStars?`+${r.gainedStars} stelle`:'risultato registrato'}</span><b>${stars} / ${STAR_GATE}</b></div><meter min="0" max="${STAR_GATE}" value="${Math.min(STAR_GATE,stars)}">${stars} stelle</meter>`:'';
+  $('finish-progress').innerHTML=session.meeting?`<div><span>MONDO ${session.meeting.world+1} · ${r.gainedStars?`+${r.gainedStars} stelle · +${r.gainedStars*40} CR`:'risultato registrato'}</span><b>${stars} / ${STAR_GATE}</b></div><meter min="0" max="${STAR_GATE}" value="${Math.min(STAR_GATE,stars)}">${stars} stelle</meter>`:'';
   $('finish-unlock').textContent=r.unlockedCars.length?'SBLOCCATA · '+r.unlockedCars.join(' / '):r.newWorld?'NUOVO MONDO APERTO':r.rank===1?'VITTORIA · IL CLUB SI RICORDERÀ DI QUESTO GIRO.':session.player.crashes?'Un giro più pulito vale una stella in più.':'Torna in pista per conquistare il primo posto.';
 }
 function menu(){
@@ -239,6 +239,12 @@ async function syncAudio() {
     }
   } finally { audioBusy = false; showAudio(); }
 }
+document.addEventListener('click',async event=>{
+  const button=event.target.closest?.('button');
+  if(!audioWanted||!button||button.disabled||button.id==='sound'||button.closest('.touch-controls'))return;
+  await syncAudio();
+  if(sound.enabled)sound.chirp(920,460,.055,.038);
+});
 function startAudio() { if (audioWanted) void syncAudio(); }
 showAudio();
 on($('sound'),'click',()=>{

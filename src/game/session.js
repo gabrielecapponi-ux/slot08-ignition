@@ -39,7 +39,7 @@ export class RaceSession {
         this.cars.push(createCar({id:'ai-'+(i+1),name,color,lane:grid[i+1],ai:true,
           start:RACE.startDistance-row*.65,setup:carSetup(this.difficulty,this.upgrades)}));
       });
-      if(this.meeting) for(const [i,bot] of this.cars.slice(1).entries()){const level=Math.max(0,Math.min(20,this.meeting.world+Math.floor((this.meeting.round+1)/3)+Math.round(this.rivalRating[i]||0)));bot.rivalLevel=level;bot.setup=carSetup(this.difficulty,{motor:level,grip:level,brake:level});bot.maxGrip=bot.setup.gripForce;}
+      if(this.meeting) for(const [i,bot] of this.cars.slice(1).entries()){const level=Math.max(0,Math.min(20,this.meeting.world+Math.floor((this.meeting.round+1)/3)+Math.round(this.rivalRating[i]||0)));bot.rivalLevel=level;bot.setup=carSetup(this.difficulty,{motor:level+2,grip:level+1,brake:level+2,gearing:level+1,brush:2});bot.maxGrip=bot.setup.gripForce;}
       const standard=DIFFICULTIES[this.difficulty];
       const competitive=!this.assisted && this.difficulty!=='rookie';
       const d=competitive?{...standard,pace:standard.pace+.032,reaction:standard.reaction*.78,errorRate:standard.errorRate*.55}:standard;

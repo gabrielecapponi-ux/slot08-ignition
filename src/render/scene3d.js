@@ -104,7 +104,7 @@ export class Scene3D {
  setGarage(flag,appearance,upgrades,chassis=0){if(this.garage!==flag){this.rig.initial=true;this.fit=null;this.garageEntry=performance.now();}this.garage=flag;this.rig.garage=flag;this.applyLighting();if(flag)this.garageCar={id:'workshop',name:'GT-08',ai:true,color:appearance.paint,appearance,upgrades,chassis};else{this.clearCars();this.camera.clearViewOffset();this.scene.background=this.sky;}this.dirty=true;}
  setGarageView(angle){this.rig.detail=null;this.rig.zoom=1;this.rig.elevation=.28;this.rig.garageAngle=angle;this.rig.manual=true;this.dirty=true;}
  centerGarage(){this.setGarageView(.65);this.rig.initial=true;}
- inspect(key){this.rig.detail=key;this.rig.manual=false;this.rig.zoom=1;this.rig.garageAngle=key==='wing'||key==='motor'?2.5:.65;this.rig.elevation=['brake','under','grip'].includes(key)?-.65:key==='motor'?-.30:.28;this.dirty=true;}
+ inspect(key){this.rig.detail=key;this.rig.manual=false;this.rig.zoom=1;this.rig.garageAngle=key==='wing'||key==='motor'?2.5:.65;this.rig.elevation=['brake','under','grip','brush','gearing','diffuser'].includes(key)?-.65:key==='motor'?-.30:.28;this.dirty=true;}
  orbit(dx,dy){this.rig.manual=true;this.rig.garageAngle=(this.rig.garageAngle??.8)+dx;this.rig.elevation=THREE.MathUtils.clamp((this.rig.elevation??.45)+dy,-1.3,1.35);this.dirty=true;}
  magnify(factor){this.rig.zoom=THREE.MathUtils.clamp((this.rig.zoom||1)*factor,.6,2.1);this.dirty=true;}
  disposeCar(root){root.removeFromParent();const gs=new Set(),ms=new Set();root.traverse(o=>{if(o.userData.ownGeometry)gs.add(o.geometry);if(o.userData.ownMaterial){if(o.userData.beacon)o.material.map?.dispose();ms.add(o.material);}});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());}
@@ -176,10 +176,10 @@ export class Scene3D {
   this.glints.update(session,this.camera,this.sun,session.status==='running'&&!this.rig.motion.matches);
   const ids=new Set(session.cars.map(c=>c.id));for(const [id,m]of this.cars)if(!ids.has(id)){this.disposeCar(m);this.cars.delete(id);}
   for(const car of session.cars){const m=this.modelFor(car),p=car.pose;updateCarMotion(m,car,dt);m.visible=car.state!=='eliminated';if(m.userData.contactShadow)m.userData.contactShadow.visible=!car.crash;const beacon=m.userData.beacon;if(beacon){beacon.visible=session.isLocal;const size=['top','iso'].includes(this.rig.mode)?Math.max(.65,this.camera.position.y*.022):.5;beacon.position.set(0,.35,0);beacon.scale.set(size,size*2/3,1);}
-   if(car.crash){const c=car.crash;m.position.set(c.x,c.z,c.y);m.rotation.set(c.roll||0,-c.angle,0);}
-   else{const body=racePose(car,alpha);m.position.set(body.x,.077+body.z,body.y);const load=Math.min(1,car.gripRatio||0)*Math.sign(p.curvature||0);
+   if(car.crash){const c=car.crash;m.position.set(c.x,c.z,c.y);m.rotation.set(c.roll||0,-c.angle,0,"YXZ");}
+   else{const body=racePose(car,alpha);const pitch=body.loopPitch??0,shift=.077*Math.sin(pitch);m.position.set(body.x-body.tx*shift,body.z+.077*Math.cos(pitch),body.y-body.ty*shift);const load=Math.min(1,car.gripRatio||0)*Math.sign(p.curvature||0);
     m.userData.lean=THREE.MathUtils.damp(m.userData.lean||0,load*.034,11,dt);
-    m.rotation.set((body.bank||0)+m.userData.lean,-body.angle,body.pitch||0);}
+    m.rotation.set((body.bank||0)+m.userData.lean,-body.angle,body.pitch||0,"YZX");}
   }
   this.switchGlow.visible=session.player.switchQueued;if(this.switchGlow.visible){const p=this.track.sample(session.player.distance+this.track.nextSwitchDistance(session.player.distance));this.switchGlow.position.set(p.x,p.z+.09,p.y);}
   const advice=session.player.coach;this.brakeMarks.visible=!!(session.guidanceEnabled&&advice&&advice.point!==null&&advice.action!=='go'&&session.status==='running');

@@ -15,7 +15,7 @@ export class Canvas2D {
   setGarage(flag,appearance,upgrades,chassis=0){if(!flag)this.studio.fit=null;this.garage=flag;this.preview={appearance,upgrades,chassis};this.dirty=true;}
   setGarageView(angle){this.studio.rig.detail=null;this.studio.rig.zoom=1;this.studio.rig.elevation=.28;this.studio.rig.manual=true;this.studio.rig.garageAngle=angle;}
   centerGarage(){this.setGarageView(.65);this.studio.rig.initial=true;}
-  inspect(key){const r=this.studio?.rig;if(!r)return;r.detail=key;r.garageAngle=key==='motor'?2.5:.65;r.elevation=['under','brake','motor','grip'].includes(key)?-.58:.28;r.manual=false;r.zoom=1;}
+  inspect(key){const r=this.studio?.rig;if(!r)return;r.detail=key;r.garageAngle=key==='motor'?2.5:.65;r.elevation=['under','brake','motor','grip','brush','gearing','diffuser'].includes(key)?-.58:.28;r.manual=false;r.zoom=1;}
   orbit(dx,dy){const r=this.studio.rig;r.manual=true;r.garageAngle=(r.garageAngle??.85)+dx;r.elevation=Math.max(-1.3,Math.min(1.3,(r.elevation??.45)+dy));}
   magnify(f){const r=this.studio.rig;r.zoom=Math.max(.6,Math.min(2.1,(r.zoom||1)*f));}
   path(start,end,offset=0){const c=this.ctx;c.beginPath();for(let s=start;s<=end+.015;s+=.025){const p=this.track.sample(Math.min(s,end));const x=p.x+p.nx*offset,y=p.y+p.ny*offset-p.z*.45;if(s===start)c.moveTo(x,y);else c.lineTo(x,y);}}

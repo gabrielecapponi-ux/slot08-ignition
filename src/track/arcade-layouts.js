@@ -18,7 +18,7 @@ const layouts=[
 const features={loop:'Loop verticale e ritorno tecnico',double:'Doppia inversione e tornanti',up:'Avvitamento in salita',down:'Avvitamento in discesa',long:'Parabolica a raggio lungo',cross:'Scavalco, sottopasso e uscita a destra',hairpin:'Chicane ravvicinate e curve a gomito',jump:'Salto sul rettilineo · minimo 155 km/h'};
 export const courseName=id=>layouts[id][0];
 export const courseFeature=id=>features[layouts[id][2]];
-export const courseRevision=()=>19;
+export const courseRevision=()=>21;
 export function championshipBase(id){
   const [,code,kind]=layouts[id],world=Math.floor(id/5),cross=kind==='cross';
   const step=10+(id%3),w=(code.length+2)*step,h=12+world*.36;
@@ -41,7 +41,7 @@ export function championshipBase(id){
     const x=w*.46,d=5+(id%5)*1.25;
     const approaches=[
       [[x,0],[x+7,-d],[w-9,-d]],
-      [[x,0],[x+6,-d],[x+13,-d],[w-7,0]],
+      [[x,0],[x+4,-d],[x+8,-d],[x+11,.7],[w-7,.7]],
       [[x,0],[x+4,-d],[w-12,-d*1.8],[w-3,-d]],
       [[x,0],[x+9,-d*.7],[w-8,-d*1.5]],
       [[x,0],[x+7,-d],[w-10,-d],[w-6,-d*.4]]

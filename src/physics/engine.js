@@ -27,7 +27,7 @@ export class PhysicsEngine {
     const body = bodyPose(pose, car.driftAngle);
     car.state = 'derailed'; car.recoverIn = PHYSICS.recoverySeconds; car.crashes++;
     car.crash = { x: body.x, y: body.y, z: pose.z + 0.077, vx: pose.tx * car.speed,
-      vy: pose.ty * car.speed, launchAngle:body.angle, roll:0, rollSpeed:car.speed*(car.driftAngle<0?-1.2:1.2), vz: Math.min(.38,.10+car.speed*.035), angle: body.angle,
+      vy: pose.ty * car.speed, launchAngle:body.angle, roll:0, rollSpeed:(4+car.speed*2.2)*(car.driftAngle<0?-1:1), vz: Math.min(1.38,.42+car.speed*.21), angle: body.angle,
       spin: -Math.sign(pose.curvature || 1) * car.speed * 1.6, bridge: pose.bridge };
     // Keep centreline distance fixed: a crash cannot advance checkpoint/lap progress.
     // A crash in a switch returns to its original lane at the SAME position.
@@ -41,7 +41,9 @@ export class PhysicsEngine {
       const fade = Math.exp(-PHYSICS.slideFriction * dt);
       c.x += c.vx * dt; c.y += c.vy * dt;
       c.vx *= fade; c.vy *= fade;
-      c.roll=(c.roll||0)+(c.rollSpeed||0)*dt;c.rollSpeed=(c.rollSpeed||0)*fade;c.angle += c.spin * dt; c.spin *= fade;
+      c.roll=(c.roll||0)+(c.rollSpeed||0)*dt;c.rollSpeed=(c.rollSpeed||0)*Math.exp(-.54*dt);c.angle += c.spin * dt; c.spin *= fade;
+      // The mesh origin is at tyre level. A rolled car rests on a sill or its roof.
+      const hullDepth=.086*Math.abs(Math.sin(c.roll))+.122*Math.max(0,-Math.cos(c.roll));
       let floor=0;
       if(this.track.bounds && this.track.sample){
         this.field??=createLandscape(this.track);
@@ -52,11 +54,23 @@ export class PhysicsEngine {
           if(Math.abs(p.x-c.x)>.49+spread+(this.track.extraWidth??0)||Math.abs(p.y-c.y)>.49+spread+(this.track.extraWidth??0))continue;
           const offset=(c.x-p.x)*p.nx+(c.y-p.y)*p.ny;
           const deck=p.z+.077-offset*Math.sin(p.bank||0);
-          if(Math.abs(offset)>=spread&&Math.abs(offset)<.38+spread+(this.track.extraWidth??0) && deck<=c.z+.015)floor=Math.max(floor,deck);
+          const along=(c.x-p.x)*p.tx+(c.y-p.y)*p.ty;
+          if(Math.abs(along)<.24 && Math.abs(offset)+.065>=spread && Math.abs(offset)<(.38+spread+(this.track.extraWidth??0))*Math.cos(p.bank||0)+.06 && deck<=previous.z+.05)
+            floor=Math.max(floor,deck+.065*Math.abs(Math.sin(p.bank||0)));
         }
       }
       c.vz-=PHYSICS.gravity*dt;c.z+=c.vz*dt;
-      if(c.z<floor){if(c.vz<-.6)c.contacts=(c.contacts||0)+1;c.z=floor;c.vz=c.vz<-.35?-c.vz*.30:0;c.rollSpeed*=Math.exp(-2.1*dt);}
+      if(c.z<=floor+hullDepth){
+        const impact=-c.vz;
+        c.z=floor+hullDepth;
+        if(impact>.28)c.contacts=(c.contacts||0)+1;
+        c.vz=impact>.28?impact*.46:0;
+        c.rollSpeed*=Math.exp(-3*dt);
+        if(impact<.28 && Math.abs(c.rollSpeed)<2.6){
+          const rest=Math.round(c.roll/Math.PI)*Math.PI;
+          c.rollSpeed+=(rest-c.roll)*32*dt;
+        }
+      }
       car.recoverIn = Math.max(0, car.recoverIn - dt);
       if (car.recoverIn <= 1e-8) {
         car.state = 'slotted'; car.crash = null; car.recoverIn = 0; car.gripRatio = 0; car.instability = 0; car.driftAngle = 0; car.previousDrift = 0;

@@ -37,6 +37,7 @@ export class ScenicTrack extends SlotTrack {
     else return this.maxBank*Math.tanh(p.curvature*3);
     let amount=this.base.spiral?(this.base.segments[p.section]===this.base.spiral?this.maxBank:.09):(p.section%4===3?Math.min(.10,this.maxBank):this.maxBank);
     if(this.variant>=0&&this.base.segments)amount*=Math.min(1,this.base.segments[p.section].length/4);
+    if(this.base.spiral && this.base.segments[p.section]===this.base.spiral)amount=Math.min(1.08,amount*1.20);
     const transition=this.meeting ? smootherstep(clamp(Math.min(u,1-u)/.32,0,1)) : Math.sin(Math.PI*clamp(u,0,1))**2;
     return Math.sign(p.curvature)*amount*transition;
   }

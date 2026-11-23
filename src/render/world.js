@@ -86,12 +86,27 @@ export class MiniatureWorld {
       const post=new THREE.Mesh(new THREE.BoxGeometry(.12,Math.max(.12,top-base),.13),material('#807a70'));post.position.set(edge.x,(base+top)/2,edge.z);post.rotation.y=-Math.atan2(p.ty,p.tx);post.castShadow=true;post.receiveShadow=true;this.root.add(post);
     }
   }
+  const marine=['coast','titan'].includes(track.theme);
+  let windowMat=this.roofMat;
+  if(marine&&track.tunnels.length){
+    const panel=document.createElement('canvas');panel.width=512;panel.height=160;
+    const ctx=panel.getContext('2d'),water=ctx.createLinearGradient(0,0,0,160);
+    water.addColorStop(0,'#53ddd7');water.addColorStop(.45,'#117a92');water.addColorStop(1,'#063147');
+    ctx.fillStyle=water;ctx.fillRect(0,0,512,160);
+    for(let j=0;j<19;j++){const x=(j*137)%512,y=35+(j*43)%90;
+      ctx.fillStyle='#084657';ctx.beginPath();ctx.ellipse(x,y,7,2.1,-.14,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x-12,y-3);ctx.lineTo(x-11,y+4);ctx.fill();}
+    ctx.strokeStyle='#a8ffed55';for(let j=0;j<13;j++){ctx.beginPath();ctx.moveTo(j*44,0);ctx.lineTo(j*44-36,77);ctx.stroke();}
+    ctx.fillStyle='#233c48';ctx.fillRect(0,0,8,160);ctx.fillRect(0,149,512,11);
+    const tex=new THREE.CanvasTexture(panel);tex.wrapS=THREE.RepeatWrapping;tex.colorSpace=THREE.SRGBColorSpace;
+    windowMat=new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide});
+  }
   for(const tunnel of track.tunnels){const v=[],indices=[],n=Math.ceil((tunnel.end-tunnel.start)/.18),steps=16;
    for(let i=0;i<=n;i++){const p=track.sample(tunnel.start+(tunnel.end-tunnel.start)*i/n);for(let j=0;j<=steps;j++){const a=j/steps*Math.PI,d=Math.cos(a)*(.65+e);v.push(p.x+p.nx*d,p.z+.59+Math.sin(a)*.65,p.y+p.ny*d);if(i<n&&j<steps){const k=i*(steps+1)+j;indices.push(k,k+1,k+steps+1,k+1,k+steps+2,k+steps+1);}}if(i%8===0)lamps.push(p);}
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setIndex(indices);g.computeVertexNormals();const roof=new THREE.Mesh(g,this.roofMat);roof.castShadow=true;roof.receiveShadow=true;this.roofs.add(roof);
    const shellV=[],shellI=[];for(let i=0;i<=n;i++){const p=track.sample(tunnel.start+(tunnel.end-tunnel.start)*i/n),radius=.72+e+.35*Math.sin(Math.PI*i/n);for(let j=0;j<=steps;j++){const a=j/steps*Math.PI,d=Math.cos(a)*radius;shellV.push(p.x+p.nx*d,p.z+.59+Math.sin(a)*radius,p.y+p.ny*d);if(i<n&&j<steps){const k=i*(steps+1)+j;shellI.push(k,k+1,k+steps+1,k+1,k+steps+2,k+steps+1);}}}
    const shellGeo=new THREE.BufferGeometry();shellGeo.setAttribute('position',new THREE.Float32BufferAttribute(shellV,3));shellGeo.setIndex(shellI);shellGeo.computeVertexNormals();const shell=new THREE.Mesh(shellGeo,this.roofMat);shell.castShadow=true;shell.receiveShadow=true;this.roofs.add(shell);
-   for(const side of [-1,1]){const sideV=[];for(let i=0;i<=n;i++){const p=track.sample(tunnel.start+(tunnel.end-tunnel.start)*i/n);for(const z of [.07,.59])sideV.push(p.x+p.nx*side*(.65+e),p.z+z,p.y+p.ny*side*(.65+e));}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(sideV,3));const idx=[];for(let i=0;i<n;i++){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}g.setIndex(idx);g.computeVertexNormals();this.root.add(new THREE.Mesh(g,this.roofMat));}
+   for(const side of [-1,1]){const sideV=[];for(let i=0;i<=n;i++){const p=track.sample(tunnel.start+(tunnel.end-tunnel.start)*i/n);for(const z of [.07,.59])sideV.push(p.x+p.nx*side*(.65+e),p.z+z,p.y+p.ny*side*(.65+e));}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(sideV,3));const idx=[];for(let i=0;i<n;i++){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}g.setIndex(idx);g.computeVertexNormals();if(marine){const uv=[];for(let i=0;i<=n;i++)uv.push(i/15,0,i/15,1);g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));}this.root.add(new THREE.Mesh(g,windowMat));}
   }
   const light=new THREE.InstancedMesh(new THREE.BoxGeometry(.065,.012,.38),new THREE.MeshStandardMaterial({color:'#d7ffff',emissive:'#8be1e7',emissiveIntensity:1.5}),lamps.length);lamps.forEach((p,i)=>{o.position.set(p.x,p.z+1.16,p.y);o.scale.set(1,1,1);o.rotation.set(0,-Math.atan2(p.ty,p.tx),0);o.updateMatrix();light.setMatrixAt(i,o.matrix);});this.root.add(light);
  }
