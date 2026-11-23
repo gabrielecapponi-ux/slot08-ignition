@@ -1,4 +1,5 @@
 export const GRAPHICS_PROFILES=Object.freeze({
+ mobile60:{name:'Mobile QHD',fps:60,adaptive:true,pixels:3686400,mobilePixels:3686400,dpr:4,shadow:1024,mobileShadow:768,probe:128,anisotropy:8},
  auto:{name:'Adattiva',fps:120,adaptive:true,pixels:5_000_000,mobilePixels:3_200_000,dpr:2.5,shadow:1536,mobileShadow:1024,probe:256,anisotropy:8},
  performance:{name:'Fluidità',fps:120,adaptive:true,pixels:2_600_000,mobilePixels:1_800_000,dpr:2,shadow:1024,mobileShadow:512,probe:128,anisotropy:4},
  quality:{name:'Dettaglio',fps:60,adaptive:true,pixels:8_294_400,mobilePixels:4_200_000,dpr:3,shadow:2048,mobileShadow:1536,probe:256,anisotropy:16},
@@ -8,7 +9,7 @@ export function profileFor(id){return GRAPHICS_PROFILES[id]??GRAPHICS_PROFILES.a
 export function renderSize({width,height,dpr=1,mobile=false,profile='auto',scale=1,maxSize=8192}){
  const p=profileFor(profile),budget=mobile?p.mobilePixels:p.pixels;
  if(!(width>0&&height>0))return {width:1,height:1,ratio:1};
- const native=p===GRAPHICS_PROFILES.ultra?3840/Math.max(width,height):Math.min(dpr,p.dpr);
+ const native=profile==='mobile60'?2560/Math.max(width,height):p===GRAPHICS_PROFILES.ultra?3840/Math.max(width,height):Math.min(dpr,p.dpr);
  const maximum=Math.min(native,Math.sqrt(budget/(width*height)),maxSize/Math.max(width,height));
  const ratio=maximum*Math.max(.55,Math.min(1,scale));
  return {width:Math.max(1,Math.floor(width*ratio)),height:Math.max(1,Math.floor(height*ratio)),ratio};

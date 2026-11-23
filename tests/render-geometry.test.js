@@ -44,7 +44,7 @@ test('all fifteen two- and four-lane world scenes and road meshes construct with
   });}
   assert.ok(world.animated.length>0);assert.equal(world.roofMat.opacity,1);assert.equal(world.roofMat.transparent,false);assert.equal(world.roofs.visible,false);
   world.update(.016,'drone',true,false);assert.equal(world.roofs.visible,true);
-  world.update(.016,'chase',true,true);assert.equal(world.roofs.visible,false);
+  world.update(.016,'chase',true,true);assert.equal(world.roofs.visible,true);
  }
 });
 

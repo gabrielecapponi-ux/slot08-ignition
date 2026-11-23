@@ -11,9 +11,9 @@ export function carSetup(difficulty = 'club', upgrades = {}) {
   return { ...PHYSICS,
     surfaceSensitivity: difficulty === 'rookie' ? .45 : 1,
     slideRate: difficulty === 'rookie' ? .78 : 1,
-    motorForce: PHYSICS.motorForce * (1 + .045 * (upgrades.motor || 0)),
-    maxSpeed: PHYSICS.maxSpeed * (1 + .025 * (upgrades.motor || 0)),
-    gripForce: PHYSICS.gripForce * d.grip * (1 + .018 * (upgrades.grip || 0)),
-    engineBrake: PHYSICS.engineBrake * (1 + .065 * (upgrades.brake || 0)),
+    motorForce: PHYSICS.motorForce * (1 + .06 * (upgrades.motor || 0)),
+    maxSpeed: PHYSICS.maxSpeed * (1 + .034 * (upgrades.motor || 0)),
+    gripForce: PHYSICS.gripForce * d.grip * (1 + .027 * (upgrades.grip || 0)),
+    engineBrake: PHYSICS.engineBrake * (1 + .08 * (upgrades.brake || 0)),
   };
 }

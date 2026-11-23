@@ -13,14 +13,14 @@ import { RACE, COLORS } from '../core/config.js';
 
 export class RaceSession {
   constructor({ onEvent = () => {}, seed = 808 } = {}) {
-    this.phase='race';this.rivalRating=[0,0,0];this.tuning='balanced';this.hazards=false;this.carIndex=0;this.clubRound=0;this.appearance={};this.guidance='auto';this.seed = seed; this.raceNumber = 0; this.level = 0; this.difficulty = 'club'; this.assisted = false; this.upgrades = {}; this.track = createTrack(0); this.physics = new PhysicsEngine(this.track);
+    this.phase='race';this.rivalRating=[0,0,0,0,0];this.tuning='balanced';this.hazards=false;this.carIndex=0;this.clubRound=0;this.appearance={};this.guidance='auto';this.seed = seed; this.raceNumber = 0; this.level = 0; this.difficulty = 'club'; this.assisted = false; this.upgrades = {}; this.track = createTrack(0); this.physics = new PhysicsEngine(this.track);
     this.onEvent = onEvent; this.mode = 'race'; this.reset();
   }
   reset(mode = this.mode) {
     this.phase='race';this.grid=null;this.qualifying=null;this.eliminationOrder=[];this.nextElimination=45;this.tutorial = null; this.reward = null; this.raceNumber++;
     this.meeting = mode === 'campaign' ? MEETINGS[this.clubRound] : null;
     if(this.meeting){this.level=this.meeting.level;}
-    this.track = createTrack(this.level,{stunt:mode,lanes:['campaign','grandprix','elimination'].includes(mode)?4:2,variant:this.meeting?this.clubRound:-1});
+    this.track = createTrack(this.level,{stunt:mode,lanes:['campaign','grandprix','elimination','race','masone','riviera'].includes(mode)?4:2,variant:this.meeting?this.clubRound:mode==='grandprix'&&Number.isInteger(this.mixCourse)?this.mixCourse:-1});
     if(!this.hazards)this.track.conditions=[];
     if(this.meeting){this.track.meeting=this.meeting;positionClubSwitches(this.track);}
     this.physics = new PhysicsEngine(this.track);
@@ -31,16 +31,23 @@ export class RaceSession {
     this.cars = [createCar({ color: COLORS.mint, setup: carSetup(this.difficulty, this.upgrades) })];
     this.drivers = new Map();
     if (mode === 'masone' || mode === 'riviera' || mode === 'race' || mode === 'grandprix' || mode==='elimination' || this.meeting) {
-      this.cars.push(createCar({ id: 'ai-1', name: 'Apex', color: COLORS.orange, lane: 1, ai: true, setup: carSetup(this.difficulty, this.upgrades) }));
-      this.cars.push(createCar({ id: 'ai-2', name: 'Volt', color: COLORS.blue, lane: 0, ai: true, start: RACE.startDistance - 0.40, setup: carSetup(this.difficulty, this.upgrades) }));
-      if(this.track.laneCount===4){this.cars[0].lane=1;this.cars[1].lane=2;this.cars[2].lane=0;this.cars.push(createCar({id:'ai-3',name:'Nitro',color:COLORS.pink,lane:3,ai:true,setup:carSetup(this.difficulty,this.upgrades)}));}
+      const grid=this.track.laneCount===4?(this.meeting||mode==='grandprix'?[1,2,0,3,1,2]:[0,1,2,3,0,1]):[0,1,0,1,0,1];
+      this.cars[0].lane=grid[0];
+      const rivals=[['Apex',COLORS.orange],['Volt',COLORS.blue],['Nitro',COLORS.pink],['Nyx','#bf82ff'],['Sol','#ffd453']];
+      rivals.forEach(([name,color],i)=>{
+        const row=Math.floor((i+1)/this.track.laneCount);
+        this.cars.push(createCar({id:'ai-'+(i+1),name,color,lane:grid[i+1],ai:true,
+          start:RACE.startDistance-row*.65,setup:carSetup(this.difficulty,this.upgrades)}));
+      });
       if(this.meeting) for(const [i,bot] of this.cars.slice(1).entries()){const level=Math.max(0,Math.min(20,this.meeting.world+Math.floor((this.meeting.round+1)/3)+Math.round(this.rivalRating[i]||0)));bot.rivalLevel=level;bot.setup=carSetup(this.difficulty,{motor:level,grip:level,brake:level});bot.maxGrip=bot.setup.gripForce;}
       const standard=DIFFICULTIES[this.difficulty];
-      const competitive=this.meeting && !this.assisted && this.difficulty!=='rookie';
-      const d=competitive?{...standard,pace:standard.pace+.025,reaction:standard.reaction*.78,errorRate:standard.errorRate*.55}:standard;
+      const competitive=!this.assisted && this.difficulty!=='rookie';
+      const d=competitive?{...standard,pace:standard.pace+.032,reaction:standard.reaction*.78,errorRate:standard.errorRate*.55}:standard;
       this.drivers.set('ai-1', new AIDriver(this.track, d.pace, {reaction:d.reaction,errorRate:d.errorRate,seed:this.seed + this.raceNumber * 7919,tactical:true}));
-      if(this.track.laneCount===4)this.drivers.set('ai-3',new AIDriver(this.track,d.pace-.01,{reaction:d.reaction*1.05,errorRate:d.errorRate,seed:this.seed+this.raceNumber*2357,tactical:true}));
+      if(this.cars.length>3)this.drivers.set('ai-3',new AIDriver(this.track,d.pace-.01,{reaction:d.reaction*1.05,errorRate:d.errorRate,seed:this.seed+this.raceNumber*2357,tactical:true}));
       this.drivers.set('ai-2', new AIDriver(this.track, d.pace-.025, {reaction:d.reaction*1.15,errorRate:d.errorRate*1.1,seed:this.seed + this.raceNumber * 3571 + 17,tactical:true}));
+      for(const i of [4,5])this.drivers.set('ai-'+i,new AIDriver(this.track,d.pace-(i-4)*.016,{
+        reaction:d.reaction*(i===4?.85:.94),errorRate:d.errorRate*.65,seed:this.seed+this.raceNumber*179+i,tactical:true}));
     }
     if (mode === 'local2' || mode === 'local3') {
       this.cars[0].name='Pilota 1';
@@ -93,7 +100,7 @@ export class RaceSession {
     if(this.status!=='qualified')return false;
     const grid=this.grid;this.reset();this.grid=grid;
     // Staggered rows on the same start straight; the timing line is shared.
-    for(const car of this.cars){const rank=grid.findIndex(p=>p.id===car.id);car.gridPosition=rank+1;car.lane=[1,2,0,3][rank];car.distance=RACE.startDistance-.34*rank;car.start=car.distance;car.pose=this.track.pose(car.distance,car.lane);}
+    for(const car of this.cars){const rank=grid.findIndex(p=>p.id===car.id);car.gridPosition=rank+1;car.lane=[1,2,0,3,1,2][rank];car.distance=RACE.startDistance-.34*rank;car.start=car.distance;car.pose=this.track.pose(car.distance,car.lane);}
     this.start();return true;
   }
   pause() {
@@ -136,6 +143,7 @@ export class RaceSession {
       if(!car.ai&&updateCoach)car.coach=this.guidanceEnabled?brakingAdvice(this.track,car):null;
       const beforeDistance = car.distance;
       const event = this.physics.step(car, input.throttle, dt);
+      if(event==='respawn')car.rejoinUntil=this.elapsed+1.1;
       if (event) this.onEvent({ type: event, car });
       if(this.tutorial && !car.ai){
         const t=this.tutorial;
@@ -155,7 +163,12 @@ export class RaceSession {
         const lap = crossedAt - car.lapStartedAt;
         car.lastLap = lap; car.bestLap = Math.min(car.bestLap, lap);
         car.lapTimes.push(lap); car.lapStartedAt = crossedAt; car.laps++;
-        this.onEvent({ type: 'lap', car, lap });
+        const clean=!car.ai && this.phase==='race' && this.cars.length===6 && car.crashes===(car.lastLapCrashes||0);
+        if(!car.ai && this.phase==='race' && this.cars.length===6){
+          if(clean)car.cleanLaps=(car.cleanLaps||0)+1;
+          car.lastLapCrashes=car.crashes;
+        }
+        this.onEvent({ type: 'lap', car, lap, clean });
         if (this.mode !== 'time' && this.mode!=='elimination' && car.laps >= (this.phase==='qualifying'?2:RACE.laps)) {
           car.finishedAt = crossedAt; car.speed = 0;
           if (!car.ai) {playerFinished = true;if(this.isLocal&&this.localFinishAt===null)this.localFinishAt=crossedAt;}
@@ -166,7 +179,7 @@ export class RaceSession {
       resolveContacts(this.track,this.cars,this.physics,this.onEvent,this.elapsed);
       for(const wreck of this.cars.filter(c=>c.crash && c.recoverIn>0)){
         for(const rival of this.cars){
-          if(rival.state!=='slotted'||rival.finishedAt!==null||rival.speed<.45)continue;
+          if(rival.state!=='slotted'||rival.finishedAt!==null||rival.rejoinUntil>this.elapsed||rival.speed<.45)continue;
           const a=wreck.crash,b=rival.pose;
           if(Math.hypot(a.x-b.x,a.y-b.y)<.19 && Math.abs(a.z-b.z-.077)<.13){
             a.hit=true;

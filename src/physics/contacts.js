@@ -17,7 +17,7 @@ export function bodyContact(a,b){
 }
 export function resolveContacts(track,cars,physics,onEvent=()=>{},time=0){
  for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){
-  const a=cars[i],b=cars[j];if(a.state!=='slotted'||b.state!=='slotted'||a.finishedAt!==null||b.finishedAt!==null)continue;
+  const a=cars[i],b=cars[j];if(a.rejoinUntil>time||b.rejoinUntil>time||a.state!=='slotted'||b.state!=='slotted'||a.finishedAt!==null||b.finishedAt!==null)continue;
   const contact=bodyContact(a,b);if(!contact)continue;
   const {nx,ny,depth}=contact,va={x:a.pose.tx*a.speed,y:a.pose.ty*a.speed},vb={x:b.pose.tx*b.speed,y:b.pose.ty*b.speed};
   const closing=(va.x-vb.x)*nx+(va.y-vb.y)*ny;

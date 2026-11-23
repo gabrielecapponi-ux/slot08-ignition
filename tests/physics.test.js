@@ -76,7 +76,7 @@ test('time attack counts actual finish-line crossings and records complete laps'
   assert.ok(s.player.laps>=2);assert.equal(s.player.lapTimes.length,s.player.laps);assert.ok(s.player.bestLap>5);assert.ok(s.player.bestLap<15);
 });
 test('race finishes after 3 complete player laps, resets and creates two opponents',()=>{
-  const s=new RaceSession();s.reset('race');assert.equal(s.cars.length,3);s.status='running';const ai=new AIDriver(s.track,.9);
+  const s=new RaceSession();s.reset('race');assert.equal(s.cars.length,6);s.status='running';const ai=new AIDriver(s.track,.9);
   for(let i=0;i<120*60&&s.status==='running';i++)s.update(dt,ai.input(s.player));
   assert.equal(s.status,'finished');assert.equal(s.player.laps,RACE.laps);assert.ok(s.player.finishedAt>0);
   s.reset();assert.equal(s.elapsed,0);assert.equal(s.player.laps,0);assert.equal(s.player.crashes,0);

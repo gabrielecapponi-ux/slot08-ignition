@@ -78,7 +78,7 @@ export class MiniatureWorld {
   }
   const light=new THREE.InstancedMesh(new THREE.BoxGeometry(.065,.012,.38),new THREE.MeshStandardMaterial({color:'#d7ffff',emissive:'#8be1e7',emissiveIntensity:1.5}),lamps.length);lamps.forEach((p,i)=>{o.position.set(p.x,p.z+1.16,p.y);o.scale.set(1,1,1);o.rotation.set(0,-Math.atan2(p.ty,p.tx),0);o.updateMatrix();light.setMatrixAt(i,o.matrix);});this.root.add(light);
  }
- update(dt,mode,active,inside=false){if(active&&!this.reduced.matches)this.time+=dt;const t=this.time;this.roofs.visible=!inside&&!['top','iso'].includes(mode);
+ update(dt,mode,active,inside=false){if(active&&!this.reduced.matches)this.time+=dt;const t=this.time;this.roofs.visible=!['top','iso'].includes(mode) && (!inside || mode==='chase' || mode==='macro');
   if(this.water)this.water.material.map.offset.set(t*.012,t*.006);
   for(const a of this.animated){if(a.type==='rotor')a.root.rotation.z=t*.65;else if(a.type==='animal'){a.root.position.set(a.x+Math.sin(t*.7+a.phase)*.13,(a.z??0)+Math.abs(Math.sin(t*2+a.phase))*.012,a.y);}else{const r=1.4+a.phase*.22;a.root.position.set(a.x+Math.cos(t*.22+a.phase)*r,2.5+Math.sin(t+a.phase)*.15,a.y+Math.sin(t*.22+a.phase)*r);a.root.rotation.set(0,-t*.22-a.phase+Math.PI/2,.12*Math.sin(t*3+a.phase));}}
  }

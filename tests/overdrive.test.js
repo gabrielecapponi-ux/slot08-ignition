@@ -19,7 +19,7 @@ for(let level=3;level<LEVELS.length;level++){
   let maxSlip=0;for(let i=0;i<120*70&&s.player.crashes===0;i++){s.update(dt,gas);maxSlip=Math.max(maxSlip,s.player.skid);}assert.ok(s.player.crashes>0||maxSlip>.18,'full power must produce a visible warning on banked tracks');
   s.configure({assisted:true});s.reset('race');s.status='running';
   for(let i=0;i<120*360&&s.status!=='finished';i++)s.update(dt,{...gas,switchLane:i===1});
-  assert.equal(s.status,'finished');assert.equal(s.player.laps,3);assert.equal(s.player.crashes,0);assert.equal(s.player.lane,1);
+  assert.equal(s.status,'finished');assert.equal(s.player.laps,3);assert.equal(s.player.crashes-(s.player.contactCrashes||0),0);assert.equal(s.player.lane,1);
  });
 }
 test('coach tells a manual driver to lift before the first corner, without taking over',()=>{

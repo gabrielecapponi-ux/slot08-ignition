@@ -5,7 +5,7 @@ export class ImpactEffects {
   constructor(scene) {
     this.map=new THREE.TextureLoader().load(new URL('../../assets/impact-spark.png',import.meta.url).href);
     this.map.colorSpace=THREE.SRGBColorSpace;
-    this.emitters=Array.from({length:3},()=>{
+    this.emitters=Array.from({length:6},()=>{
       const positions=new Float32Array(14*3);
       const geometry=new THREE.BufferGeometry();
       geometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));

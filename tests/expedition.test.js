@@ -53,7 +53,7 @@ test('sixty parts and twenty mechanical tiers migrate, save, and charge exactly 
  assert.equal(count,60);for(const key of ['motor','grip','brake'])while(p.data.upgrades[key]<UPGRADE_LIMIT)assert.equal(p.upgrade(key),true);
  assert.equal(p.upgrade('motor'),false);assert.equal(p.equip('wing',11),false);
  const saved=new Profile(storage);for(const category of Object.keys(PARTS)){assert.equal(saved.data.appearance[category],10);assert.ok(saved.owns(category,10));}
- assert.equal(saved.data.upgrades.motor,20);assert.equal(saved.data.records['worlds-5:old'],33);
+ assert.equal(saved.data.upgrades.motor,UPGRADE_LIMIT);assert.equal(saved.data.records['worlds-5:old'],33);
 });
 
 test('fine gas steps clamp and reject nonfinite input',()=>{

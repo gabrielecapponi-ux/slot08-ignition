@@ -20,7 +20,7 @@ const profile=new Profile(local),sound=new SoundEngine();let journey;profile.beg
 const session=new RaceSession({onEvent:e=>{
   if(e.type==='reset')raceEvents=[];
   if(['start','derail','contact','lap','finish'].includes(e.type)&&raceEvents.length<256)raceEvents.push({type:e.type,time:e.type==='start'?0:3+session.elapsed,name:e.car?.name||'GARA'});
-  if(e.type==='lap'&&e.car===session.player&&!session.isLocal){const record=profile.record(session.recordKey,e.lap);session.toast(record?'NUOVO RECORD · '+formatTime(e.lap):'GIRO COMPLETATO · '+formatTime(e.lap));sound.event('lap');}
+  if(e.type==='lap'&&e.car===session.player&&!session.isLocal){const record=profile.record(session.recordKey,e.lap);session.toast((record?'NUOVO RECORD · ':'GIRO COMPLETATO · ')+formatTime(e.lap)+(e.clean?' · +35 CR':'') );sound.event('lap');}
   if(e.type==='derail'){if(!e.car.ai)input?.clear(session.players.indexOf(e.car));else session.toast(e.car.name.toUpperCase()+' FUORI PISTA · 3 S DI RECUPERO');}
   if(e.type==='respawn'&&!e.car.ai)session.toast('IN PISTA · PREMI DI NUOVO IL GAS');
   if(['pause','reset','finish','tutorial-complete'].includes(e.type))input?.clear();
@@ -159,13 +159,16 @@ function finish(tutorial){
     return;
   }
   $('next-level').textContent=tutorial?'LA MIA PRIMA GARA':session.level<LEVELS.length-1?'PROSSIMO CIRCUITO':'CORRI ANCORA';}
-on($('level-list'),'click',e=>{const button=e.target.closest('[data-level]');if(button){session.configure({level:Number(button.dataset.level)});menu();window.scrollTo({top:0,behavior:'smooth'});}});
+on($('level-list'),'click',e=>{session.mixCourse=null;const button=e.target.closest('[data-level]');if(button){session.configure({level:Number(button.dataset.level)});menu();window.scrollTo({top:0,behavior:'smooth'});}});
 function selectRound(id){advance=null;if(Number.isInteger(id)&&MEETINGS[id]?.world<=openWorld(profile.data.results)&&(id%5===0||profile.data.results[id-1]>=2)){session.clubRound=id;session.reset('campaign');menu();}}
 on($('atlas-stops'),'click',e=>{const b=e.target.closest('[data-world]');if(b)selectRound(Number(b.dataset.world)*5);});
 on($('world-picker'),'change',()=>selectRound(Number($('world-picker').value)*5));
 on($('club-calendar'),'click',e=>{const b=e.target.closest('[data-round]');if(b)selectRound(Number(b.dataset.round));});
 const workshop=new Workshop(profile,session,renderer,menu);
-journey=new Journey({session,profile,choose:mode=>{if(mode==='campaign')enterClub();else session.reset(mode);menu();},grid:()=>{input.clear();session.startGrid();setView(preferred);focus();startAudio();},home:()=>{advance=null;input.clear();session.reset();menu();},restore:()=>{session.configure({upgrades:profile.data.upgrades,appearance:profile.data.appearance});enterClub();menu();}});
+journey=new Journey({session,profile,choose:(mode,featured)=>{session.mixCourse=null;if(mode==='featured'){session.mixCourse=featured;session.level=MEETINGS[featured].level;session.reset('grandprix');}else if(mode==='mix'){
+  if(!session.courseBag?.length){session.courseBag=Array.from({length:50},(_,i)=>i);for(let i=49;i>0;i--){const j=Math.floor(Math.random()*(i+1));[session.courseBag[i],session.courseBag[j]]=[session.courseBag[j],session.courseBag[i]];}}
+  session.mixCourse=session.courseBag.pop();session.level=MEETINGS[session.mixCourse].level;session.reset('grandprix');
+}else if(mode==='campaign')enterClub();else session.reset(mode);menu();},grid:()=>{input.clear();session.startGrid();setView(preferred);focus();startAudio();},home:()=>{advance=null;input.clear();session.reset();menu();},restore:()=>{session.configure({upgrades:profile.data.upgrades,appearance:profile.data.appearance});enterClub();menu();}});
 on($('qualifying-enabled'),'change',()=>journey.refresh());
 for(const kind of ['pointerdown','keydown'])on($('lobby'),kind,()=>{if(advance?.brief){advance=null;$('first-run').textContent='Scegli il tuo assetto, poi entra in pista.';}});
 for(const v of Object.keys(cameras))on($('view-'+v),'click',()=>{setView(v,true);focus();});
@@ -199,7 +202,7 @@ on($('pause-view'),'change',e=>setView(e.target.value,true));
 on($('pause-power'),'input',e=>{input.setPower(0,Number(e.target.value)/100);$('pause-power-value').textContent=Math.round(input.power[0]*100)+'%';});
 for(const event of ['contextmenu','selectstart'])on($('app'),event,e=>{if(['running','countdown'].includes(session.status))e.preventDefault();});
 on($('back-menu'),'click',back);on($('resume'),'click',()=>{session.resume();focus();});on($('pause'),'click',pause);
-on($('mode'),'change',()=>{advance=null;if($('mode').value==='campaign')enterClub();else session.reset($('mode').value);menu();});on($('difficulty'),'change',()=>{session.configure({difficulty:$('difficulty').value});menu();});on($('hazards'),'change',()=>{session.configure({hazards:$('hazards').checked});menu();});on($('assist'),'change',()=>{session.configure({assisted:$('assist').checked});menu();});
+on($('mode'),'change',()=>{session.mixCourse=null;advance=null;if($('mode').value==='campaign')enterClub();else session.reset($('mode').value);menu();});on($('difficulty'),'change',()=>{session.configure({difficulty:$('difficulty').value});menu();});on($('hazards'),'change',()=>{session.configure({hazards:$('hazards').checked});menu();});on($('assist'),'change',()=>{session.configure({assisted:$('assist').checked});menu();});
 on($('garage-open'),'click',()=>{advance=null;input.clear();workshop.open();window.scrollTo(0,0);});
 on($('help-open'),'click',()=>{input.clear();session.pause();$('help').showModal();});on($('help-close'),'click',()=>$('help').close());
 on($('coach-setting'),'change',()=>{session.guidance=$('coach-setting').value;});

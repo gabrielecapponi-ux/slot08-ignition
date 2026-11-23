@@ -165,6 +165,8 @@ export function buildModularTrack(track,kit=null) {
   const p=track.sample(.08), checker=new THREE.InstancedMesh(new THREE.BoxGeometry(.09,.003,track.width/8),white,8);
   for(let i=0;i<8;i++){const d=(i-3.5)*track.width/8,along=i%2*.09;transform.position.set(p.x+p.nx*d+p.tx*along,p.z+.082,p.y+p.ny*d+p.ty*along);transform.rotation.set(0,-Math.atan2(p.ty,p.tx),0);transform.updateMatrix();checker.setMatrixAt(i,transform.matrix);}root.add(checker);
   root.add(buildSafetyRail(track));
+  const underside=new THREE.MeshStandardMaterial({color:0x526477,roughness:.76,metalness:.28,side:THREE.BackSide});
+  ribbon(-(.38+e),.38+e,.016,underside);
   // Opaque deck fascias are separate from the rail, with physical thickness.
   for(const side of [-1,1]){
    const v=[],idx=[];for(let i=0;i<=n;i++){const p=track.sample(i/n*track.length);for(const h of [.018,.058])v.push(...position(p,side*(.38+e),h));if(i<n){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}}
@@ -179,6 +181,13 @@ export function buildModularTrack(track,kit=null) {
     const blocked=roadPoints.some(q=>q.z<p.z-.35&&Math.abs((top.x-q.x)*q.nx+(top.z-q.y)*q.ny)<.50+e+(q.fork?.offset||0)/2&&Math.abs((top.x-q.x)*q.tx+(top.z-q.y)*q.ty)<.25);
     if(!blocked&&height>.20)supports.push({p,side,top,ground,height});
    }
+  }
+  // Cross members read as a ceiling from the lower lane; one batch for the whole circuit.
+  const elevated=roadPoints.filter((p,i)=>p.z>.45 && !(i%2) && !p.fork && p.loopPitch===undefined);
+  if(elevated.length){
+    const beams=new THREE.InstancedMesh(new THREE.BoxGeometry(.07,.035,track.width+.05),mat('#647583',.37),elevated.length);
+    elevated.forEach((p,i)=>{transform.position.set(p.x,p.z-.012,p.y);transform.rotation.set(p.bank||0,-Math.atan2(p.ty,p.tx),Math.atan(p.grade||0),'YXZ');transform.scale.set(1,1,1);transform.updateMatrix();beams.setMatrixAt(i,transform.matrix);});
+    beams.receiveShadow=true;root.add(beams);
   }
   const supportsMesh=new THREE.InstancedMesh(new THREE.CylinderGeometry(.043,.055,1,12),mat('#969c96',.25),supports.length);
   supports.forEach(({top,ground,height},i)=>{transform.position.set(top.x,ground+height/2,top.z);transform.scale.set(1,height,1);transform.rotation.set(0,0,0);transform.updateMatrix();supportsMesh.setMatrixAt(i,transform.matrix);});supportsMesh.name='Pilastri con appoggio a terra';supportsMesh.castShadow=true;supportsMesh.receiveShadow=true;root.add(supportsMesh);

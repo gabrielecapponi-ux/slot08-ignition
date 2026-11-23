@@ -48,10 +48,8 @@ export class AIDriver {
         const gateKey = Math.round((car.distance + ahead) * 10);
         if (ahead < 1.8 && gateKey !== this.lastGate) {
           this.lastGate = gateKey;
-          const nearby = cars.some(other => other !== car && other.lane === car.lane && other.state === 'slotted' && other.distance - car.distance > 0 && other.distance - car.distance < 1.2);
-          switchLane = this.track.meeting
-            ? trafficAhead(this.track,car,cars)<2.4 && passingLaneClear(this.track,car,cars)
-            : nearby || this.random() < .25;
+          switchLane=gap<2.8 && passingLaneClear(this.track,car,cars);
+
         }
       }
     }

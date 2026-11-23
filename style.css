@@ -703,3 +703,14 @@ button{font-size:14px;border-radius:24px;font-weight:450;transition:background .
 #app #club-calendar button svg{width:100%;height:50px}#club-calendar button:disabled svg{filter:grayscale(1)}#app #club-calendar .route-state{color:#95e5d7;font-weight:700}#app #club-calendar button:disabled{opacity:.7}#app #club-calendar button{align-content:start}#app #world-picker{display:none}
 
 #atlas-stops button{display:grid;justify-items:center;align-content:center;gap:2px;font-size:12px}#atlas-stops svg{width:19px;height:19px}#map-stage{color:#bccbd5;font-weight:700}
+#mode-choices button{position:relative;overflow:hidden;transition:transform .16s ease,border-color .16s ease}
+#mode-choices button:is(:focus-visible,:hover){border-color:#72f8de;transform:translateY(-2px)}
+#mode-choices [data-play-mode=mix]{background:linear-gradient(125deg,#123d4a,#24315a);border:1px solid #68d9e2}
+#mode-choices [data-play-mode=mix] svg{color:#78fff0}
+#app #race-hud>.minimap-wrap{border-top:2px solid #65f8de;background:linear-gradient(150deg,#091825f2,#13283eef)}
+#map-speed{color:#e4fff7;font-variant-numeric:tabular-nums}
+@media(prefers-reduced-motion:reduce){#mode-choices button{transition:none;transform:none!important}}
+.featured-course{max-width:460px;padding:12px 16px;background:linear-gradient(130deg,#081a27ed,#153447e8);border:1px solid #68b9b780;border-radius:16px;color:#edfff7}
+.featured-course canvas{display:block;width:100%;height:100px;object-fit:contain}
+.featured-course strong,.featured-course small{display:block}.featured-course small{color:#bbd7de;margin:4px 0 8px}
+.featured-course>div{display:flex;gap:8px}.featured-course button{min-height:44px;min-width:48px;border-radius:10px;background:#193845;color:white}.featured-course #featured-race{flex:1;background:#95f5d2;color:#10252c;font-weight:700}

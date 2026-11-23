@@ -32,7 +32,9 @@ export function championshipBase(id){
    const [,,loops,radius]=extreme;
    if(loops<0)return new SpiralTrack({radius,width:13+world*2,height:7,lift:3.3,turns:2});
    const points=[[-18,-8],[18,-8],[18,7],[10,7],[10,-1],[5,-1],[5,6],[0,6],[0,1],[-5,1],[-5,8],[-18,8]];
-   if(id===2||id===7)points[5]=[6,-3];
+   if(id===2)points.splice(5,2,[6,-3],[6,8],[2,10]);
+   if(id===5)points[7]=[-1,8];
+   if(id===7)points[5]=[7,-2];
    return stuntBase({points,radius:1.2+world*.15,turnRadius:radius,loops,flip:id===7});
  }
  let base;
@@ -47,7 +49,7 @@ export function championshipBase(id){
    2:[[-22,-13],[22,-13],[22,13],[12,13],[12,4],[4,4],[4,13],[-5,13],[-5,-3],[-13,-3],[-13,13],[-22,13]],
    4:[[-21,-10],[21,-10],[21,10],[10,10],[10,3],[2,3],[2,10],[-8,10],[-8,3],[-21,3]]
   };
-  const scale=.79+world*.035,points=shapes[form].map(([x,y])=>[x*scale,y*scale]);
+  const scale=.79+world*.035,points=shapes[form].map(([x,y])=>[x*scale+(y>0?Math.sin((world+1)*.71+x*.22)*1.2:0),y*scale*(1+.17*Math.sin(world+x*.12))]);
   const radii=points.map((_,i)=>(i%3===0?2.65:i%3===1?2.25:2.05)*scale);
   base=new EnduranceTrack({points,radius:radii,elevation:form===0?.55+world*.04:form===4?.8+world*.055:0});
  }

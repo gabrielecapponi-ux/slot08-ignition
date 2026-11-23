@@ -3,7 +3,7 @@ import {profileFor,GRAPHICS_PROFILES} from '../render/quality.js';
 export function installGraphics({renderer,storage,pause,signal}){
  const get=id=>document.getElementById(id),dialog=get('graphics-panel'),select=get('graphics-profile');
  get('graphics-open').innerHTML=icon('optics');get('graphics-open').title='Grafica e prestazioni';
- let selected='auto';try{const saved=storage?.getItem('slot08-graphics');if(GRAPHICS_PROFILES[saved])selected=saved;}catch{}
+ let selected=window.matchMedia('(pointer:coarse), (max-width:650px)').matches?'mobile60':'auto';try{const saved=storage?.getItem('slot08-graphics');if(GRAPHICS_PROFILES[saved])selected=saved;}catch{}
  const supported=renderer.kind==='3d';select.value=selected;select.disabled=!supported;
  renderer.setQuality?.(selected);
  get('graphics-open').addEventListener('click',()=>{pause();dialog.showModal();},{signal});

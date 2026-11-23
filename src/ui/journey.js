@@ -1,15 +1,17 @@
 import { icon } from './icons.js';
 import {SECTORS} from '../track/sectors.js';
 import { CHAPTERS,courseName } from '../track/championship.js';
-import { openWorld } from '../game/tour.js';
+import {createTrack} from '../track/catalog.js';
+import { MEETINGS,openWorld } from '../game/tour.js';
 import { formatTime } from '../core/math.js';
 const $=id=>document.getElementById(id);
 const MODES=[
+ ['mix','duel','Griglia a sorpresa','Pesca un circuito tra 50. Sei piloti e 35 crediti per ogni giro pulito.'],
  ['campaign','arcade','Arcade','Una tessera, dieci mondi. La tua storia al club.'],
  ['masone','wheel','Masone Verticale','Un giro della morte tra gli alberi.'],
  ['riviera','wheel','Riviera Doppio Loop','Due anelli verticali sul rettilineo costiero.'],
  ['time','chrono','Time Trial','Solo tu, tre settori e un tempo da battere.'],
- ['grandprix','trophy','Grand Prix','Quattro auto. Qualifiche e tre giri di gara.'],
+ ['grandprix','trophy','Grand Prix','Sei auto. Qualifiche e tre giri di gara.'],
  ['elimination','duel','Ultimo rimasto','Dopo 45 secondi esce l’ultimo. Poi ogni 35.'],
  ['local2','wheel','Club locale','Due o tre piloti, fianco a fianco sullo stesso schermo.']
 ];
@@ -33,6 +35,17 @@ export function drawCourse(canvas,track){
 export class Journey {
  constructor({session,profile,choose,start,grid,home,restore}){
   Object.assign(this,{session,profile});
+  let featured=0;
+  const showFeatured=()=>{
+    const track=createTrack(MEETINGS[featured].level,{variant:featured,lanes:4});
+    drawCourse($('featured-map'),track);
+    $('featured-title').textContent=track.level.name;
+    $('featured-info').textContent=track.level.subtitle+' · '+Math.round(track.length)+' m';
+    $('featured-map').setAttribute('aria-label','Tracciato di '+track.level.name);
+  };
+  for(const [id,step] of [['featured-prev',-1],['featured-next',1]])$(id).addEventListener('click',()=>{featured=(featured+step+50)%50;showFeatured();});
+  $('featured-race').addEventListener('click',()=>{choose('featured',featured);this.hideHome();});
+  showFeatured();
   $('mode-choices').innerHTML=MODES.map(([id,symbol,title,copy])=>`<button data-play-mode="${id}" disabled data-boot-disabled>${icon(symbol)}<span><strong>${title}</strong><small>${copy}</small></span></button>`).join('');
   $('mode-choices').addEventListener('click',e=>{const b=e.target.closest('[data-play-mode]');if(b){choose(b.dataset.playMode);this.hideHome();this.animate('lobby');}});
   $('mode-home-button').addEventListener('click',()=>{home();this.showHome();});

@@ -35,7 +35,6 @@ export class Scene3D {
   this.fill=new THREE.DirectionalLight(0xbde8ff,.45);this.fill.position.set(5,4,-6);this.scene.add(this.fill);this.scene.add(this.fill.target);
   this.ground=new THREE.Mesh(new THREE.PlaneGeometry(300,300),new THREE.MeshStandardMaterial({color:'#8b795f',roughness:.9}));this.ground.rotation.x=-Math.PI/2;this.ground.position.y=-.45;this.ground.receiveShadow=true;this.scene.add(this.ground);
   this.prototype=this.fallbackCar();this.setTrack(track);
-  this.marker=new THREE.Mesh(new THREE.RingGeometry(.19,.21,32),new THREE.MeshBasicMaterial({color:0xc6f568,transparent:true,opacity:.7,depthWrite:false}));this.marker.rotation.x=-Math.PI/2;this.scene.add(this.marker);
   this.switchGlow=new THREE.Mesh(new THREE.RingGeometry(.4,.46,40),new THREE.MeshBasicMaterial({color:0x78f6da,transparent:true,opacity:.75,depthWrite:false}));this.switchGlow.rotation.x=-Math.PI/2;this.scene.add(this.switchGlow);
   this.glints=new ConductorGlints();this.scene.add(this.glints.root);
   this.skidEffects=new SkidEffects(this.scene);this.impacts=new ImpactEffects(this.scene);
@@ -75,7 +74,7 @@ export class Scene3D {
   this.sun.position.set(x+dx,reach*Math.tan(profile.altitude),z+dz);
   this.sun.color.set(garage?'#fff2e5':profile.key);this.sun.intensity=garage?2.6:profile.power;
   this.hemi.color.set(garage?'#e8f1ff':profile.sky);this.hemi.groundColor.set(profile.bounce);this.hemi.intensity=profile.ambient;
-  this.fill.target.position.set(x,0,z);this.fill.position.set(x-dx*.6,reach*.35,z-dz*.6);this.fill.intensity=garage?.65:profile.fill;this.renderer.toneMappingExposure=garage?1.12:1.18;
+  this.fill.target.position.set(x,0,z);this.fill.position.set(x-dx*.6,reach*.35,z-dz*.6);this.fill.intensity=garage?.65:profile.fill;this.renderer.toneMappingExposure=garage?1.12:1.23;
   Object.assign(this.sun.shadow.camera,{left:-radius,right:radius,top:radius,bottom:-radius,near:.1,far:reach*3+10});
   this.sun.shadow.camera.updateProjectionMatrix();
   this.scene.environment=garage?(this.clubPanorama??this.fallbackEnvironment):(this.trackEnvironmentTarget?.texture??(club?(this.clubPanorama??this.fallbackEnvironment):this.sky));
@@ -87,7 +86,7 @@ export class Scene3D {
   const target=new THREE.WebGLCubeRenderTarget(this.quality.profile.probe,{type:THREE.HalfFloatType,generateMipmaps:true,minFilter:THREE.LinearMipmapLinearFilter});
   const probe=new THREE.CubeCamera(.08,160,target),b=this.track.bounds;
   probe.position.set((b.minX+b.maxX)/2,2.1,(b.minY+b.maxY)/2);
-  const hidden=[...this.cars.values(),this.marker,this.switchGlow,this.glints.root,this.skidEffects.ink,this.skidEffects.smoke,this.brakeMarks].filter(Boolean);
+  const hidden=[...this.cars.values(),this.switchGlow,this.glints.root,this.skidEffects.ink,this.skidEffects.smoke,this.brakeMarks].filter(Boolean);
   const visibility=hidden.map(o=>o.visible);hidden.forEach(o=>o.visible=false);
   const environment=this.scene.environment;
   try{
@@ -150,7 +149,7 @@ export class Scene3D {
   this.atelier.visible=this.garage;this.staticRoot.visible=!this.garage;this.ground.visible=!this.garage;this.stage.visible=this.garage;this.garageLight.intensity=this.garage?1.2:0;this.skidEffects.ink.visible=!this.garage;this.skidEffects.smoke.visible=!this.garage;
   this.impacts.update(session.cars,!this.garage&&!this.rig.motion.matches);
   if(this.garage&&!this.dirty&&this.rig.motion.matches)return;
-  if(this.garage){this.dirty=false;this.scene.background=this.garageBackground;this.scene.fog=null;for(const m of this.cars.values())m.visible=false;const car=this.modelFor(this.garageCar);car.visible=true;car.position.set(0,.23,0);car.rotation.set(0,0,0);this.rig.garageBounds=car.userData.bodyBounds;this.marker.visible=false;this.switchGlow.visible=false;this.brakeMarks.visible=false;this.rig.update(session,dt);this.submitFrame(rawDt);return;}
+  if(this.garage){this.dirty=false;this.scene.background=this.garageBackground;this.scene.fog=null;for(const m of this.cars.values())m.visible=false;const car=this.modelFor(this.garageCar);car.visible=true;car.position.set(0,.23,0);car.rotation.set(0,0,0);this.rig.garageBounds=car.userData.bodyBounds;this.switchGlow.visible=false;this.brakeMarks.visible=false;this.rig.update(session,dt);this.submitFrame(rawDt);return;}
   if(!this.scene.fog)this.scene.fog=this.raceFog;
   if(this.raceCars!==session.cars){this.raceCars=session.cars;this.skidEffects.reset();}this.skidEffects.update(session.cars,session.status==='running'?dt:0,this.camera);this.world.update(dt,this.rig.mode,['running','ready'].includes(session.status),session.players.some(c=>this.track.tunnelAt?.(c.distance,1.8)));this.rig.update(session,dt,alpha);
   const lit=session.status==='countdown'?Math.min(5,1+Math.floor((3-session.countdown)*2)):0;
@@ -160,7 +159,6 @@ export class Scene3D {
   for(const car of session.cars){const m=this.modelFor(car),p=car.pose;updateCarMotion(m,car,dt);m.visible=car.state!=='eliminated';if(m.userData.contactShadow)m.userData.contactShadow.visible=!car.crash;const beacon=m.userData.beacon;if(beacon){beacon.visible=session.isLocal;const size=['top','iso'].includes(this.rig.mode)?Math.max(.65,this.camera.position.y*.022):.5;beacon.position.set(0,.35,0);beacon.scale.set(size,size*2/3,1);}
    if(car.crash){const c=car.crash;m.position.set(c.x,c.z,c.y);m.rotation.set(c.roll||0,-c.angle,0);}
    else{const body=racePose(car,alpha);m.position.set(body.x,.077+body.z,body.y);m.rotation.set(body.bank||0,-body.angle,body.pitch||0);}
-   if(car===session.player){this.marker.position.copy(m.position);this.marker.position.y+=.005;this.marker.visible=car.state==='slotted'&&this.rig.mode!=='drone';}
   }
   this.switchGlow.visible=session.player.switchQueued;if(this.switchGlow.visible){const p=this.track.sample(session.player.distance+this.track.nextSwitchDistance(session.player.distance));this.switchGlow.position.set(p.x,p.z+.09,p.y);}
   const advice=session.player.coach;this.brakeMarks.visible=!!(session.guidanceEnabled&&advice&&advice.point!==null&&advice.action!=='go'&&session.status==='running');

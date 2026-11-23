@@ -1,5 +1,5 @@
-export const UPGRADE_LIMIT=20;
-export const UPGRADE_PRICES=[100,180,280,350,430,520,620,730,850,980,1120,1270,1430,1600,1780,1970,2170,2380,2600,2830];
+export const UPGRADE_LIMIT=30;
+export const UPGRADE_PRICES=[100,180,280,350,430,520,620,730,850,980,1120,1270,1430,1600,1780,1970,2170,2380,2600,2830,...Array.from({length:10},(_,i)=>3100+300*i)];
 export const PARTS=Object.freeze({
  wing:{label:'Alettone',names:['Automatico','Club','Touring','GT3','Doppio piano','Time Attack','Ducktail','Swan Neck','Le Mans','Hillclimb','Ala a delta']},
  wheels:{label:'Cerchi e pneumatici',names:['Automatico','Sei razze','Oro Sport','Multirazza','Endurance','Oro Forged','Turbofan','Disco Aero','Cinque razze','Mesh oro','Track Slick']},
