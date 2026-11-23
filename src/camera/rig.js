@@ -45,12 +45,15 @@ export class CameraRig {
       pos.set(axis.x+axis.nx*reach,look.y+reach*.18,axis.y+axis.ny*reach);fov=46;
     }else if(intro){const u=smootherstep(clamp((this.age-.7)/3.7,0,1));const close=new THREE.Vector3(p.x+tx*.5-ty*.65,ground+.32,p.y+ty*.5+tx*.65);pos.lerpVectors(close,pos,u);look.lerpVectors(new THREE.Vector3(p.x,ground+.06,p.y),look,u);}
     else if(moving && this.mode==='chase'){
-      const near=this.track.tunnelAt?.(distance,1.2);
+      const portal=this.track.tunnelAt?.(distance,2.4);
+      const station=this.track.sample(distance).s;
+      const approach=portal?smootherstep(clamp(1-Math.max(portal.start-station,station-portal.end,0)/2.4,0,1)):0;
+      const blend=(outside,inside)=>outside+(inside-outside)*approach;
       const pace=clamp(session.player.speed/5,0,1);
-      const lead=near?.9:1.25+pace*.9;
+      const lead=blend(1.25+pace*.9,.9);
       const road=this.track.pose(distance+lead,session.player.lane);
-      const reach=near?.72:aspect<1?1.36:1.08;
-      pos.set(p.x-tx*reach,ground+(near?.28:aspect<1?.86:.67),p.y-ty*reach);
+      const reach=blend(aspect<1?1.36:1.08,.72);
+      pos.set(p.x-tx*reach,ground+blend(aspect<1?.86:.67,.28),p.y-ty*reach);
       look.set(p.x+tx*lead*.45+(road.x-p.x)*.55,ground+.06+clamp(road.z-p.z,-.55,.7)*.55,p.y+ty*lead*.45+(road.y-p.y)*.55);
       fov=(aspect<1?64:58)+(this.motion.matches?0:pace*4);
     }else if(moving && this.mobileRace && !session.isLocal && this.mode==='drone'){

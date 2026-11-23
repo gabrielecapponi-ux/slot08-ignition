@@ -18,8 +18,8 @@ test('all four-lane circuits have finite separated slots and a connected adjacen
   for(const gate of t.switches)for(const lane of t.lanes){const car=createCar({lane});car.distance=gate.start+.01;const engine=new PhysicsEngine(t),ok=engine.changeLane(car);assert.equal(ok,t.switchTarget(gate,lane)!==lane);if(ok)assert.equal(car.change.to,t.switchTarget(gate,lane));}
  }
 });
-test('campaign and Grand Prix start four cars on four separate lanes; legacy modes remain available',()=>{
- const s=new RaceSession();for(const mode of ['campaign','grandprix']){s.reset(mode);assert.equal(s.cars.length,6);assert.equal(new Set(s.cars.map(c=>c.lane)).size,4);assert.equal(s.drivers.size,5);}
+test('campaign and Grand Prix start eight cars on four separate lanes; legacy modes remain available',()=>{
+ const s=new RaceSession();for(const mode of ['campaign','grandprix']){s.reset(mode);assert.equal(s.cars.length,8);assert.equal(new Set(s.cars.map(c=>c.lane)).size,4);assert.equal(s.drivers.size,7);}
  s.reset('local3');assert.equal(s.players.length,3);assert.equal(s.track.laneCount,2);
 });
 function pair(separation=.26){const track=createTrack(0,{lanes:4}),a=createCar({setup:carSetup(),lane:1}),b=createCar({id:'b',setup:carSetup(),lane:1});a.distance=1;b.distance=1+separation;a.speed=3;b.speed=1.5;for(const c of [a,b])c.pose=track.pose(c.distance,c.lane);return {track,a,b,engine:new PhysicsEngine(track)};}

@@ -25,20 +25,21 @@ export class SkidEffects {
       pool.forEach((_, i) => mesh.setMatrixAt(i, this.matrix.matrix)); mesh.instanceMatrix.needsUpdate = true;
     }
   }
-  update(cars, dt, camera) {
+  update(cars, dt, camera, wet = false) {
     if (dt <= 0) return;
     for (const car of cars) {
-      if (car.state !== 'slotted' || car.skid < .10 || car.speed < .3) { this.last.delete(car.id); continue; }
+      const spray=wet&&!car.pose?.tunnel&&car.speed>1.15;
+      if (car.state !== 'slotted' || (!spray && car.skid < .10) || car.speed < .3) { this.last.delete(car.id); continue; }
       const p = bodyPose(car.pose, car.driftAngle), old = this.last.get(car.id);
-      if (old && Math.hypot(p.x - old.x, p.y - old.y) < .055) continue;
+      if (old && Math.hypot(p.x - old.x, p.y - old.y) < (spray?.13:.055)) continue;
       this.last.set(car.id, p);
       const tx = Math.cos(p.angle), ty = Math.sin(p.angle);
       for (const side of [-1, 1]) {
         const x = p.x - tx * .10 - ty * side * .058, z = p.y - ty * .10 + tx * side * .058;
-        Object.assign(this.marks[this.cursor++ % this.marks.length], { x, y: p.z + .079, z, angle: p.angle, life: 12 });
-        if (car.skid > .21) {
+        if(!spray)Object.assign(this.marks[this.cursor++ % this.marks.length], { x, y: p.z + .079, z, angle: p.angle, life: 12 });
+        if (spray || car.skid > .21) {
           const i = this.puffCursor++ % this.puffs.length;
-          Object.assign(this.puffs[i], { x, y: p.z + .10, z, vx: -tx * .10 + Math.sin(i) * .05, vz: -ty * .10 + Math.cos(i) * .05, life: .72 });
+          Object.assign(this.puffs[i], { x, y: p.z + .10, z, vx: spray?-tx*.32-ty*side*.19:-tx*.10+Math.sin(i)*.05, vz: spray?-ty*.32+tx*side*.19:-ty*.10+Math.cos(i)*.05, life: spray?.38:.72 });
         }
       }
     }

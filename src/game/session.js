@@ -14,7 +14,7 @@ import { RACE, COLORS } from '../core/config.js';
 
 export class RaceSession {
   constructor({ onEvent = () => {}, seed = 808 } = {}) {
-    this.phase='race';this.rivalRating=[0,0,0,0,0];this.tuning='balanced';this.hazards=false;this.carIndex=0;this.clubRound=0;this.appearance={};this.guidance='auto';this.seed = seed; this.raceNumber = 0; this.level = 0; this.difficulty = 'club'; this.assisted = false; this.upgrades = {}; this.track = createTrack(0); this.physics = new PhysicsEngine(this.track);
+    this.phase='race';this.rivalRating=Array(7).fill(0);this.tuning='balanced';this.hazards=false;this.carIndex=0;this.clubRound=0;this.appearance={};this.guidance='auto';this.seed = seed; this.raceNumber = 0; this.level = 0; this.difficulty = 'club'; this.assisted = false; this.upgrades = {}; this.track = createTrack(0); this.physics = new PhysicsEngine(this.track);
     this.onEvent = onEvent; this.mode = 'race'; this.reset();
   }
   reset(mode = this.mode) {
@@ -33,9 +33,9 @@ export class RaceSession {
     this.cars = [createCar({ color: COLORS.mint, setup: carSetup(this.difficulty, this.upgrades) })];
     this.drivers = new Map();
     if (mode === 'masone' || mode === 'riviera' || mode === 'race' || mode === 'grandprix' || mode==='elimination' || this.meeting) {
-      const grid=this.track.laneCount===4?(this.meeting||mode==='grandprix'?[1,2,0,3,1,2]:[0,1,2,3,0,1]):[0,1,0,1,0,1];
+      const grid=this.track.laneCount===4?(this.meeting||mode==='grandprix'?[1,2,0,3,1,2,0,3]:[0,1,2,3,0,1,2,3]):[0,1,0,1,0,1];
       this.cars[0].lane=grid[0];
-      const rivals=[['Apex',COLORS.orange],['Volt',COLORS.blue],['Nitro',COLORS.pink],['Nyx','#bf82ff'],['Sol','#ffd453']];
+      const rivals=[['Apex',COLORS.orange],['Volt',COLORS.blue],['Nitro',COLORS.pink],['Nyx','#bf82ff'],['Sol','#ffd453'],['Vega','#89eee4'],['Kiro','#df5747']];
       rivals.forEach(([name,color],i)=>{
         const row=Math.floor((i+1)/this.track.laneCount);
         this.cars.push(createCar({id:'ai-'+(i+1),name,color,lane:grid[i+1],ai:true,
@@ -59,7 +59,7 @@ export class RaceSession {
       this.drivers.set('ai-1', new AIDriver(this.track, d.pace, {reaction:d.reaction,errorRate:d.errorRate,seed:this.seed + this.raceNumber * 7919,tactical:true}));
       if(this.cars.length>3)this.drivers.set('ai-3',new AIDriver(this.track,d.pace-.01,{reaction:d.reaction*1.05,errorRate:d.errorRate,seed:this.seed+this.raceNumber*2357,tactical:true}));
       this.drivers.set('ai-2', new AIDriver(this.track, d.pace-.025, {reaction:d.reaction*1.15,errorRate:d.errorRate*1.1,seed:this.seed + this.raceNumber * 3571 + 17,tactical:true}));
-      for(const i of [4,5])this.drivers.set('ai-'+i,new AIDriver(this.track,d.pace-(i-4)*.016,{
+      for(const i of [4,5,6,7])this.drivers.set('ai-'+i,new AIDriver(this.track,d.pace-((i-4)%2)*.016,{
         reaction:d.reaction*(i===4?.85:.94),errorRate:d.errorRate*.65,seed:this.seed+this.raceNumber*179+i,tactical:true}));
     }
     if (mode === 'local2' || mode === 'local3') {
@@ -113,7 +113,7 @@ export class RaceSession {
     if(this.status!=='qualified')return false;
     const grid=this.grid;this.reset();this.grid=grid;
     // Staggered rows on the same start straight; the timing line is shared.
-    for(const car of this.cars){const rank=grid.findIndex(p=>p.id===car.id);car.gridPosition=rank+1;car.lane=[1,2,0,3,1,2][rank];car.distance=RACE.startDistance-.34*rank;car.start=car.distance;car.pose=this.track.pose(car.distance,car.lane);}
+    for(const car of this.cars){const rank=grid.findIndex(p=>p.id===car.id);car.gridPosition=rank+1;car.lane=[1,2,0,3,1,2,0,3][rank];car.distance=RACE.startDistance-.34*rank;car.start=car.distance;car.pose=this.track.pose(car.distance,car.lane);}
     this.start();return true;
   }
   pause() {

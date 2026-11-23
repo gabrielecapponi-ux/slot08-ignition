@@ -86,6 +86,14 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
       const d=track.laneOffset(deposit.lane), wave=Math.sin(a.s*9)*.017;
       strip(a,b,d-.10+wave,d+.08+wave,deposit.type==='snow'?'#d4e1e4':'#bb986b',.004);
     }
+    if(track.weather==='rain'&&!a.tunnel&&!a.stuntRoll&&!a.loopMetric){
+      const seed=Math.floor(a.s*100),d=Math.sin(seed*4.72)*half*.92;
+      const t=((session.elapsed||0)*2.15+(seed*.618)%1)%1;
+      const h=t<.76?1.65*(1-t/.76):.004;
+      const x=a.x+d*a.nx,y=a.y+d*a.ny,z=a.z+.082-d*Math.sin(a.bank||0);
+      const impact=project(x+h*.10,y,z+h);
+      if(impact)shapes.push({rain:impact,t,depth:impact.depth-.003});
+    }
     for(const lane of track.lanes){
       const d=track.laneOffset(lane)+Math.sign(track.laneOffset(lane))*(a.fork?.offset||0)/2;
       strip(a,b,d-.014,d+.014,'#10151a',.006);
@@ -99,6 +107,13 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
   }
   shapes.sort((a,b)=>b.depth-a.depth);
   for(const s of shapes){
+    if(s.rain){
+      const {x,y,depth}=s.rain,k=focal/depth;
+      ctx.beginPath();ctx.strokeStyle='#c4e2f28a';ctx.lineWidth=Math.min(2,Math.max(.6,k*.002));
+      if(s.t<.76){ctx.moveTo(x,y);ctx.lineTo(x+k*.005,y+k*.052);}
+      else{const r=k*(.009+.046*(s.t-.76)/.24);ctx.ellipse(x,y,r,r*.28,0,0,Math.PI*2);}
+      ctx.stroke();continue;
+    }
     ctx.fillStyle=s.color;
     if(s.q){const {x,y,depth}=s.q,size=.194*focal/depth;
       ctx.save();ctx.translate(x,y);ctx.scale(size,size);

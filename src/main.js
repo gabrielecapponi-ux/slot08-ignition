@@ -124,7 +124,7 @@ function startRound(round) {
   if (round === null) { returnToPits(); return; }
   session.clubRound = round;
   session.reset('campaign');menu();journey?.hideHome();journey?.animate('lobby');
-  advance={brief:true,round,label:($('qualifying-enabled').checked?'Qualifiche':'Partenza')+' · '+courseName(round),seconds:6,last:null};
+  advance={brief:true,round,label:'Partenza'+' · '+courseName(round),seconds:6,last:null};
 }
 
 function updateAdvance(now) {
@@ -140,7 +140,7 @@ function updateAdvance(now) {
   if ($('auto-start-note').textContent !== message) $('auto-start-note').textContent = message;
   if(advance.brief){$('first-run').textContent=message+' · oppure scegli IN GRIGLIA';if(seconds===0)begin();}else if(seconds===0)startRound(advance.round);
 }
-function begin(refreshMenu=false){advance=null;journey?.hideHome();input.clear();session.rivalRating=profile.data.rivalRating;session.reset($('mode').value);menu();if($('qualifying-enabled').checked&&['campaign','grandprix'].includes(session.mode))session.beginQualifying();else session.start();setView(session.isLocal?'top':preferred);focus();window.scrollTo({top:0,behavior:'instant'});}
+function begin(refreshMenu=false){advance=null;journey?.hideHome();input.clear();session.rivalRating=profile.data.rivalRating;session.reset($('mode').value);menu();session.start();setView(session.isLocal?'top':preferred);focus();window.scrollTo({top:0,behavior:'instant'});}
 function back(){input.clear();session.reset($('mode').value);menu();loop?.resetClock();}
 function finish(tutorial){
   advance = null;
@@ -180,7 +180,7 @@ journey=new Journey({session,profile,choose:(mode,featured)=>{session.mixCourse=
   if(!session.courseBag?.length){session.courseBag=Array.from({length:MEETINGS.length},(_,i)=>i);for(let i=session.courseBag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[session.courseBag[i],session.courseBag[j]]=[session.courseBag[j],session.courseBag[i]];}}
   session.mixCourse=session.courseBag.pop();session.level=MEETINGS[session.mixCourse].level;session.reset('grandprix');
 }else if(mode==='campaign')enterClub();else session.reset(mode);menu();},grid:()=>{input.clear();session.startGrid();setView(preferred);focus();startAudio();},home:()=>{advance=null;input.clear();session.reset();menu();},restore:()=>{session.configure({upgrades:profile.data.upgrades,appearance:profile.data.appearance});enterClub();menu();}});
-on($('qualifying-enabled'),'change',()=>journey.refresh());
+
 for(const kind of ['pointerdown','keydown'])on($('lobby'),kind,()=>{if(advance?.brief){advance=null;$('first-run').textContent='Scegli il tuo assetto, poi entra in pista.';}});
 for(const v of Object.keys(cameras))on($('view-'+v),'click',()=>{setView(v,true);focus();});
 on($('export-ae'),'click',()=>{

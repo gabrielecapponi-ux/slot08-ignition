@@ -101,7 +101,9 @@ export class PhysicsEngine {
     }
     const jump=this.track.jump;
     if(jump && before.s<jump.start && this.track.sample(car.distance).s>=jump.start && car.speed<jump.minSpeed){
-      this.derail(car,before);car.crash.shortJump=true;car.distance-=5;return 'derail';
+      // A missed ramp carries the existing vertical velocity; it cannot kick the car upward.
+      const vz=car.speed*Math.sin(before.pitch||0);
+      this.derail(car,before);car.crash.vz=vz;car.crash.shortJump=true;car.distance-=5;return 'derail';
     }
     const pose = this.track.pose(car.distance, car.lane, car.change);
     if(jump){const u=(pose.s-jump.start)/jump.length;

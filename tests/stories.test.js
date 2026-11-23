@@ -21,7 +21,7 @@ test('100 campaign courses have unique geometry, closed lanes and traversable br
 test('two timed laps create a sorted grid and a fresh three-lap race',()=>{
  const events=[],s=new RaceSession({onEvent:e=>events.push(e.type)});s.reset('campaign');s.assisted=true;assert.ok(s.beginQualifying());
  for(let i=0;i<120*240&&s.status!=='qualified';i++)s.update(1/120,{throttle:1,switchLane:false});
- assert.equal(s.status,'qualified');assert.equal(s.player.laps,2);assert.ok(events.includes('qualified'));assert.ok(!events.includes('finish'));assert.equal(s.grid.length,6);
+ assert.equal(s.status,'qualified');assert.equal(s.player.laps,2);assert.ok(events.includes('qualified'));assert.ok(!events.includes('finish'));assert.equal(s.grid.length,8);
  assert.ok(s.grid.every((p,i)=>i===0||p.time>=s.grid[i-1].time));const order=s.grid.map(p=>p.id);assert.ok(s.startGrid());assert.equal(s.phase,'race');assert.equal(s.status,'countdown');assert.equal(s.player.laps,0);
  order.forEach((id,i)=>{const car=s.cars.find(c=>c.id===id);assert.equal(car.gridPosition,i+1);assert.equal(car.distance,RACE.startDistance-.34*i);});
  assert.equal(new Set(s.cars.map(c=>c.lane)).size,4);
@@ -51,7 +51,7 @@ test('requested restart happens once, preserves old progress, and restores it',(
 test('storage failure cannot erase existing career',()=>{const p=new Profile({getItem:()=>null,setItem:()=>{throw Error('quota');}});p.data.credits=420;assert.equal(p.beginNewArcadeOnce(),false);assert.equal(p.data.credits,420);});
 
 test('rival development is bounded, applied between races and never copied from player upgrades',()=>{
- const p=new Profile(null),s=new RaceSession();s.clubRound=20;s.reset('campaign');const force=s.cars[1].setup.motorForce;s.player.finishedAt=10;s.status='finished';p.complete(s);assert.equal(s.cars[1].setup.motorForce,force);assert.ok(p.data.rivalRating[0]>0);s.rivalRating=[2,-1,1];s.upgrades={motor:20};s.reset('campaign');assert.deepEqual(s.cars.slice(1).map(c=>c.upgrades.motor),[6,3,5,4,4]);
+ const p=new Profile(null),s=new RaceSession();s.clubRound=20;s.reset('campaign');const force=s.cars[1].setup.motorForce;s.player.finishedAt=10;s.status='finished';p.complete(s);assert.equal(s.cars[1].setup.motorForce,force);assert.ok(p.data.rivalRating[0]>0);s.rivalRating=[2,-1,1];s.upgrades={motor:20};s.reset('campaign');assert.deepEqual(s.cars.slice(1).map(c=>c.upgrades.motor),[6,3,5,4,4,4,4]);
 });
 
 test('endgame setups offer tradeoffs without raising the motor level limit',()=>{
@@ -64,4 +64,4 @@ test('fork inner rails retain a spinning car on its branch',async()=>{
  assert.ok(collideBarriers(crash,previous,[p],t.extraWidth));assert.ok(crash.vx*p.nx+crash.vy*p.ny>0);
 });
 
-test('fourth place does not display campaign stars that were not awarded',()=>{const p=new Profile(null),s=new RaceSession();s.reset('campaign');s.status='finished';s.player.finishedAt=12;s.cars.slice(1).forEach(c=>c.finishedAt=10);const r=p.complete(s);assert.equal(r.rank,6);assert.equal(r.stars,0);assert.equal(p.data.results[0],0);});
+test('fourth place does not display campaign stars that were not awarded',()=>{const p=new Profile(null),s=new RaceSession();s.reset('campaign');s.status='finished';s.player.finishedAt=12;s.cars.slice(1).forEach(c=>c.finishedAt=10);const r=p.complete(s);assert.equal(r.rank,8);assert.equal(r.stars,0);assert.equal(p.data.results[0],0);});

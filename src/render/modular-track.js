@@ -30,7 +30,7 @@ export function buildModularTrack(track,kit=null) {
       const tread=Math.exp(-((wheel/.025)**2)),dust=1-tread;
       const pit=random(),grit=random(),striations=.5+.5*Math.cos(wheel*1600+Math.sin(phase*2));
       const tow=carbonTow(x,y);
-      const shade=197+tow+grit*20+dust*8-tread*(52+24*striations)-(pit<.028?24:0);
+      const shade=181+tow*2.2+grit*13+dust*8-tread*(52+24*striations)-(pit<.028?24:0);
       const gloss=199+grit*37-tread*(97+20*striations);
       const i=4*(x+y*size);
       pixels[i]=Math.min(255,shade);pixels[i+1]=pixels[i];pixels[i+2]=Math.min(255,shade+dust*2);pixels[i+3]=255;
@@ -48,12 +48,20 @@ export function buildModularTrack(track,kit=null) {
   asphalt.map=treadTexture(pixels);asphalt.map.colorSpace=THREE.SRGBColorSpace;const roughness=treadTexture(finish);
   asphalt.roughnessMap=asphalt.bumpMap=roughness;asphalt.bumpScale=.0003;asphalt.clearcoatRoughnessMap=roughness;
   asphalt.addEventListener('dispose',()=>roughness.dispose());
-  asphalt.color.set('#697078');asphalt.roughness=.48;asphalt.envMapIntensity=1.45;asphalt.name="Carbonio twill sotto trasparente";
+  asphalt.color.set('#697078');asphalt.roughness=.39;asphalt.envMapIntensity=1.45;asphalt.name="Carbonio twill sotto trasparente";
   if(track.weather==='rain'){
-    asphalt.color.set('#41525c');asphalt.roughness=.23;asphalt.clearcoatRoughness=.07;asphalt.envMapIntensity=1.8;
+    asphalt.color.set('#41525c');asphalt.roughness=.23;asphalt.clearcoatRoughness=.07;asphalt.envMapIntensity=2.0;
+    // Broad wet patches break up the reflection; the woven carbon remains visible below the film.
+    asphalt.onBeforeCompile=shader=>{
+      shader.vertexShader='varying vec3 deckPoint;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n deckPoint=position;');
+      shader.fragmentShader='varying vec3 deckPoint;\n'+shader.fragmentShader.replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+        float film=smoothstep(-.45,.62,sin(deckPoint.x*2.3+cos(deckPoint.z*2.8))*.6+sin(deckPoint.z*3.8+deckPoint.x*.5)*.4);
+        roughnessFactor=mix(roughnessFactor,.085,film*.87);
+        diffuseColor.rgb*=1.-film*.19;`);
+    };
   }
-  const conductorMat=new THREE.MeshPhysicalMaterial({color:'#e1e5e6',metalness:1,roughness:.19,anisotropy:.7,anisotropyRotation:Math.PI/2,side:THREE.DoubleSide,vertexColors:true});
-  conductorMat.envMapIntensity=1.6;
+  const conductorMat=new THREE.MeshPhysicalMaterial({color:'#e1e5e6',metalness:1,roughness:track.weather==='rain'?.11:.16,anisotropy:.7,anisotropyRotation:Math.PI/2,side:THREE.DoubleSide,vertexColors:true});
+  conductorMat.envMapIntensity=1.95;
   // Longitudinal brushed scratches: mipmapped roughness, never flashing geometry.
   const brushData=new Uint8Array(128*128*4);
   for(let x=0;x<128;x++){

@@ -1,3 +1,4 @@
+import {precipitation} from './precipitation.js';
 const WEATHER_LIGHT={
  rain:{key:'#bed0df',fill:'#9eaeba',power:.57,near:9,far:58},
  snow:{key:'#e1efff',fill:'#ccdce7',power:.75,near:7,far:49},
@@ -68,7 +69,7 @@ export class Scene3D {
   const map=new THREE.DataTexture(data,edge,edge);map.needsUpdate=true;this.shadowTexture=map;return map;
  }
  fallbackCar(){const root=new THREE.Group();const b=new THREE.Mesh(new THREE.BoxGeometry(.3,.065,.15),new THREE.MeshStandardMaterial({name:'MAT_lime_enamel',color:0xc6f568,roughness:.25}));b.position.y=.06;root.add(b);const r=new THREE.Mesh(new THREE.BoxGeometry(.13,.045,.10),new THREE.MeshStandardMaterial({color:0x152b38}));r.position.y=.11;root.add(r);return root;}
- setTrack(track){this.trackEnvironmentTarget?.dispose();this.trackEnvironmentTarget=null;this.environmentPending=true;this.track=track;if(this.staticRoot){this.scene.remove(this.staticRoot);this.disposeRoot(this.staticRoot);}this.staticRoot=buildModularTrack(track,this.kit);this.staticRoot.updateMatrixWorld(true);this.staticRoot.traverse(o=>{o.matrixAutoUpdate=false;});this.world=new MiniatureWorld(track,this.kit);this.staticRoot.add(this.world.root);if(track.meeting)this.staticRoot.add(clubRoom(track));this.scene.add(this.staticRoot);
+ setTrack(track){this.trackEnvironmentTarget?.dispose();this.trackEnvironmentTarget=null;this.environmentPending=true;this.track=track;if(this.staticRoot){this.scene.remove(this.staticRoot);this.disposeRoot(this.staticRoot);}this.staticRoot=buildModularTrack(track,this.kit);this.precip=precipitation(track);if(this.precip)this.staticRoot.add(this.precip);this.staticRoot.updateMatrixWorld(true);this.staticRoot.traverse(o=>{o.matrixAutoUpdate=false;});this.world=new MiniatureWorld(track,this.kit);this.staticRoot.add(this.world.root);if(track.meeting)this.staticRoot.add(clubRoom(track));this.scene.add(this.staticRoot);
   const theme=THEMES[track.theme]??THEMES.forest;this.sky?.dispose();this.sky=skyTexture(track.theme,track.index,this.mobile,track.meeting?.world);this.scene.background=this.sky;this.raceFog=new THREE.Fog(theme.sky,28,102);this.scene.fog=this.raceFog;this.ground.material.color.set(theme.floor);this.applyLighting();this.rig.setTrack(track);this.tuneTextures();this.dirty=true;
  }
  applyLighting(){
@@ -194,7 +195,11 @@ export class Scene3D {
    if(this.rig.elevation<0)this.stage.visible=false;
    this.rig.garageBounds=car.userData.bodyBounds;this.switchGlow.visible=false;this.brakeMarks.visible=false;this.rig.update(session,dt);this.submitFrame(rawDt);return;}
   if(!this.scene.fog)this.scene.fog=this.raceFog;
-  if(this.raceCars!==session.cars){this.raceCars=session.cars;this.skidEffects.reset();}this.skidEffects.update(session.cars,session.status==='running'?dt:0,this.camera);this.world.update(dt,this.rig.mode,['running','ready'].includes(session.status),session.players.some(c=>this.track.tunnelAt?.(c.distance,1.8)));this.rig.update(session,dt,alpha);
+  if(this.raceCars!==session.cars){this.raceCars=session.cars;this.skidEffects.reset();}this.skidEffects.update(session.cars,session.status==='running'?dt:0,this.camera,this.track.weather==='rain');this.world.update(dt,this.rig.mode,['running','ready'].includes(session.status),session.players.some(c=>this.track.tunnelAt?.(c.distance,1.8)));this.rig.update(session,dt,alpha);
+  if(this.precip){
+   this.precip.visible=['countdown','running','paused'].includes(session.status);
+   if(!this.rig.motion.matches && session.status!=='paused')this.precip.material.uniforms.clock.value=(session.elapsed+3-session.countdown)%3600;
+  }
   const lit=session.status==='countdown'?Math.min(5,1+Math.floor((3-session.countdown)*2)):0;
   for(const [i,mat] of (this.staticRoot.userData.startLights??[]).entries())mat.emissiveIntensity=i<lit?2.7:0;
   this.glints.update(session,this.camera,this.sun,session.status==='running'&&!this.rig.motion.matches);

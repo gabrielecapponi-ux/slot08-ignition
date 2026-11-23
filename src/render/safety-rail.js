@@ -22,7 +22,7 @@ function hazardMap(){
 export function buildSafetyRail(track){
  const root=new THREE.Group();root.name='Aegis 08 · barriere continue';
  const e=track.extraWidth||0,texture=hazardMap();
- const enamel=new THREE.MeshPhysicalMaterial({name:'Acciaio nero e giallo smaltato',map:texture,metalness:.66,roughness:.34,clearcoat:.55,clearcoatRoughness:.24});
+ const enamel=new THREE.MeshPhysicalMaterial({name:'Acciaio nero e giallo smaltato',map:texture,metalness:.78,roughness:track.weather==='rain'?.21:.31,clearcoat:.85,clearcoatRoughness:track.weather==='rain'?.09:.19});
  const steel=new THREE.MeshStandardMaterial({name:'Acciaio zincato satinato',color:'#c3cbd0',metalness:.86,roughness:.23});
  const graphite=new THREE.MeshStandardMaterial({name:'Montanti in acciaio grafite',color:'#242d32',metalness:.72,roughness:.32});
  const yellow=new THREE.MeshPhysicalMaterial({name:'Rifrangenti ambra',color:'#ffc72c',metalness:.26,roughness:.20,clearcoat:.8,emissive:'#ffa000',emissiveIntensity:.12});

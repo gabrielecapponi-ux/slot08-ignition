@@ -1,3 +1,4 @@
+import {plantStand} from './trees.js';
 import {portalVertices,portalTriangles} from './portal-mesh.js';
 import * as THREE from 'three';
 import {landmarkPlacements,levelLandmarkFoundations} from './landmarks.js';
@@ -70,6 +71,12 @@ export class MiniatureWorld {
   }
   // Portals are editable Blender models; the curved roof is swept along the same slot path.
   // Open portal jambs leave the racing line and camera corridor unobstructed.
+  for(const species of ['pine','oak','palm']){
+   const name='PROP_'+species,list=groups.get(name)??[];
+   const detailed=kit?.items?.has(name);
+   plantStand(species,detailed?list.filter((_,i)=>i%3===0):list,this.root,track.weather);
+   groups.set(name,detailed?list.filter((_,i)=>i%3!==0):[]);
+  }
   if(kit){for(const [name,list]of groups)kit.instance(name,list,this.root);
    const wind=groups.get('PROP_windmill')??[];for(const p of wind.slice(0,4)){const rotor=kit.clone('ANIM_rotor');rotor.position.set(p.x-Math.sin(p.angle)*.19*p.scale,p.scale*1.45,p.y-Math.cos(p.angle)*.19*p.scale);rotor.rotation.order='YXZ';rotor.rotation.y=p.angle;rotor.scale.setScalar(p.scale);this.root.add(rotor);this.animated.push({root:rotor,type:'rotor'});}
    const near=points[Math.floor(points.length*.16)],species=track.theme==='alpine'?'ibex':track.theme==='canyon'||track.theme==='forest'?'fox':'deer';

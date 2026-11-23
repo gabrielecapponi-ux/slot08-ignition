@@ -831,3 +831,9 @@ button{font-size:14px;border-radius:24px;font-weight:450;transition:background .
  #app #mode-home #mode-choices{order:2;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}
  #app #mode-home .home-save{order:3}
 }
+
+#weather-fx[data-sky=rain]::before{opacity:.16}
+#weather-fx[data-sky=rain]::after{opacity:.08}
+#weather-fx[data-sky=snow]::before{opacity:.57}
+#weather-fx[data-sky=sand]::before{opacity:.51}
+#weather-fx[data-sky=heat]::after{background:radial-gradient(ellipse at 42% 72%,#ffe2ad26,transparent 53%),radial-gradient(ellipse at 80% 48%,#fff1c51f,transparent 44%)}

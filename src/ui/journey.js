@@ -7,11 +7,11 @@ import { formatTime } from '../core/math.js';
 const $=id=>document.getElementById(id);
 const MODES=[
  ['campaign','arcade','Arcade','Una tessera, dieci mondi. La tua storia al club.'],
- ['mix','duel','Griglia a sorpresa','Pesca un circuito tra 100. Sei piloti e 35 crediti per ogni giro pulito.'],
+ ['mix','duel','Griglia a sorpresa','Pesca un circuito tra 100. Otto piloti e 35 crediti per ogni giro pulito.'],
  ['masone','wheel','Masone Verticale','Un giro della morte tra gli alberi.'],
  ['riviera','wheel','Riviera Doppio Loop','Due anelli verticali sul rettilineo costiero.'],
  ['time','chrono','Time Trial','Solo tu, tre settori e un tempo da battere.'],
- ['grandprix','trophy','Grand Prix','Sei auto. Qualifiche e tre giri di gara.'],
+ ['grandprix','trophy','Grand Prix','Otto auto, tre giri e partenza diretta.'],
  ['elimination','duel','Ultimo rimasto','Dopo 45 secondi esce l’ultimo. Poi ogni 35.'],
  ['local2','wheel','Club locale','Due o tre piloti, fianco a fianco sullo stesso schermo.']
 ];
@@ -66,8 +66,7 @@ export class Journey {
   $('chapter-title').textContent=world!=null?SECTORS[world][0]:MODES.find(m=>m[0]===s.mode)?.[2]||'Il tuo club';
   $('chapter-copy').textContent=world!=null?s.track.level.name+' · '+s.track.level.subtitle:MODES.find(m=>m[0]===s.mode)?.[3]||'Scegli il circuito e porta la tua auto in griglia.';
   $('chapter-kicker').textContent=world!=null?'CAPITOLO '+(world+1)+' · GARA '+(s.meeting.round+1)+' / 10':'SESSIONE LIBERA';
-  $('qualifying-setting').hidden=!['campaign','grandprix'].includes(s.mode);
-  $('start-label').textContent=['campaign','grandprix'].includes(s.mode)&&$('qualifying-enabled').checked?'QUALIFICHE · 2 GIRI':s.mode==='time'?'ENTRA IN PISTA':'IN GRIGLIA';
+  $('start-label').textContent=s.mode==='time'?'ENTRA IN PISTA':'IN GRIGLIA';
   drawCourse($('circuit-preview'),s.track);
   $('circuit-preview').setAttribute('aria-label','Anteprima isometrica del circuito '+s.track.level.name);
   this.animate('circuit-preview');
