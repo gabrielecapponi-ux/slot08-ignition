@@ -38,7 +38,7 @@ let canvas=$('game');
 try{if(new URLSearchParams(location.search).get('renderer')==='2d')throw Error('2D requested');const {Scene3D}=await import('./render/scene3d.js');renderer=new Scene3D(canvas,session.track,{onStatus:status,onLost:()=>{session.pause();status('GRAFICA SOSPESA');$('poster').hidden=false;},onRestored:()=>{$('poster').hidden=true;status('3D RIPRISTINATO');}});graphics3D=true;}
 catch(e){console.warn('Canvas fallback',e);const copy=canvas.cloneNode(true);canvas.replaceWith(copy);canvas=copy;const {Canvas2D}=await import('./render/canvas2d.js');renderer=new Canvas2D(canvas,session.track,{onStatus:status});}
 const cameras={chase:'Da dietro',drone:'Drone',macro:'Frontale GT',rail:'Bordo pista',iso:'Panoramica',top:'Dall’alto'};
-const availableViews=graphics3D?Object.keys(cameras):['chase','top'];
+const availableViews=graphics3D?Object.keys(cameras):['chase','drone','top'];
 const selector=$('race-camera');
 for(const mode of Object.keys(cameras)){
   if(availableViews.includes(mode))selector.add(new Option(cameras[mode],mode));

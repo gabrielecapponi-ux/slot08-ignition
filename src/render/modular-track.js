@@ -6,6 +6,7 @@ import { PHYSICS } from '../core/config.js';
 
 /** Longer circuits reuse the Blender GT while building their modular toy road
  * from the exact simulation path. Geometry is constructed only on track change. */
+import {carbonTow} from './material-grain.js';
 export function buildModularTrack(track,kit=null) {
   const e=track.extraWidth??0,lanes=track.lanes.map(l=>track.laneOffset(l));
   const mobile=globalThis.matchMedia?.('(pointer: coarse)')?.matches;
@@ -26,13 +27,13 @@ export function buildModularTrack(track,kit=null) {
       let wheel=Infinity;for(const d of lanes)wheel=Math.min(wheel,Math.abs(Math.abs(across-weave-d)-.069));
       const tread=Math.exp(-((wheel/.025)**2)),dust=1-tread;
       const pit=random(),grit=random(),striations=.5+.5*Math.cos(wheel*1600+Math.sin(phase*2));
-      const tow=((Math.floor(x/6)+Math.floor(y/6))%4<2?1:-1)*(23+11*Math.sin((x+y)*Math.PI/6));
+      const tow=carbonTow(x,y);
       const shade=197+tow+grit*20+dust*8-tread*(52+24*striations)-(pit<.028?24:0);
       const gloss=199+grit*37-tread*(97+20*striations);
       const i=4*(x+y*size);
       pixels[i]=Math.min(255,shade);pixels[i+1]=pixels[i];pixels[i+2]=Math.min(255,shade+dust*2);pixels[i+3]=255;
       // Three.js reads roughness from green and bump from red.
-      finish[i]=pit<.028?24:130+(grit-.5)*110*dust;
+      finish[i]=pit<.028?24:127+tow*1.7+(grit-.5)*28*dust;
       finish[i+1]=gloss;finish[i+2]=0;finish[i+3]=255;
     }
   }
@@ -40,7 +41,7 @@ export function buildModularTrack(track,kit=null) {
     const texture=new THREE.DataTexture(data,size,size);
     texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.generateMipmaps=true;
     texture.minFilter=THREE.LinearMipmapLinearFilter;texture.magFilter=THREE.LinearFilter;
-    texture.anisotropy=2;texture.needsUpdate=true;return texture;
+    texture.anisotropy=8;texture.needsUpdate=true;return texture;
   }
   asphalt.map=treadTexture(pixels);asphalt.map.colorSpace=THREE.SRGBColorSpace;const roughness=treadTexture(finish);
   asphalt.roughnessMap=asphalt.bumpMap=roughness;asphalt.bumpScale=.0003;asphalt.clearcoatRoughnessMap=roughness;

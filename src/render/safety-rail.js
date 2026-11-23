@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {barrierPixel} from './material-grain.js';
 import { BARRIER } from '../physics/barriers.js';
 
 // One coordinate convention for road shoulders, barriers and their anchors.
@@ -10,10 +11,7 @@ export function trackPoint(p,offset,height=0,forkSide=Math.sign(offset)) {
 function hazardMap(){
  const n=256,data=new Uint8Array(n*n*4);
  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
-  // An enamel hazard panel occupies 52% of each 1.2 m section. The remainder is graphite.
-  const panel=x>56&&x<190, stripe=((x+Math.round(y*.28))%64)<28;
-  const yellow=panel&&stripe,grain=((x*37+y*71)%17)/17;
-  data.set(yellow?[235+grain*14,179+grain*18,28+grain*8,255]:[24+grain*5,29+grain*5,34+grain*5,255],(x+y*n)*4);
+  data.set([...barrierPixel(x,y),255],(x+y*n)*4);
  }
  const t=new THREE.DataTexture(data,n,n);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;
  t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;t.anisotropy=4;t.needsUpdate=true;return t;
@@ -24,7 +22,7 @@ function hazardMap(){
 export function buildSafetyRail(track){
  const root=new THREE.Group();root.name='Aegis 08 · barriere continue';
  const e=track.extraWidth||0,texture=hazardMap();
- const enamel=new THREE.MeshPhysicalMaterial({name:'Acciaio nero e giallo smaltato',map:texture,metalness:.66,roughness:.27,clearcoat:.72,clearcoatRoughness:.13});
+ const enamel=new THREE.MeshPhysicalMaterial({name:'Acciaio nero e giallo smaltato',map:texture,metalness:.66,roughness:.34,clearcoat:.55,clearcoatRoughness:.24});
  const steel=new THREE.MeshStandardMaterial({name:'Acciaio zincato satinato',color:'#c3cbd0',metalness:.86,roughness:.23});
  const graphite=new THREE.MeshStandardMaterial({name:'Montanti in acciaio grafite',color:'#242d32',metalness:.72,roughness:.32});
  const yellow=new THREE.MeshPhysicalMaterial({name:'Rifrangenti ambra',color:'#ffc72c',metalness:.26,roughness:.20,clearcoat:.8,emissive:'#ffa000',emissiveIntensity:.12});

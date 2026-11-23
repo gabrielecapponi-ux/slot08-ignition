@@ -8,7 +8,7 @@ export const PARTS=Object.freeze({
  lights:{label:'Luci',names:['Automatico','Sottoscocca','Due LED','Tre LED','Quattro LED','Rally bar','Fendinebbia','Rally tondi','LED ambra','Light pod','Endurance LED']},
  exhaust:{label:'Scarichi',names:['Automatico','Twin','Twin XL','Quad','Quad XL','Titanium','Laterali','Centrale','Triplo','Uscite alte','Sidewinder']},
 });
-export const PAINTS=['#c6f568','#ff854e','#8bbcff','#ef6763','#f1cf68','#f0eee2','#293b53','#c1a2ed','#51b5a0','#b7c3cd','#d65eaa','#7b4637','#dd9b65','#337593','#e9aaaf','#6f7856'];
+export const PAINTS=['#c6f568','#ff854e','#8bbcff','#ef6763','#f1cf68','#f0eee2','#293b53','#c1a2ed','#51b5a0','#b7c3cd','#d65eaa','#7b4637','#dd9b65','#337593','#e9aaaf','#6f7856','#96ff00','#ff300a','#00dfff','#ff007c','#ffbe00','#6734ff'];
 export const DECALS=['Serie','Doppia striscia','Monostrip','Tricolore','Scacchi','Rally','Lampo','Carbon'];
 export const TRIM={glass:[["#30404c","Fumé"],["#486881","Azzurro"],["#5d6952","Verde"]],seat:[["#333e49","Grafite"],["#a83232","Rosso corsa"],["#ae8157","Cuoio"]]};
 export const DEFAULT_APPEARANCE=Object.freeze({glass:"#30404c",seat:"#333e49",paint:PAINTS[0],decal:0,wing:0,wheels:0,hood:0,aero:0,lights:0,exhaust:0});

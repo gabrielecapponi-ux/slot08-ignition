@@ -13,9 +13,9 @@ export class FixedLoop {
       this.accumulator -= PHYSICS.fixedStep;
     }
     this.renderAccumulator+=Math.max(0,delta);
-    if(!this.renderInterval||this.renderAccumulator+1e-8>=this.renderInterval||delta===0){
+    if(!this.renderInterval||this.renderAccumulator+.0008>=this.renderInterval||delta===0){
       this.render(this.accumulator / PHYSICS.fixedStep, now / 1000);
-      if(this.renderInterval)this.renderAccumulator=Math.max(0,this.renderAccumulator-Math.floor((this.renderAccumulator+1e-8)/this.renderInterval)*this.renderInterval);
+      if(this.renderInterval)this.renderAccumulator-=Math.floor((this.renderAccumulator+.0008)/this.renderInterval)*this.renderInterval;
     }
     this.id = requestAnimationFrame(this.frame);
   };

@@ -52,9 +52,9 @@ export class CameraRig {
       look.set(p.x+tx*lead*.45+(road.x-p.x)*.55,ground+.06+clamp(road.z-p.z,-.55,.7)*.55,p.y+ty*lead*.45+(road.y-p.y)*.55);
       fov=(aspect<1?64:58)+(this.motion.matches?0:pace*4);
     }else if(moving && this.mobileRace && !session.isLocal && this.mode==='drone'){
-      const upcoming=this.track.sample(session.player.distance+1.25);
-      pos.set(p.x-tx*1.7,ground+(aspect<1?2.25:1.85),p.y-ty*1.7);
-      look.set(p.x+(upcoming.x-p.x)*.8,ground+.8*((upcoming.z||0)-(p.z||0)),p.y+(upcoming.y-p.y)*.8);
+      const lookAhead=.53;
+      pos.set(p.x-tx*1.04,ground+(aspect<1?1.14:.89),p.y-ty*1.04);
+      look.set(p.x+tx*lookAhead,ground+.05,p.y+ty*lookAhead);
       fov=aspect<1?57:52;
     }else if(moving&&!session.isLocal&&(this.mode==='macro'||(session.status==='countdown'&&this.mode==='drone'&&!this.motion.matches))){
       // At guide-pin height, a front three-quarter view keeps the grille, the rims and rails together.
@@ -62,7 +62,7 @@ export class CameraRig {
       pos.set(p.x+tx*offset-ty*.22,ground+.17,p.y+ty*offset+tx*.22);
       look.set(p.x,ground+.055,p.y);fov=portrait?44:34;
     }else if(moving&&this.mode==='drone'){
-      const v=session.player.speed,reach=.90+Math.min(v,5)*.045;pos.set(p.x-tx*reach,ground+(aspect<.9?.62:.56)+Math.min(v,5)*.025,p.y-ty*reach);
+      const v=session.player.speed,reach=.73+Math.min(v,5)*.025;pos.set(p.x-tx*reach,ground+(aspect<.9?.54:.46)+Math.min(v,5)*.014,p.y-ty*reach);
       look.set(p.x,ground+.055,p.y);fov=aspect<.9?48:42;
       // Raise the following drone over the upper deck while the car is underneath.
       if(this.track.tunnelAt?.(session.player.distance,1.6)){pos.set(p.x-tx*.8,ground+.39,p.y-ty*.8);look.set(p.x,ground+.055,p.y);fov=66;}

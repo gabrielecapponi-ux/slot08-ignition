@@ -115,7 +115,7 @@ export class Scene3D {
   root.traverse(node=>{
    const m=node.material;
    if(m?.isMeshPhysicalMaterial&&m.name.startsWith('MAT_lime_enamel')&&node.geometry.attributes.uv){
-    m.clearcoatNormalMap=this.lacquer??=lacquerTexture();m.clearcoatNormalScale.setScalar(.13);
+    m.clearcoatNormalMap=this.lacquer??=lacquerTexture();m.clearcoatNormalScale.setScalar(.055);
    }
   });installHardware(root,car,source?.userData.hasSeats);installCarMotion(root,source);
   const fins=new THREE.BufferGeometry();fins.setAttribute('position',new THREE.Float32BufferAttribute(diffuserVertices,3));fins.setIndex(diffuserTriangles);fins.computeVertexNormals();

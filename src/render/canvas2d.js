@@ -5,7 +5,7 @@ import { createLandscape } from '../track/landscape.js';
 import { THEMES } from '../track/themes.js';
 import { railSites, passageGlint } from './rail-passage.js';
 import { PHYSICS } from '../core/config.js';
-import { bodyPose } from '../physics/grip.js';
+import { racePose } from './race-pose.js';
 /** Playable no-WebGL fallback. Never runs concurrently with the 3D renderer. */
 export class Canvas2D {
   constructor(canvas,track,{onStatus}={}){this.kind='2d';this.canvas=canvas;this.track=track;this.glintSites=railSites(track);this.motion=window.matchMedia('(prefers-reduced-motion: reduce)');this.ctx=canvas.getContext('2d');this.view='top';this.studio=new SoftwareGarage(()=>{this.dirty=true;});this.ready=this.studio.ready;this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas.parentElement);this.resize();onStatus?.('VISTA 2D · COMPATIBILITÀ');}
@@ -103,7 +103,7 @@ export class Canvas2D {
       c.globalAlpha=hit.amount;c.fillStyle=streak;c.fillRect(-.095,-.007,.19,.014);c.restore();
     }
   }
-  drawCar(car){if(car.state==='eliminated')return;const p=car.crash??bodyPose(car.pose,car.driftAngle),c=this.ctx;c.save();c.translate(p.x,p.y-p.z*.45);c.rotate(p.angle);if(car.skid>.16){c.strokeStyle='#121719aa';c.lineWidth=.018;for(const side of [-1,1]){c.beginPath();c.moveTo(-.12,side*.06);c.lineTo(-.31,side*.06);c.stroke();}} c.shadowColor='#0008';c.shadowBlur=.07*this.scale;if(car.crash)c.scale(1,.55+.45*Math.abs(Math.cos(car.crash.roll||0)));
+  drawCar(car,alpha=1){if(car.state==='eliminated')return;const p=car.crash??racePose(car,alpha),c=this.ctx;c.save();c.translate(p.x,p.y-p.z*.45);c.rotate(p.angle);if(car.skid>.16){c.strokeStyle='#121719aa';c.lineWidth=.018;for(const side of [-1,1]){c.beginPath();c.moveTo(-.12,side*.06);c.lineTo(-.31,side*.06);c.stroke();}} c.shadowColor='#0008';c.shadowBlur=.07*this.scale;if(car.crash)c.scale(1,.55+.45*Math.abs(Math.cos(car.crash.roll||0)));
     const sprite=!this.garage&&this.studio.raceSprite(car);
     if(sprite){c.drawImage(sprite,-.24,-.16,.48,.32);c.restore();return;}
     const enamel=c.createLinearGradient(0,-.08,0,.08);enamel.addColorStop(0,'#f4f4ca');enamel.addColorStop(.25,car.color);enamel.addColorStop(.72,car.color);enamel.addColorStop(1,'#243039');
@@ -214,6 +214,6 @@ export class Canvas2D {
     } finally {this.ctx=live;}
     return bitmap;
   }
-  render(session){if(this.track!==session.track){this.track=session.track;this.glintSites=railSites(this.track);this.resize();}if(this.garage){const c=this.ctx,w=this.canvas.width,h=this.canvas.height;if(this.studio.draw(c,w,h,this.preview))return;c.setTransform(1,0,0,1,0,0);c.fillStyle='#152330';c.fillRect(0,0,w,h);c.save();c.translate(w*(w/h<.9?.5:.7),h*(w/h<.9?.22:.5));const size=Math.min(w*.85,h)*1.5;c.scale(size,size);this.drawCar({...session.player,color:this.preview.appearance.paint,pose:{x:0,y:0,z:0,angle:0,tx:1,ty:0},driftAngle:0});c.restore();return;}const key=[session.status,session.mode,session.player.distance,session.player.state].join('|');if(!['running','countdown'].includes(session.status)&&!this.dirty&&this.lastKey===key)return;this.lastKey=key;this.dirty=false;const c=this.ctx,w=this.canvas.width,h=this.canvas.height;c.setTransform(1,0,0,1,0,0);if(this.view==='chase' && ['running','countdown','paused'].includes(session.status)){drawChase(c,this.canvas,session,this.studio);return;}this.backdrop??=this.landscape();c.drawImage(this.backdrop,0,0);c.setTransform(this.scale,0,0,this.scale,this.originX,this.originY);if(session.status==='running'&&!this.motion.matches)this.drawGlints(session.cars);session.cars.forEach(a=>this.drawCar(a)); }
+  render(session,alpha=1){if(this.track!==session.track){this.track=session.track;this.glintSites=railSites(this.track);this.resize();}if(this.garage){const c=this.ctx,w=this.canvas.width,h=this.canvas.height;if(this.studio.draw(c,w,h,this.preview))return;c.setTransform(1,0,0,1,0,0);c.fillStyle='#152330';c.fillRect(0,0,w,h);c.save();c.translate(w*(w/h<.9?.5:.7),h*(w/h<.9?.22:.5));const size=Math.min(w*.85,h)*1.5;c.scale(size,size);this.drawCar({...session.player,color:this.preview.appearance.paint,pose:{x:0,y:0,z:0,angle:0,tx:1,ty:0},driftAngle:0});c.restore();return;}const key=[session.status,session.mode,session.player.distance,session.player.state].join('|');if(!['running','countdown'].includes(session.status)&&!this.dirty&&this.lastKey===key)return;this.lastKey=key;this.dirty=false;const c=this.ctx,w=this.canvas.width,h=this.canvas.height;c.setTransform(1,0,0,1,0,0);if(['chase','drone'].includes(this.view) && ['running','countdown','paused'].includes(session.status)){drawChase(c,this.canvas,session,this.studio,alpha,this.view);return;}this.backdrop??=this.landscape();c.drawImage(this.backdrop,0,0);c.setTransform(this.scale,0,0,this.scale,this.originX,this.originY);if(session.status==='running'&&!this.motion.matches)this.drawGlints(session.cars);session.cars.forEach(a=>this.drawCar(a,alpha)); }
   destroy(){this.resizeObserver.disconnect();this.studio.destroy();}
 }
