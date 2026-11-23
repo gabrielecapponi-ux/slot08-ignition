@@ -42,6 +42,17 @@ export class RaceSession {
           start:RACE.startDistance-row*.65,setup:carSetup(this.difficulty,this.upgrades)}));
       });
       if(this.meeting) for(const [i,bot] of this.cars.slice(1).entries()){const level=Math.max(0,Math.min(20,this.meeting.world+Math.floor((this.meeting.round+1)/3)+Math.round(this.rivalRating[i]||0)));bot.rivalLevel=level;bot.setup=carSetup(this.difficulty,{motor:level+2,grip:level+1,brake:level+2,gearing:level+1,brush:2});bot.maxGrip=bot.setup.gripForce;}
+      if(this.difficulty==='hyper'){
+        // Set the grid specification before the lights. Pace never depends on race position.
+        for(const [index,bot] of this.cars.slice(1).entries()){
+          const kit={}, factory=(bot.rivalLevel??0)+4+(index%2);
+          for(const key of ['motor','grip','gearing','brake','brush','diffuser']){
+            kit[key]=Math.max(factory,(this.upgrades[key]??0)+3);
+          }
+          bot.gridKit=kit;
+          bot.setup=carSetup('hyper',kit);bot.maxGrip=bot.setup.gripForce;
+        }
+      }
       const standard=DIFFICULTIES[this.difficulty];
       const competitive=!this.assisted && this.difficulty!=='rookie';
       const d=competitive?{...standard,pace:standard.pace+.032,reaction:standard.reaction*.78,errorRate:standard.errorRate*.55}:standard;
@@ -68,7 +79,7 @@ export class RaceSession {
       const spec=FLEET[car.chassis];
       car.setup.maxSpeed*=spec.speed;car.setup.motorForce*=spec.drive;car.maxGrip*=spec.grip;
       const rivalSetup=car.ai && this.meeting;
-      car.upgrades=rivalSetup?{motor:car.rivalLevel,grip:car.rivalLevel,brake:car.rivalLevel}:{...this.upgrades};
+      car.upgrades=car.gridKit??(rivalSetup?{motor:car.rivalLevel,grip:car.rivalLevel,brake:car.rivalLevel}:{...this.upgrades});
       car.appearance=rivalSetup?{}:{...this.appearance};
       car.maxGrip*=1+.003*(car.appearance.wheels||0)+.002*(car.appearance.wing||0);
       if(this.meeting)car.maxGrip*=this.difficulty==='rookie'?.97:this.difficulty==='pro'?.90:.94;

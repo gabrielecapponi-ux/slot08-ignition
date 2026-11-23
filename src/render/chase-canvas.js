@@ -64,7 +64,7 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
     if(track.jump&&a.s>=track.jump.start&&a.s<track.jump.start+track.jump.length){a=b;continue;}
     for(const sign of [-1,1]){
       const offset=sign*(a.fork?.offset||0)/2;
-      strip(a,b,offset,offset+sign*half,'#303941');
+      strip(a,b,offset,offset+sign*half,track.weather==='rain'&&!a.tunnel?'#344955':'#303941');
       strip(a,b,offset+sign*half,offset+sign*(half+.07),Math.floor(a.s/.44)%2?'#dda947':'#37414a',.045);
     }
     for(const sign of [-1,1]){
@@ -80,6 +80,11 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
     if(bend){
       const outer=-Math.sign(track.sample(bend.start+.12).curvature);
       strip(a,b,outer*(half+.015),outer*(half+.077),Math.floor(a.s/.18)%4===0?'#f2e8cd':bend.climb?'#cc792b':'#338e9a',.084);
+    }
+    const deposit=track.conditions.find(z=>(z.type==='snow'||z.type==='sand')&&a.s>=z.start&&a.s<z.start+z.length);
+    if(deposit){
+      const d=track.laneOffset(deposit.lane), wave=Math.sin(a.s*9)*.017;
+      strip(a,b,d-.10+wave,d+.08+wave,deposit.type==='snow'?'#d4e1e4':'#bb986b',.004);
     }
     for(const lane of track.lanes){
       const d=track.laneOffset(lane)+Math.sign(track.laneOffset(lane))*(a.fork?.offset||0)/2;

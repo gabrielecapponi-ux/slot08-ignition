@@ -109,7 +109,7 @@ function menu(){
     $('world-picker').innerHTML=WORLDS.map(([name],i)=>`<option value="${i}" ${i>unlocked?'disabled':''} ${world===i?'selected':''}>${i+1} · ${name}${i>unlocked?' · bloccato':''}</option>`).join('');
     $('club-event').textContent='Gara '+(event.round+1)+'/10 · '+stars+'/30 stelle · 2 stelle per avanzare'+(world<9?' · prossimo mondo a '+STAR_GATE+' stelle':' · finale del tour');
     $('club-calendar').innerHTML=WORLDS[world][1].map((level,i)=>{
-      const id=raceId(world,i),n=profile.data.results[id],locked=i>0&&profile.data.results[raceId(world,i-1)]<2;return `<li class="${id===session.clubRound?'current':''}"><button data-round="${id}" ${locked?'disabled':''} aria-pressed="${id===session.clubRound}">${trackIcon(level,id)}<span class="route-state">${locked?'Bloccata':id===session.clubRound?'In griglia':n?'Completata':'Disponibile'}</span><small>GARA ${i+1} · ${'★'.repeat(n)+'☆'.repeat(3-n)}${locked?' · 2 STELLE NELLA GARA PRECEDENTE':''}</small><strong>${courseName(id)}</strong><span>Motore consigliato · Lv. ${world+Math.floor((i+1)/3)}</span></button></li>`;
+      const id=raceId(world,i),n=profile.data.results[id],locked=i>0&&profile.data.results[raceId(world,i-1)]<2;return `<li class="${id===session.clubRound?'current':''}"><button data-round="${id}" ${locked?'disabled':''} aria-pressed="${id===session.clubRound}">${trackIcon(level,id)}<span class="route-state">${locked?'Bloccata':id===session.clubRound?'In griglia':n?'Completata':'Disponibile'}</span><small>GARA ${i+1} · ${'★'.repeat(n)+'☆'.repeat(3-n)}</small><strong>${courseName(id)}</strong><span>Motore consigliato · Lv. ${world+Math.floor((i+1)/3)}</span></button></li>`;
     }).join('');
   }
   $('level-list').hidden=!!event;$('free-circuits').hidden=!!event;$('club-calendar').hidden=!event;
@@ -167,7 +167,14 @@ on($('level-list'),'click',e=>{session.mixCourse=null;const button=e.target.clos
 function selectRound(id){advance=null;if(Number.isInteger(id)&&MEETINGS[id]?.world<=openWorld(profile.data.results)&&(MEETINGS[id].round===0||profile.data.results[raceId(MEETINGS[id].world,MEETINGS[id].round-1)]>=2)){session.clubRound=id;session.reset('campaign');menu();}}
 on($('atlas-stops'),'click',e=>{const b=e.target.closest('[data-world]');if(b)selectRound(Number(b.dataset.world)*5);});
 on($('world-picker'),'change',()=>selectRound(Number($('world-picker').value)*5));
-on($('club-calendar'),'click',e=>{const b=e.target.closest('[data-round]');if(b)selectRound(Number(b.dataset.round));});
+on($('lobby-nav'),'click',e=>{
+  const target=e.target.closest('[data-target]')?.dataset.target;
+  if(!target)return;
+  const el=$(target==='club-calendar' && !session.meeting?'level-list':target);
+  const control=el.querySelector('button:not(:disabled), select')??el;
+  control.focus({preventScroll:true});el.scrollIntoView({block:'start'});
+});
+on($('club-calendar'),'click',e=>{const b=e.target.closest('[data-round]');if(b){selectRound(Number(b.dataset.round));$('start').focus({preventScroll:true});$('start').scrollIntoView({block:'center'});}});
 const workshop=new Workshop(profile,session,renderer,menu);
 journey=new Journey({session,profile,choose:(mode,featured)=>{session.mixCourse=null;if(mode==='featured'){session.mixCourse=featured;session.level=MEETINGS[featured].level;session.reset('grandprix');}else if(mode==='mix'){
   if(!session.courseBag?.length){session.courseBag=Array.from({length:MEETINGS.length},(_,i)=>i);for(let i=session.courseBag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[session.courseBag[i],session.courseBag[j]]=[session.courseBag[j],session.courseBag[i]];}}
@@ -257,7 +264,7 @@ on($('sound'),'click',()=>{
   showAudio(); void syncAudio(); focus();
 });
 loop=new FixedLoop(dt=>{for(const c of session.cars){c.previousDistance=c.distance;c.previousPose=c.pose;c.previousDrift=c.driftAngle;c.previousState=c.state;}session.update(dt,input.readAll());},(alpha,now)=>{loop.setRenderRate(graphics.fps);renderer.render(session,alpha);
-const fx=$('weather-fx'),weather=session.status==='running'&&!renderer.garage&&!session.track.tunnelAt(session.player.distance)?session.track.weather:'dry';
+const fx=$('weather-fx'),weather=['running','countdown'].includes(session.status)&&!renderer.garage&&!session.track.tunnelAt(session.player.distance)?session.track.weather:'dry';
 if(fx.dataset.sky!==weather)fx.dataset.sky=weather;
 hud.render(now);updateAdvance(now);graphics.update(now);sound.update(session,session.status==='running');});
 enterClub();menu();await renderer.ready;renderer.render(session,1);document.querySelectorAll('[data-boot-disabled]').forEach(el=>el.disabled=false);$('start').disabled=false;$('tutorial-start').disabled=false;$('difficulty').disabled=false;loop.start();$('poster').hidden=true;

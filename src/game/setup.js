@@ -4,6 +4,7 @@ import { PHYSICS } from '../core/config.js';
 export const DIFFICULTIES = Object.freeze({
   rookie: { label: 'Rookie', grip: 1.20, pace: .89, reaction: .18, errorRate: .14 },
   club: { label: 'Club', grip: 1, pace: .96, reaction: .14, errorRate: .12 },
+  hyper: { label: 'Hyper Pro', grip: .92, pace: 1.025, reaction: .064, errorRate: .018 },
   pro: { label: 'Pro', grip: .92, pace: 1.015, reaction: .095, errorRate: .09 },
 });
 export function carSetup(difficulty = 'club', upgrades = {}) {

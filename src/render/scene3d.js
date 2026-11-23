@@ -1,3 +1,9 @@
+const WEATHER_LIGHT={
+ rain:{key:'#bed0df',fill:'#9eaeba',power:.57,near:9,far:58},
+ snow:{key:'#e1efff',fill:'#ccdce7',power:.75,near:7,far:49},
+ sand:{key:'#ffd394',fill:'#cba779',power:.78,near:8,far:51},
+ heat:{key:'#ffe0a8',fill:'#dfcba7',power:1.12,near:19,far:82}
+};
 import {installedGroup,fittingTravel,mechanicalView,inspectionShell} from './installation.js';
 import {diffuserVertices,diffuserTriangles} from './portal-mesh.js';
 import {QualityGovernor,renderSize} from './quality.js';
@@ -77,6 +83,12 @@ export class Scene3D {
   this.sun.color.set(garage?'#fff2e5':profile.key);this.sun.intensity=garage?2.6:profile.power;
   this.hemi.color.set(garage?'#e8f1ff':profile.sky);this.hemi.groundColor.set(profile.bounce);this.hemi.intensity=profile.ambient;
   this.fill.target.position.set(x,0,z);this.fill.position.set(x-dx*.6,reach*.35,z-dz*.6);this.fill.intensity=garage?.65:profile.fill;this.renderer.toneMappingExposure=garage?1.12:1.23;
+  const sky=garage?null:WEATHER_LIGHT[this.track.weather];
+  if(sky){
+    this.sun.color.set(sky.key);this.sun.intensity*=sky.power;
+    this.hemi.color.set(sky.fill);this.raceFog.color.set(sky.fill);
+    this.raceFog.near=sky.near;this.raceFog.far=sky.far;
+  }
   Object.assign(this.sun.shadow.camera,{left:-radius,right:radius,top:radius,bottom:-radius,near:.1,far:reach*3+10});
   this.sun.shadow.camera.updateProjectionMatrix();
   this.scene.environment=garage?(this.clubPanorama??this.fallbackEnvironment):(this.trackEnvironmentTarget?.texture??(club?(this.clubPanorama??this.fallbackEnvironment):this.sky));
