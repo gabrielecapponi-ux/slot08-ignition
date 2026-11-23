@@ -50,6 +50,7 @@ export function drawChase(ctx, canvas, session) {
   let a=sample(0);
   for(let i=1;i<=125;i++){
     const b=sample(i);
+    if(track.jump&&a.s>=track.jump.start&&a.s<track.jump.start+track.jump.length){a=b;continue;}
     for(const sign of [-1,1]){
       const offset=sign*(a.fork?.offset||0)/2;
       strip(a,b,offset,offset+sign*half,'#303941');
@@ -69,7 +70,7 @@ export function drawChase(ctx, canvas, session) {
   shapes.sort((a,b)=>b.depth-a.depth);
   for(const s of shapes){
     ctx.fillStyle=s.color;
-    if(s.q){const {x,y,depth}=s.q,size=.17*focal/depth;
+    if(s.q){const {x,y,depth}=s.q,size=.194*focal/depth;
       ctx.save();ctx.translate(x,y);ctx.scale(size,size);
       ctx.fillStyle='#080f17aa';ctx.beginPath();ctx.ellipse(0,.06,.61,.12,0,0,Math.PI*2);ctx.fill();
       for(const side of [-.52,.33]){ctx.fillStyle='#101720';ctx.fillRect(side,-.22,.19,.38);}

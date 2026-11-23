@@ -714,3 +714,5 @@ button{font-size:14px;border-radius:24px;font-weight:450;transition:background .
 .featured-course canvas{display:block;width:100%;height:100px;object-fit:contain}
 .featured-course strong,.featured-course small{display:block}.featured-course small{color:#bbd7de;margin:4px 0 8px}
 .featured-course>div{display:flex;gap:8px}.featured-course button{min-height:44px;min-width:48px;border-radius:10px;background:#193845;color:white}.featured-course #featured-race{flex:1;background:#95f5d2;color:#10252c;font-weight:700}
+
+#fleet-list button[data-locked=true] .fleet-thumb{filter:grayscale(.95);opacity:.6}#fleet-list button[data-locked=true] small{color:#ffd9a6}

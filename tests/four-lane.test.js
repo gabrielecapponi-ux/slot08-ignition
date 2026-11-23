@@ -31,7 +31,7 @@ test('a bumper contact transfers momentum; open space never applies a hidden spe
 });
 test('contacts respect elevation and a hard hit can detach the guide',()=>{
  const {track,a,b,engine}=pair();b.pose.z+=1.5;assert.equal(bodyContact(a,b),null);b.pose=track.pose(b.distance,b.lane);a.speed=4;b.speed=.5;
- resolveContacts(track,[a,b],engine);assert.equal(a.state,'derailed');assert.equal(b.state,'derailed');assert.equal(b.crash.hit,true);
+ resolveContacts(track,[b,a],engine);assert.equal(a.state,'slotted');assert.ok(a.speed>3.7);assert.equal(b.state,'derailed');assert.equal(b.crash.hit,true);
 });
 test('After Effects export is self-contained parseable ExtendScript and safely quotes race labels',()=>{
  const text=afterEffectsScript({track:'Test " / \\ newline\n\u2028',lanes:4,duration:70,events:[{type:'derail',time:20,name:'Tu'}],rank:1,stars:3,credits:200});

@@ -12,12 +12,19 @@ export class Profile {
     this.data.clubWins=Number.isInteger(d.clubWins)?Math.max(0,Math.min(MEETINGS.length,d.clubWins)):0;if(Array.isArray(d.results)) this.data.results=this.data.results.map((_,i)=>Number.isInteger(d.results[i])?Math.max(0,Math.min(3,d.results[i])):0);
     else {const legacy=[0,1,6,11,25,49];for(let i=0;i<Math.min(6,this.data.clubWins);i++)this.data.results[legacy[i]]=Math.max(1,Math.min(3,Number(d.medals?.[[0,1,2,7,10,14][i]])||1));}
     this.data.clubWins=this.data.results.filter(Boolean).length;
-    if(FLEET[d.car]?.world<=openWorld(this.data.results))this.data.car=Number(d.car);
+    if(FLEET[d.car] && (FLEET[d.car].world<=openWorld(this.data.results)||this.data.vehicles[d.car]))this.data.car=Number(d.car);
     this.data.unlocked=Math.max(0,Math.min(LEVELS.length-1,Math.floor(Number(d.unlocked)||0)));this.data.credits=Math.max(0,Math.min(999999,Number(d.credits)||0));for(const k of Object.keys(this.data.upgrades))this.data.upgrades[k]=Math.max(0,Math.min(UPGRADE_LIMIT,Math.floor(Number(d.upgrades?.[k])||0)));this.data.appearance=sanitizeAppearance(d.appearance);this.data.owned=Array.isArray(d.owned)?d.owned.filter(k=>/^(wing|wheels|hood|aero|lights|exhaust):([1-9]|10)$/.test(k)):[];this.data.tutorial=d.tutorial===true;this.data.medals=this.data.medals.map((_,i)=>Math.max(0,Math.min(3,Number(d.medals?.[i])||0)));for(const [k,v]of Object.entries(d.records||{}))if(Number.isFinite(v)&&v>0)this.data.records[k]=v;}}catch{}
  }
  get vehicle(){return this.data.vehicles[this.data.car]??=cleanVehicle();}
  syncVehicle(){Object.assign(this.vehicle,{upgrades:{...this.data.upgrades},appearance:{...this.data.appearance},owned:[...this.data.owned]});}
- selectCar(id){if(!FLEET[id]||FLEET[id].world>openWorld(this.data.results))return false;this.syncVehicle();this.data.car=id;const v=this.vehicle;this.data.upgrades={...v.upgrades};this.data.appearance={...v.appearance};this.data.owned=[...v.owned];this.save();return true;}
+ canDrive(id){return !!FLEET[id] && (FLEET[id].world<=openWorld(this.data.results)||!!this.data.vehicles[id]);}
+ prepareCar(id){
+    if(this.data.vehicles[id]||!this.canDrive(id))return;
+    const car=cleanVehicle(),setups=[this.data.upgrades,...Object.values(this.data.vehicles).map(v=>v.upgrades)];
+    for(const key of Object.keys(car.upgrades))car.upgrades[key]=Math.min(UPGRADE_LIMIT,1+Math.max(FLEET[id].world,...setups.map(s=>s[key]||0)));
+    this.data.vehicles[id]=car;
+ }
+ selectCar(id){if(!this.canDrive(id))return false;this.syncVehicle();this.prepareCar(id);this.data.car=id;const v=this.vehicle;this.data.upgrades={...v.upgrades};this.data.appearance={...v.appearance};this.data.owned=[...v.owned];this.save();return true;}
  setTuning(value){if(this.data.upgrades.motor<20||!['balanced','sprint','endurance'].includes(value))return false;this.vehicle.tuning=value;this.save();return true;}
  beginNewArcadeOnce(){
   if(this.data.season===14)return false;
@@ -41,6 +48,8 @@ export class Profile {
       if(!previous){credits+=session.meeting.bonus;this.data.clubWins++;}
       this.data.results[index]=Math.max(previous,stars);
     }
+    const newWorld=openWorld(this.data.results);
+    if(newWorld>oldWorld)FLEET.forEach((car,id)=>{if(car.world>oldWorld&&car.world<=newWorld)this.prepareCar(id);});
     if(rank===1)this.vehicle.wins++;if(session.meeting)this.data.rivalRating=this.data.rivalRating.map((v,i)=>Math.max(-1,Math.min(2,v+(rank===1?.22:rank>=3?-.12:0)*(1-i*.12))));this.data.credits+=credits;this.data.medals[session.level]=Math.max(stars,this.data.medals[session.level]);const before=this.data.unlocked;this.data.unlocked=Math.min(LEVELS.length-1,Math.max(before,session.level+1));this.save();return{qualified,credits,stars,rank,unlocked:this.data.unlocked>before,newWorld:openWorld(this.data.results)>oldWorld,gainedStars:Math.max(0,(this.data.results[session.clubRound]||0)-oldStars),unlockedCars:FLEET.filter(c=>c.world>oldWorld&&c.world<=openWorld(this.data.results)).map(c=>c.name)};}
  record(key,time){if(Number.isFinite(time)&&time>0&&time<(this.data.records[key]??Infinity)){this.data.records[key]=time;this.save();return true;}return false;}
 }

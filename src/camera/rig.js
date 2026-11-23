@@ -39,8 +39,8 @@ export class CameraRig {
       const pace=clamp(session.player.speed/5,0,1);
       const lead=near?.9:1.25+pace*.9;
       const road=this.track.pose(session.player.distance+lead,session.player.lane);
-      const reach=near?.72:aspect<1?1.65:1.25;
-      pos.set(p.x-tx*reach,ground+(near?.28:aspect<1?1.02:.76),p.y-ty*reach);
+      const reach=near?.72:aspect<1?1.36:1.08;
+      pos.set(p.x-tx*reach,ground+(near?.28:aspect<1?.86:.67),p.y-ty*reach);
       look.set(p.x+tx*lead*.45+(road.x-p.x)*.55,ground+.06+clamp(road.z-p.z,-.55,.7)*.55,p.y+ty*lead*.45+(road.y-p.y)*.55);
       fov=(aspect<1?64:58)+(this.motion.matches?0:pace*4);
     }else if(moving && this.mobileRace && !session.isLocal && this.mode==='drone'){

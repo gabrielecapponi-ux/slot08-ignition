@@ -1,3 +1,4 @@
+import {diffuserVertices,diffuserTriangles} from './portal-mesh.js';
 import {QualityGovernor,renderSize} from './quality.js';
 import {vividPaint} from './paint-finish.js';
 import * as THREE from 'three';
@@ -65,7 +66,7 @@ export class Scene3D {
  }
  applyLighting(){
   if(!this.sun||!this.track)return;
-  const b=this.track.bounds,garage=this.garage,club=garage||!!this.track.meeting;
+  const b=this.track.bounds,garage=this.garage,club=garage;
   const profile=lightingProfile(this.track.theme,this.track.index,club);
   const x=garage?0:(b.minX+b.maxX)/2,z=garage?0:(b.minY+b.maxY)/2;
   const radius=garage?3:.52*Math.hypot(b.maxX-b.minX,b.maxY-b.minY)+3;
@@ -109,6 +110,9 @@ export class Scene3D {
  modelFor(car){const source=this.fleet?.forChassis(car.chassis),existing=this.cars.get(car.id);if(car.id!=='workshop'&&existing?.userData.owner===car&&existing.userData.sourceId===source?.uuid)return existing;const look=effectiveParts(car),key=JSON.stringify([source?.uuid,look,car.color,car.chassis,car.upgrades,car.id==='workshop'&&this.rig.detail==='glass']),old=this.cars.get(car.id);if(old&&old.userData.key===key)return old;if(old)this.disposeCar(old);
   const root=source?this.batch(source,o=>!hiddenStockPart(o.name,look)&&!(car.id==='workshop'&&this.rig.detail==='glass'&&/^GT_(roof|glazing)/.test(o.name))):this.prototype.clone(true);root.userData.key=key;root.userData.owner=car;root.userData.sourceId=source?.uuid;root.rotation.order='YZX';
   root.traverse(o=>{if(o.isMesh&&/^(MAT_lime_enamel|MAT_smoked_glass|MAT_seat)/.test(o.material.name)){o.material=o.material.clone();o.material.color.set(o.material.name.startsWith("MAT_smoked_glass")?look.glass:o.material.name.startsWith("MAT_seat")?look.seat:vividPaint(car.color??look.paint));o.userData.ownMaterial=true;}});addCarStyle(root,car,this.kit);installHardware(root,car,source?.userData.hasSeats);installCarMotion(root,source);
+  const fins=new THREE.BufferGeometry();fins.setAttribute('position',new THREE.Float32BufferAttribute(diffuserVertices,3));fins.setIndex(diffuserTriangles);fins.computeVertexNormals();
+  const diffuser=new THREE.Mesh(fins,new THREE.MeshStandardMaterial({color:'#424950',metalness:.52,roughness:.3,side:THREE.DoubleSide}));
+  diffuser.name='Estrattore in carbonio';diffuser.userData.ownMaterial=true;diffuser.userData.ownGeometry=true;root.add(diffuser);
   root.userData.bodyBounds=new THREE.Box3().setFromObject(root);
   if(!car.ai){const label=document.createElement('canvas');label.width=96;label.height=64;const ctx=label.getContext('2d');ctx.fillStyle=car.color;ctx.beginPath();ctx.roundRect(9,3,78,46,12);ctx.fill();ctx.beginPath();ctx.moveTo(39,49);ctx.lineTo(48,62);ctx.lineTo(57,49);ctx.fill();ctx.fillStyle='#11151d';ctx.font='bold 29px sans-serif';ctx.textAlign='center';ctx.fillText(car.id==='player'?'P1':car.id.toUpperCase(),48,36);const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(label),depthTest:false,depthWrite:false,toneMapped:false}));sprite.userData.ownMaterial=true;sprite.userData.beacon=true;sprite.renderOrder=10;root.add(sprite);root.userData.beacon=sprite;}
   const shade=new THREE.Mesh(new THREE.PlaneGeometry(.34,.19),new THREE.MeshBasicMaterial({map:this.contactShadow(),transparent:true,opacity:.28,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}));
@@ -158,7 +162,9 @@ export class Scene3D {
   const ids=new Set(session.cars.map(c=>c.id));for(const [id,m]of this.cars)if(!ids.has(id)){this.disposeCar(m);this.cars.delete(id);}
   for(const car of session.cars){const m=this.modelFor(car),p=car.pose;updateCarMotion(m,car,dt);m.visible=car.state!=='eliminated';if(m.userData.contactShadow)m.userData.contactShadow.visible=!car.crash;const beacon=m.userData.beacon;if(beacon){beacon.visible=session.isLocal;const size=['top','iso'].includes(this.rig.mode)?Math.max(.65,this.camera.position.y*.022):.5;beacon.position.set(0,.35,0);beacon.scale.set(size,size*2/3,1);}
    if(car.crash){const c=car.crash;m.position.set(c.x,c.z,c.y);m.rotation.set(c.roll||0,-c.angle,0);}
-   else{const body=racePose(car,alpha);m.position.set(body.x,.077+body.z,body.y);m.rotation.set(body.bank||0,-body.angle,body.pitch||0);}
+   else{const body=racePose(car,alpha);m.position.set(body.x,.077+body.z,body.y);const load=Math.min(1,car.gripRatio||0)*Math.sign(p.curvature||0);
+    m.userData.lean=THREE.MathUtils.damp(m.userData.lean||0,load*.034,11,dt);
+    m.rotation.set((body.bank||0)+m.userData.lean,-body.angle,body.pitch||0);}
   }
   this.switchGlow.visible=session.player.switchQueued;if(this.switchGlow.visible){const p=this.track.sample(session.player.distance+this.track.nextSwitchDistance(session.player.distance));this.switchGlow.position.set(p.x,p.z+.09,p.y);}
   const advice=session.player.coach;this.brakeMarks.visible=!!(session.guidanceEnabled&&advice&&advice.point!==null&&advice.action!=='go'&&session.status==='running');

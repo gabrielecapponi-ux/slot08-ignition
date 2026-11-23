@@ -61,7 +61,7 @@ export class RaceSession {
       car.chassis=this.carIndex;
       if(car.ai && this.meeting){
         const opponents=available.filter(({id})=>id!==this.carIndex);
-        car.chassis=opponents[(this.clubRound+index-1)%opponents.length].id;
+        car.chassis=opponents.length?opponents[(this.clubRound+index-1)%opponents.length].id:available[0].id;
       }
       const spec=FLEET[car.chassis];
       car.setup.maxSpeed*=spec.speed;car.setup.motorForce*=spec.drive;car.maxGrip*=spec.grip;
@@ -181,6 +181,7 @@ export class RaceSession {
         for(const rival of this.cars){
           if(rival.state!=='slotted'||rival.finishedAt!==null||rival.rejoinUntil>this.elapsed||rival.speed<.45)continue;
           const a=wreck.crash,b=rival.pose;
+          if(a.other===rival.id && rival.punted===wreck.id && wreck.recoverIn>2.4)continue;
           if(Math.hypot(a.x-b.x,a.y-b.y)<.19 && Math.abs(a.z-b.z-.077)<.13){
             a.hit=true;
             this.physics.derail(rival,b);

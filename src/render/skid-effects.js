@@ -8,7 +8,7 @@ export class SkidEffects {
     this.last = new Map(); this.marks = Array.from({ length: 320 }, () => ({ life: 0 }));
     this.puffs = Array.from({ length: 96 }, () => ({ life: 0 }));
     this.ink = new THREE.InstancedMesh(new THREE.PlaneGeometry(.09, .014),
-      new THREE.MeshBasicMaterial({ color: '#0a0c10', transparent: true, opacity: .65, depthWrite: false }), this.marks.length);
+      new THREE.MeshBasicMaterial({ color: '#0a0c10', transparent: true, opacity: .74, depthWrite: false }), this.marks.length);
     const pixels=new Uint8Array(32*32*4);for(let y=0;y<32;y++)for(let x=0;x<32;x++){const d=Math.hypot((x-15.5)/15.5,(y-15.5)/15.5);const i=(y*32+x)*4;pixels.set([255,255,255,Math.round(255*Math.max(0,1-d)**2)],i);}
     this.smokeTexture=new THREE.DataTexture(pixels,32,32);this.smokeTexture.needsUpdate=true;
     this.smoke = new THREE.InstancedMesh(new THREE.PlaneGeometry(2,2),

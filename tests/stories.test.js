@@ -40,8 +40,8 @@ test('elimination takes the last car after grace and does not finish at three la
 
 test('every car retains its own upgrades, finishes and endgame tune across reload',()=>{
  const mem=store(),p=new Profile(mem);p.data.credits=20000;p.upgrade('motor');p.equip('paint','#2f6fed');const paint=p.data.appearance.paint;
- p.selectCar(3);assert.equal(p.data.upgrades.motor,0);p.upgrade('brake');p.selectCar(0);assert.equal(p.data.upgrades.motor,1);assert.equal(p.data.upgrades.brake,0);assert.equal(p.data.appearance.paint,paint);
- p.data.upgrades.motor=20;assert.ok(p.setTuning('sprint'));const loaded=new Profile(mem);assert.equal(loaded.vehicle.tuning,'sprint');loaded.selectCar(3);assert.equal(loaded.data.upgrades.brake,1);assert.equal(loaded.data.upgrades.motor,0);assert.ok(!loaded.setTuning('sprint'));
+ assert.equal(p.selectCar(3),false);p.data.results.fill(3,0,10);assert.ok(p.selectCar(3));assert.equal(p.data.upgrades.motor,3);p.upgrade('brake');p.selectCar(0);assert.equal(p.data.upgrades.motor,1);assert.equal(p.data.upgrades.brake,0);assert.equal(p.data.appearance.paint,paint);
+ p.data.upgrades.motor=20;assert.ok(p.setTuning('sprint'));const loaded=new Profile(mem);assert.equal(loaded.vehicle.tuning,'sprint');loaded.selectCar(3);assert.equal(loaded.data.upgrades.brake,4);assert.equal(loaded.data.upgrades.motor,3);assert.ok(!loaded.setTuning('sprint'));
 });
 
 test('requested restart happens once, preserves old progress, and restores it',()=>{

@@ -1,3 +1,4 @@
+import {SECTORS} from './sectors.js';
 import { championshipBase, installFork, courseName, courseFeature } from './championship.js';
 import { ScenicTrack, SpiralTrack } from './scenic.js';
 import { EnduranceTrack, ENDURANCE_LAYOUTS } from './endurance.js';
@@ -95,6 +96,12 @@ export function createTrack(index=0,{lanes=2,variant=-1,stunt=null}={}){
   if(variant>=0 && [0,2,3,5,7,8].includes(variant)){
     track.maxBank=[3,8].includes(variant)?1.02:.57;
     track.tunnels=track.tunnels.filter(t=>t.start>21);
+  }
+  if(variant>=0){
+    track.theme=SECTORS[Math.floor(variant/5)][3];
+    track.maxBank=base.spiral ? .86 : .36;
+    track.jump=base.jump;
+    if(track.jump)track.switches=track.switches.filter(g=>g.end<track.jump.start-3||g.start>track.jump.start+4);
   }
   const pts=Array.from({length:1000},(_,i)=>track.sample(i/1000*track.length));
   track.bounds={minX:Math.min(...pts.map(p=>p.x))-2,maxX:Math.max(...pts.map(p=>p.x))+2,minY:Math.min(...pts.map(p=>p.y))-2,maxY:Math.max(...pts.map(p=>p.y))+2};

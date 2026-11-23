@@ -1,3 +1,4 @@
+import {portalVertices,portalTriangles} from './portal-mesh.js';
 import * as THREE from 'three';
 import {landmarkPlacements,levelLandmarkFoundations} from './landmarks.js';
 import {trackPoint} from './safety-rail.js';
@@ -61,6 +62,22 @@ export class MiniatureWorld {
    for(let i=0;i<3;i++){const bird=kit.clone('ANIM_bird');bird.scale.setScalar(1.7);this.root.add(bird);this.animated.push({root:bird,type:'bird',x:near.x,y:near.y,phase:i*2.1});}
   }
   this.roofs=new THREE.Group();this.root.add(this.roofs);this.roofMat=new THREE.MeshStandardMaterial({color:track.theme==='night'?'#364968':this.theme.hill,roughness:.78,side:THREE.DoubleSide});
+  const ribs=[];
+  for(const t of track.tunnels){
+    const count=Math.max(2,Math.ceil((t.end-t.start)/.85));
+    for(let i=0;i<=count;i++)ribs.push(track.sample(t.start+(t.end-t.start)*i/count));
+  }
+  if(ribs.length){
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute('position',new THREE.Float32BufferAttribute(portalVertices,3));
+    geometry.setIndex(portalTriangles);geometry.computeVertexNormals();
+    const mesh=new THREE.InstancedMesh(geometry,new THREE.MeshStandardMaterial({color:'#b2c6d0',metalness:.8,roughness:.28,side:THREE.DoubleSide}),ribs.length);
+    ribs.forEach((p,i)=>{
+      o.position.set(p.x,p.z-.017,p.y);o.rotation.set(0,-Math.atan2(p.ny,p.nx),0);
+      o.scale.set((.65+e)/.65,1,1);o.updateMatrix();mesh.setMatrixAt(i,o.matrix);
+    });
+    this.roofs.add(mesh);
+  }
   const lamps=[];
   for(const t of track.tunnels)for(const s of [t.start,t.end]){
     const p=track.sample(s);

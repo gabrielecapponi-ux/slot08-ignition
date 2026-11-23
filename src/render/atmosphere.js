@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { drawSector } from '../track/sectors.js';
 export const ATMOSPHERES={
+ titan:{top:'#497684',horizon:'#b8ebe4',sun:'#ffe4b1',low:'#658893'},
+ orion:{top:'#292f64',horizon:'#afc3ea',sun:'#e4deff',low:'#646489'},
+ solar:{top:'#883c5f',horizon:'#ffc086',sun:'#fff1a6',low:'#a46b63'},
  forest:{top:'#347b92',horizon:'#d4e9c6',sun:'#fff2b3',low:'#6b8c72'},
  alpine:{top:'#3974ad',horizon:'#e5f1f0',sun:'#ffffff',low:'#90acbd'},
  harbor:{top:'#466aa4',horizon:'#f4b993',sun:'#ffe7ab',low:'#667e9b'},
@@ -38,6 +41,9 @@ export function skyTexture(theme,variant=0,mobile=false,sector){
 // One key light supplies the only shadow map. The hemisphere and reverse fill
 // retain detail inside cockpits and on the shaded faces of buildings.
 const LIGHT={
+ titan:['#ffe0b2','#a7e2e4','#759297',3.17,1.04,.40,24],
+ orion:['#e4ddff','#a6bcf2','#615b80',2.65,.93,.54,33],
+ solar:['#ffd38e','#ffc6be','#8e5355',3.23,1.01,.40,20],
  forest:['#ffe1a5','#c0d8ed','#605442',3.20,1.04,.36,32],
  alpine:['#fff0d2','#c7e2ff','#8a9597',3.0,1.11,.43,39],
  harbor:['#ffc98e','#afc9e3','#696061',3.22,1.05,.34,24],

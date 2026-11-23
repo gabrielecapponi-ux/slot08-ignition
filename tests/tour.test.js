@@ -51,17 +51,17 @@ test('a loose car can strike a rival in its path but cannot hit through a bridge
   }
 });
 
-test('three starters are available to a fresh profile and six more unlock through the tour',()=>{
+test('one starter is available and eight cars unlock through the tour',()=>{
   assert.equal(FLEET.length,9);
-  assert.deepEqual(FLEET.filter(car=>car.world===0).map(car=>car.name),['GT-08 Club','Rally Treporte','Berlinetta S']);
+  assert.deepEqual(FLEET.filter(car=>car.world===0).map(car=>car.name),['GT-08 Club']);
   const events=new RaceSession();
-  events.carIndex=3;
+  events.carIndex=0;
   events.reset('campaign');
-  assert.equal(events.player.chassis,3);
-  assert.equal(new Set(events.cars.map(car=>car.chassis)).size,3);
+  assert.equal(events.player.chassis,0);
+  assert.equal(new Set(events.cars.map(car=>car.chassis)).size,1);
   assert.ok(events.cars.every(car=>FLEET[car.chassis].world===0));
   assert.equal(new Profile({getItem:()=>JSON.stringify({car:8})}).data.car,0);
-  assert.equal(new Profile({getItem:()=>JSON.stringify({car:4})}).data.car,4);
+  assert.equal(new Profile({getItem:()=>JSON.stringify({car:4,vehicles:{4:{}}})}).data.car,4);
 });
 
 test('gravity slows a climbing car and accelerates it downhill in every race mode',()=>{

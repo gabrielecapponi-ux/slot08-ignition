@@ -22,7 +22,7 @@ test('rubber paths reduce roughness and silver crown is lighter than tarnished s
   };
   assert.ok(meanGloss(.145+.069)<meanGloss(.30)-70);
   assert.notEqual(plastic.material.map,plastic.material.roughnessMap);
-  const wire=road.getObjectByName('Conduttore in alpacca');
+  const wire=road.getObjectByName('Binario in acciaio spazzolato');
   assert.ok(wire.material.vertexColors);
   assert.ok(wire.material.isMeshPhysicalMaterial);assert.equal(wire.material.metalness,1);assert.ok(wire.material.roughnessMap.generateMipmaps);assert.equal(wire.geometry.attributes.uv.count,wire.geometry.attributes.position.count);assert.ok(plastic.material.metalness<.1);
   assert.ok(wire.geometry.attributes.color.getX(3)>wire.geometry.attributes.color.getX(0)+.4);

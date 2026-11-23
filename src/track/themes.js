@@ -7,3 +7,7 @@ export const THEMES={
  desert:{sky:'#dac9a8',ground:'#c4aa76',hill:'#ad865d',water:'#74ab9d',accent:'#ecae5f',props:['cactus','mesa','boulder','cactus','windmill','tortoise'],floor:'#907357'},
  night:{sky:'#23334d',ground:'#344958',hill:'#243b4c',water:'#306f86',accent:'#86d9cf',props:['warehouse','lighthouse','pine','crate','windmill','palm','streetlamp'],floor:'#28313e'},
 };
+
+THEMES.titan={...THEMES.coast,sky:'#a6d9df',ground:'#8f9d9d',hill:'#4e7481',water:'#267a89',props:['lighthouse','boulder','buoy','rock_arch','warehouse']};
+THEMES.orion={...THEMES.alpine,sky:'#7189bb',ground:'#7785a8',hill:'#474d73',water:'#6167ac',props:['boulder','warehouse','windmill','streetlamp']};
+THEMES.solar={...THEMES.desert,sky:'#ffbc8b',ground:'#b66a48',hill:'#7e4151',water:'#bb7057',props:['mesa','rock_arch','windmill','boulder']};

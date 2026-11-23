@@ -9,7 +9,7 @@ export class ImpactEffects {
       const positions=new Float32Array(14*3);
       const geometry=new THREE.BufferGeometry();
       geometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));
-      const material=new THREE.PointsMaterial({map:this.map,size:.075,depthWrite:false,
+      const material=new THREE.PointsMaterial({map:this.map,size:.098,depthWrite:false,
         blending:THREE.AdditiveBlending,transparent:true,toneMapped:false});
       const mesh=new THREE.Points(geometry,material);
       mesh.frustumCulled=false;mesh.visible=false;scene.add(mesh);

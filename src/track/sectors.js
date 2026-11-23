@@ -2,8 +2,8 @@ export const SECTORS=[
  ['Selva Ionica','#71ffb3','#103349','forest','spires'],['Riviera Orbitale','#ffba7e','#393160','coast','rings'],
  ['Faglia di Rame','#ffa268','#54293c','canyon','mesa'],['Ghiacciaio Prisma','#aff6ff','#254772','alpine','peaks'],
  ['Porto Magnetico','#79e3ff','#184559','harbor','towers'],['Distretto Neon','#ff8edd','#301c57','night','towers'],
- ['Mare di Titanio','#f9d27a','#225363','coast','rings'],['Vortice Viola','#c8a0ff','#342658','desert','spires'],
- ['Ponti di Orione','#90bfff','#243c65','alpine','peaks'],['Corona Solare','#ffdb88','#552a40','night','mesa']
+ ['Mare di Titanio','#f9d27a','#225363','titan','rings'],['Vortice Viola','#c8a0ff','#342658','desert','spires'],
+ ['Ponti di Orione','#90bfff','#243c65','orion','peaks'],['Corona Solare','#ffdb88','#552a40','solar','mesa']
 ];
 
 // Draw once per background. The skyline wraps around the race panorama.

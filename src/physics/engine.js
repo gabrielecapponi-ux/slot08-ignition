@@ -85,7 +85,14 @@ export class PhysicsEngine {
     if (car.change && car.distance >= car.change.start + car.change.length) {
       car.lane = car.change.to; car.change = null;
     }
+    const jump=this.track.jump;
+    if(jump && before.s<jump.start && this.track.sample(car.distance).s>=jump.start && car.speed<jump.minSpeed){
+      this.derail(car,before);car.crash.shortJump=true;car.distance-=5;return 'derail';
+    }
     const pose = this.track.pose(car.distance, car.lane, car.change);
+    if(jump){const u=(pose.s-jump.start)/jump.length;
+      if(u>=0&&u<=1){pose.z+=.32*4*u*(1-u);pose.pitch+=Math.atan(.32*4*(1-2*u)/jump.length);}
+    }
     car.pose = pose;
     const horizontalSpeed=car.speed*(pose.horizontalMetric??pose.metric)/pose.metric,bank=pose.bank||0;
     car.lateralForce = Math.max(0,lateralDemand(horizontalSpeed, pose.curvature)*Math.cos(bank)-cfg.mass*PHYSICS.gravity*Math.sin(bank)*Math.sign(pose.curvature));

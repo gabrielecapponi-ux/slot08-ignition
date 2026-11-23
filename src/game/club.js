@@ -38,9 +38,12 @@ export function positionClubSwitches(track) {
   for (const gate of track.switches) {
     const length=gate.end-gate.start;
     let best=gate.start;
-    for(let s=gate.start;s<track.length-length-.8;s+=.25){
+    const section=track.sample(gate.start).section;
+    const module=track.segments?.[section];
+    const limit=module?.type==='line'?module.start+module.length:track.length;
+    for(let s=gate.start;s<limit-length-.8;s+=.25){
       if(Math.abs(track.sample(s+length+.8).curvature)>.001) break;
-      if(!track.tunnels.some(t=>s<t.end+.35 && s+length>t.start-.35)&&(!track.fork||s+length<track.fork.start||s>track.fork.end)) best=s;
+      if((!track.jump||s+length<track.jump.start-3||s>track.jump.start+track.jump.length+3)&&!track.tunnels.some(t=>s<t.end+.35 && s+length>t.start-.35)&&(!track.fork||s+length<track.fork.start||s>track.fork.end)) best=s;
     }
     const offset=best-gate.start;
     gate.start+=offset;gate.activationEnd+=offset;gate.end+=offset;

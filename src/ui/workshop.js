@@ -21,7 +21,7 @@ export class Workshop {
   on('tab-prev','click',()=>move(-1));on('tab-next','click',()=>move(1));
   on('garage-categories','click',e=>{const b=e.target.closest('[data-category]');if(b)this.select(b.dataset.category);});
   on('fleet-list','click',e=>{const b=e.target.closest('[data-car]');if(!b)return;const n=Number(b.dataset.car);this.previewCar=n;
-    if(FLEET[n].world<=openWorld(this.profile.data.results)){this.profile.selectCar(n);this.session.carIndex=n;this.commit();}this.render();$('fleet-list').querySelector('[data-car="'+n+'"]')?.focus({preventScroll:true});});
+    if(this.profile.canDrive(n)){this.profile.selectCar(n);this.session.carIndex=n;this.commit();}this.render();$('fleet-list').querySelector('[data-car="'+n+'"]')?.focus({preventScroll:true});});
   let drag=null;on('orbit-pad','pointerdown',e=>{$('orbit-pad').setPointerCapture(e.pointerId);drag=[e.clientX,e.clientY];});
   on('orbit-pad','pointermove',e=>{if(drag){this.renderer.orbit?.((drag[0]-e.clientX)*.014,(e.clientY-drag[1])*.012);drag=[e.clientX,e.clientY];}});
   on('orbit-pad','lostpointercapture',()=>drag=null);
@@ -88,7 +88,7 @@ export class Workshop {
   $('department').textContent=DEPTS[dep];
   $('fleet-list').hidden=dep!=='fleet';$('pieces').hidden=!PARTS[dep];
   document.querySelector('.garage-performance').hidden=dep!=='mechanics';document.querySelector('.garage-finish').hidden=dep!=='paint';
-  $('fleet-list').innerHTML=FLEET.map((c,i)=>({c,i})).sort((a,b)=>a.c.world-b.c.world).map(({c,i})=>`<button data-car="${i}" aria-pressed="${shown===i}"><span aria-hidden="true" class="fleet-thumb" style="background-position:${(i%3)*50}% ${Math.floor(i/3)*50}%"></span><strong>${c.name}</strong><small>${c.type} · ${d.car===i?'IN PISTA · motore Lv.'+d.upgrades.motor:c.world>openWorld(d.results)?'Anteprima · mondo '+(c.world+1):'Motore Lv.'+(d.vehicles[i]?.upgrades.motor||0)} · motore ${Math.round(c.drive*100)}% · tenuta ${Math.round(c.grip*100)}%</small></button>`).join('');
+  $('fleet-list').innerHTML=FLEET.map((c,i)=>({c,i})).sort((a,b)=>a.c.world-b.c.world).map(({c,i})=>`<button data-car="${i}" data-locked="${!p.canDrive(i)}" aria-pressed="${shown===i}"><span aria-hidden="true" class="fleet-thumb" style="background-position:${(i%3)*50}% ${Math.floor(i/3)*50}%"></span><strong>${c.name}</strong><small>${c.type} · ${d.car===i?'IN PISTA · motore Lv.'+d.upgrades.motor:!p.canDrive(i)?'BLOCCATA · raggiungi il mondo '+(c.world+1):'DISPONIBILE · motore Lv.'+(d.vehicles[i]?.upgrades.motor??Math.min(30,1+Math.max(c.world,d.upgrades.motor)))} · motore ${Math.round(c.drive*100)}% · tenuta ${Math.round(c.grip*100)}%</small></button>`).join('');
   $('trim-options').hidden=dep!=='glass';
   if(dep==='glass')$('trim-options').innerHTML=Object.entries(TRIM).map(([key,options])=>'<h3>'+(key==='glass'?'Vetri':'Sedili')+'</h3>'+options.map(([color,name])=>`<button data-trim="${key}" value="${color}" aria-pressed="${color===d.appearance[key]}">${name}</button>`).join('')).join('');
   $('garage-wallet').textContent=d.credits+' CR';

@@ -40,6 +40,15 @@ function buildComposition(race){
     var end=Math.min(race.duration,t+(event.type==='derail'?3:.8));
     solid('Cartello contatto '+e,[.04,.085,.09],920,130,560,930,t,end);
     title((event.type==='derail'?'FUORI PISTA / ':'CONTATTO / ')+event.name,140,950,32,t,end);
+    // Short titanium streaks follow the recorded impact marker in the lower third.
+    for(var k=0;k<5;k++){
+     var spark=solid('Scintilla '+e+' / '+k,[1,.61+.07*k,.19],36+k*5,3,160,874,t,Math.min(end,t+.26));
+     var transform=spark.property('ADBE Transform Group'),angle=-35+k*13;
+     transform.property('ADBE Rotate Z').setValue(angle);
+     var pos=transform.property('ADBE Position'),fade=transform.property('ADBE Opacity');
+     pos.setValueAtTime(t,[160,874]);pos.setValueAtTime(t+.26,[235+11*k,874+angle]);
+     fade.setValueAtTime(t,100);fade.setValueAtTime(t+.26,0);spark.blendingMode=BlendingMode.ADD;
+    }
     if(event.type==='derail'){
      var bar=solid('Rientro 3 secondi '+e,[1,.42,.19],840,6,560,982,t,end),scale=bar.property('ADBE Transform Group').property('ADBE Scale');
      scale.setValueAtTime(t,[0,100]);scale.setValueAtTime(end,[100,100]);

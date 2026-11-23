@@ -27,7 +27,11 @@ export function resolveContacts(track,cars,physics,onEvent=()=>{},time=0){
    b.speed=Math.max(0,(vb.x+nx*impulse/mb)*b.pose.tx+(vb.y+ny*impulse/mb)*b.pose.ty);
    const lateral=Math.max(Math.abs(nx*a.pose.ty-ny*a.pose.tx),Math.abs(nx*b.pose.ty-ny*b.pose.tx));
    if(closing>1.65||lateral>.48&&closing>.6){
-    const victims=closing>2.3||lateral>.48?[a,b]:[b];
+    const aligned=a.pose.tx*b.pose.tx+a.pose.ty*b.pose.ty>.88 && lateral<.42;
+    const ahead=(b.pose.x-a.pose.x)*a.pose.tx+(b.pose.y-a.pose.y)*a.pose.ty>0?b:a;
+    const attacker=ahead===a?b:a;
+    const victims=aligned?[ahead]:closing>2.3||lateral>.48?[a,b]:[b];
+    if(aligned){const velocity=attacker===a?va:vb;attacker.speed=Math.hypot(velocity.x,velocity.y)*.94;attacker.punted=ahead.id;}
     for(const car of victims){physics.derail(car,car.pose);car.crash.hit=true;car.crash.other=car===a?b.id:a.id;car.contactCrashes=(car.contactCrashes||0)+1;onEvent({type:'derail',car});}
    }
    if(time>Math.max(a.contactUntil??-1,b.contactUntil??-1)){
