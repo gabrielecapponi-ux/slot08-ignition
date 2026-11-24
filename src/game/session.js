@@ -1,3 +1,4 @@
+import {applyParts} from './part-effects.js';
 import {setWeather} from '../track/weather.js';
 import {courseRevision} from '../track/championship.js';
 import { hitsWreck, resolveContacts } from '../physics/contacts.js';
@@ -81,7 +82,7 @@ export class RaceSession {
       const rivalSetup=car.ai && this.meeting;
       car.upgrades=car.gridKit??(rivalSetup?{motor:car.rivalLevel,grip:car.rivalLevel,brake:car.rivalLevel}:{...this.upgrades});
       car.appearance=rivalSetup?{}:{...this.appearance};
-      car.maxGrip*=1+.003*(car.appearance.wheels||0)+.002*(car.appearance.wing||0);
+      applyParts(car);
       if(this.meeting)car.maxGrip*=this.difficulty==='rookie'?.97:this.difficulty==='pro'?.90:.94;
       if(!car.ai&&this.upgrades.motor>=20){if(this.tuning==='sprint'){car.setup.motorForce*=1.045;car.maxGrip*=.985;}if(this.tuning==='endurance'){car.setup.maxSpeed*=.98;car.setup.engineBrake*=1.06;}}
       if(index===0 && this.appearance.paint)car.color=this.appearance.paint;

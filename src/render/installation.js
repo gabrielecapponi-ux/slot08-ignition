@@ -23,6 +23,13 @@ const travel={
 export function fittingTravel(key,elapsed){
  const v=travel[key];if(!v)return [0,0,0];
  const t=Math.max(0,Math.min(1,(elapsed-180)/1020));
- const ease=1-t*t*(3-2*t);
- return [v[0]*ease,v[1]*ease+.009*Math.sin(Math.PI*t)*ease,v[2]*ease];
+ // Enter on the service axis, align on the guide, then seat the last millimetres.
+ const smooth=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
+ const approach=1-smooth(t/.64),seat=1-smooth((t-.64)/.36);
+ const ease=.86*approach+.14*seat;
+ const guide=4*t*(1-t)*approach;
+ const transverse=['wheels','gearing','brush','aero'].includes(key);
+ const lift=['hood','wing','lights'].includes(key);
+ const align=transverse?.012:lift?.019:.009;
+ return [v[0]*ease+(transverse?align*guide:0),v[1]*ease+align*guide,v[2]*(transverse?(.72*approach+.28*seat):ease)];
 }

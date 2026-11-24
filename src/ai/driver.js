@@ -1,4 +1,4 @@
-import { trafficAhead, passingLaneClear } from '../game/club.js';
+import { trafficAhead, passingLaneClear, laneGap } from '../game/club.js';
 import { planSpeed } from './line-planner.js';
 import { PHYSICS } from '../core/config.js';
 import { clamp } from '../core/math.js';
@@ -36,8 +36,20 @@ export class AIDriver {
       // A rival brakes through its throttle input; there is no speed clamp on a human car.
       const gap=trafficAhead(this.track,car,cars);
       if(gap<1.4 && this.errorTime<=0){
-        const leader=cars.find(c=>c!==car&&c.state==='slotted'&&c.lane===car.lane&&Math.abs(((c.distance-car.distance+this.track.length)%this.track.length)-gap)<.02);
+        const leader=cars.find(c=>c!==car&&c.state==='slotted'&&(c.lane===car.lane||c.change?.to===car.lane)&&Math.abs(laneGap(this.track,car,c)-gap)<.02);
         if(leader)target=Math.min(target,Math.max(0,leader.speed+(gap-.38)*2.0));
+      }
+      let blocked=false;
+      if(this.tactical){
+        const p=car.pose;
+        for(const other of cars){
+          const wreck=other.crash;if(!wreck||other.state!=='derailed'||Math.abs(wreck.z-p.z-.077)>.20)continue;
+          const dx=wreck.x-p.x,dy=wreck.y-p.y,forward=dx*p.tx+dy*p.ty;
+          if(forward<=0||forward>Math.min(2.8,.48+car.speed*.58)||Math.abs(dx*p.ty-dy*p.tx)>.16)continue;
+          blocked=true;
+          const decel=(car.setup.engineBrake+car.setup.rollingResistance)/car.setup.mass;
+          target=Math.min(target,Math.sqrt(2*decel*Math.max(0,forward-.34)));
+        }
       }
       car.targetSpeed = target;
       this.throttle = car.speed < target - .06 ? 1 : car.speed > target + .03 ? 0 : clamp(.48 + (target - car.speed) * 4, 0, 1);
@@ -47,8 +59,8 @@ export class AIDriver {
         const ahead = this.track.nextSwitchDistance(car.distance);
         const gateKey = Math.round((car.distance + ahead) * 10);
         if (ahead < 1.8 && gateKey !== this.lastGate) {
-          this.lastGate = gateKey;
-          switchLane=gap<2.8 && passingLaneClear(this.track,car,cars);
+          switchLane=(blocked||gap<2.8) && passingLaneClear(this.track,car,cars);
+          if(switchLane)this.lastGate=gateKey;
 
         }
       }

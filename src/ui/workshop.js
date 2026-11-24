@@ -1,3 +1,4 @@
+import {describePart} from '../game/part-effects.js';
 import {benchView} from '../render/part-bench.js';
 import { icon } from './icons.js';
 import { PARTS, TRIM, PAINTS, DECALS, UPGRADE_LIMIT, PART_DETAILS, partPrice } from '../game/workshop.js';
@@ -116,7 +117,7 @@ export class Workshop {
     const level=d.upgrades[key],next=Math.min(UPGRADE_LIMIT,level+1),selected=this.mechanicalPreview===key;
     return `<article class="hardware-card"><button data-preview-upgrade="${key}" aria-pressed="${selected}">${thumb(6,i%3)}<span><strong>${name}</strong><small>LIVELLO ${level} → ${next}</small><em>${desc}</em><b>${selected?'ANTEPRIMA ATTIVA':'VEDI IL POTENZIAMENTO'}</b></span></button><div><progress max="${UPGRADE_LIMIT}" value="${level}"></progress><button data-upgrade="${key}" ${p.price(key)>d.credits?'disabled':''}>${level===UPGRADE_LIMIT?'COMPLETO':'MONTA · '+p.price(key)+' CR'}</button></div></article>`;
   }).join('')+(d.upgrades.motor>=20?`<div class="mastery-tuning"><h3>Livello 20 · assetti speciali</h3><p>La potenza ha un limite. Scegli il compromesso, prepara le altre auto e colleziona vittorie: ${p.vehicle.wins} su questa macchina.</p>${[['balanced','Bilanciato'],['sprint','Sprint · +4,5% spinta / −1,5% tenuta'],['endurance','Endurance · +6% freno / −2% velocità']].map(([id,label])=>`<button data-tuning="${id}" aria-pressed="${p.vehicle.tuning===id}">${label}</button>`).join('')}</div>`:'')+(this.mechanicalPreview?'<button data-reset-preview>TORNA ALL’ASSETTO MONTATO</button>':'');
-  $('part-detail').textContent=PART_DETAILS[this.category][this.choice]+(dep==='wheels'?' Tenuta +'+(this.choice*.3).toFixed(1)+'%.':dep==='wing'?' Stabilità +'+(this.choice*.2).toFixed(1)+'%.':'');
+  $('part-detail').textContent=[PART_DETAILS[this.category][this.choice],describePart(this.category,this.choice)].filter(Boolean).join(' ');
   $('garage-note').textContent=dep==='glass'?'Vista aperta di sedili, cinture e vetratura.':dep==='mechanics'?(this.mechanicalPreview?'ANTEPRIMA · nessun credito speso. Monta per acquistare.':'Scegli un sistema per vedere il livello successivo prima dell’acquisto.'):'';
   $('garage-preview-caption').textContent='ISPEZIONE 3D';
   if(!PARTS[dep])$('part-name').textContent=FLEET[shown].name+' / '+DEPTS[dep];

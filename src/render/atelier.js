@@ -23,6 +23,12 @@ export function installHardware(root,car,hasSeats=false){
  const motorLength=.051+Math.sqrt(motor)*.0053;
  const can=mechanicalMesh(root,'Cassa motore',new THREE.CylinderGeometry(.015,.015,motorLength,20),
    metal(motor?'#b99b76':'#677481'),[-.06,.019,0]);can.rotation.x=Math.PI*.5;
+ const collar=metal('#87939a',.83,.28),terminal=metal('#d99b5a',.82,.22);
+ for(const side of [-1,1]){
+   const z=side*(motorLength*.5+.0008);
+   mechanicalMesh(root,'Cassa motore · ghiera',new THREE.CylinderGeometry(.0157,.0157,.002,32),collar,[-.06,.019,z]).rotation.x=Math.PI/2;
+   mechanicalMesh(root,'Cassa motore · bronzina',new THREE.CylinderGeometry(.005,.005,.0034,16),terminal,[-.06,.019,z+side*.0015]).rotation.x=Math.PI/2;
+ }
  const windMaterial=metal('#ce8746',.74,.24);
  for(let i=0;i<4+Math.floor(motor/3);i++){
    mechanicalMesh(root,'Avvolgimento',new THREE.TorusGeometry(.0152,.0011,6,16),
