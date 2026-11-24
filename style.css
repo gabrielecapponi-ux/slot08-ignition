@@ -672,7 +672,7 @@ button{font-size:14px;border-radius:24px;font-weight:450;transition:background .
 @media (max-width:650px), (pointer:coarse) and (max-width:1100px), (max-height:550px) and (max-width:1100px) {
  #app:is([data-state=running],[data-state=countdown]):not([data-local=true]) {
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-  & :is(.topbar,#sectors,.race-mode,.camera-bar,.speed-panel,.minimap-wrap,.rivals,.gas-dial,.power-control,.pilot-telemetry,.footer,.brake-coach){display:none!important}
+  & :is(.topbar,#sectors,.race-mode,.camera-bar,.speed-panel,.rivals,.gas-dial,.power-control,.pilot-telemetry,.footer,.brake-coach){display:none!important}
   & .timing-bar{position:absolute;top:max(6px,env(safe-area-inset-top))!important;left:max(8px,env(safe-area-inset-left))!important;right:max(8px,env(safe-area-inset-right))!important;width:auto!important;display:flex;align-items:center;gap:4px;justify-content:center}
   & .timing-bar>div{flex:0 1 auto!important;min-width:0;padding:4px 8px!important;background:#101820d9;border:0;border-radius:9px}
   & .timing-bar>div:nth-child(3){display:none}

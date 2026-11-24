@@ -27,6 +27,8 @@ export class ScenicTrack extends SlotTrack {
     if(!lines.length&&base.straightLength)lines=[{start:0,length:base.straightLength},{start:base.halfLength??base.straightLength+Math.PI*base.radius,length:base.straightLength}];
     if(!lines.length)lines=[{start:3,length:5}];
     this.tunnels=lines.slice(-tunnelCount).map((l,i)=>({start:l.start+Math.max(2.1,l.length*.42),end:l.start+Math.min(l.length-.5,Math.max(2.1,l.length*.42)+Math.min(5,l.length*.32)),id:i})).filter(t=>t.end-t.start>1);
+    const bend=base.segments?.find(seg=>seg.type==='arc' && seg.start>base.length*.52 && seg.length>2 && seg.radius>1.6 && !this.tunnels.some(t=>seg.start<t.end+2 && seg.start+seg.length>t.start-2));
+    if(bend)this.tunnels.push({start:bend.start+.2,end:bend.start+Math.min(6,bend.length)-.2,id:this.tunnels.length});
   }
   bankAt(p){
     if(Math.abs(p.curvature)<.015)return 0;

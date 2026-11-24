@@ -46,20 +46,25 @@ export class SoundEngine {
     for (const [index, car] of cars.entries()) {
       present.add(car.id);
       const v = this.voice(car.id, 0);
-      const pan = cars.length === 1 ? 0 : (index / (cars.length - 1) - .5) * .85;
+      const listener=focus.crash??focus.pose, source=car.crash??car.pose;
+      const dx=(source?.x??0)-(listener?.x??0), dy=(source?.y??0)-(listener?.y??0);
+      const distance=Math.hypot(dx,dy,(source?.z??0)-(listener?.z??0));
+      const presence=1/(1+(distance/2.4)**1.55);
+      const heading=listener?.angle??0;
+      const pan=(dy*Math.cos(heading)-dx*Math.sin(heading))/Math.max(1,distance)*.85;
       smooth(v.pan.pan, pan, now);
       const running = active && car.state === 'slotted' && car.finishedAt === null;
       smooth(v.tunnel.gain, running && car.pose?.tunnel ? .34 : 0, now, .035);
       const speed = car.speed, load = car.throttle, skid = running ? car.skid : 0;
-      const weight = car.ai ? .24 : humanCount > 1 ? .62 : 1;
+      const weight = presence * (car.ai ? .64 : humanCount > 1 ? .62 : 1);
       // Approximate a 24 mm tyre, a 3:1 final drive and a nine-tooth pinion.
       const wheelHz = speed / (Math.PI * .024);
       const shaftHz = wheelHz * 3;
-      const motorHz = 42 + shaftHz * 2 + load * 12;
+      const motorHz = 42 + shaftHz * (2+.016*(index%5)) + load * 12;
       const meshHz = 80 + shaftHz * 9;
       const motion = clamp(speed / .6);
       smooth(v.engine.o.frequency, motorHz, now, .055);
-      smooth(v.engine.f.frequency, 450 + speed * 320 + load * 1050, now);
+      smooth(v.engine.f.frequency, 320 + presence * (220 + speed * 320 + load * 1050), now);
       smooth(v.engine.g.gain, running ? (.021 * motion + .034 * load) * weight : 0, now);
       smooth(v.sub.o.frequency, motorHz / 2, now);
       smooth(v.sub.g.gain, running ? (.009 * motion + .016 * load) * weight : 0, now);

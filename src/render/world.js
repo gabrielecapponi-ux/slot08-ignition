@@ -1,4 +1,5 @@
-import {plantStand} from './trees.js';
+import {grassVertices,grassIndices} from './verge-mesh.js';
+import {plantStand,windMaterial} from './trees.js';
 import {portalVertices,portalTriangles} from './portal-mesh.js';
 import * as THREE from 'three';
 import {landmarkPlacements,levelLandmarkFoundations} from './landmarks.js';
@@ -22,6 +23,7 @@ export class MiniatureWorld {
   const map=groundTexture(width+9.6,depth+9.6,['night','harbor'].includes(track.theme));
   const terrain=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({vertexColors:true,map,bumpMap:map,bumpScale:.006,roughness:.94}));
   terrain.userData.ownTexture=true;terrain.receiveShadow=true;this.root.add(terrain);
+  this.wind={value:0};
   const points=field.samples,distance=field.distance;
   const groups=new Map();const add=(name,p)=>{const key=name.startsWith('ANIM_')?name:'PROP_'+name;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p);};
   // Clusters keep buildings and trees clear of both decks of every crossing.
@@ -43,6 +45,21 @@ export class MiniatureWorld {
   const ridge=ridgeBackdrop(track,this.theme);
   if(ridge)this.root.add(ridge);
   const o=new THREE.Object3D();
+  if(['forest','alpine','coast'].includes(track.theme)){
+   const sites=[];
+   for(let s=0;s<track.length;s+=.24){
+    const p=track.sample(s),side=sites.length%2?1:-1,offset=side*(1+e+random()*.95);
+    const x=p.x+p.nx*offset,y=p.y+p.ny*offset;
+    if(distance(x,y)>.82+e && !occupied.some(q=>Math.hypot(x-q.x,y-q.y)<q.size*.7))
+      sites.push({x,y});
+   }
+   const g=new THREE.BufferGeometry();
+   g.setAttribute('position',new THREE.Float32BufferAttribute(grassVertices,3));g.setIndex(grassIndices);g.computeVertexNormals();
+   const mat=windMaterial(new THREE.MeshLambertMaterial({side:THREE.DoubleSide}),this.wind,.18);
+   const turf=new THREE.InstancedMesh(g,mat,sites.length);
+   sites.forEach(({x,y},i)=>{o.position.set(x,field.height(x,y)-.014,y);o.rotation.y=random()*6.28;o.scale.setScalar(.65+random()*.6);o.updateMatrix();turf.setMatrixAt(i,o.matrix);turf.setColorAt(i,new THREE.Color().setHSL(.18+random()*.06,.32,.24+random()*.14));});
+   turf.receiveShadow=true;this.root.add(turf);
+  }
   // Coastal worlds sit above a continuous water surface, with islands beyond the tray.
   if(['harbor','coast'].includes(track.theme)){
    this.water=harborWater(track,this.theme);this.root.add(this.water);
@@ -74,7 +91,7 @@ export class MiniatureWorld {
   for(const species of ['pine','oak','palm']){
    const name='PROP_'+species,list=groups.get(name)??[];
    const detailed=kit?.items?.has(name);
-   plantStand(species,detailed?list.filter((_,i)=>i%3===0):list,this.root,track.weather);
+   plantStand(species,detailed?list.filter((_,i)=>i%3===0):list,this.root,track.weather,this.wind);
    groups.set(name,detailed?list.filter((_,i)=>i%3!==0):[]);
   }
   if(kit){for(const [name,list]of groups)kit.instance(name,list,this.root);
@@ -86,7 +103,7 @@ export class MiniatureWorld {
   this.roofs=new THREE.Group();this.root.add(this.roofs);this.roofMat=new THREE.MeshStandardMaterial({color:track.theme==='night'?'#364968':this.theme.hill,roughness:.78,side:THREE.DoubleSide});
   const ribs=[];
   for(const t of track.tunnels){
-    const count=Math.max(2,Math.ceil((t.end-t.start)/.54));
+    const count=Math.max(2,Math.ceil((t.end-t.start)/.36));
     for(let i=0;i<=count;i++)ribs.push(track.sample(t.start+(t.end-t.start)*i/count));
   }
   if(ribs.length){
@@ -128,11 +145,18 @@ export class MiniatureWorld {
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setIndex(indices);g.computeVertexNormals();const roof=new THREE.Mesh(g,this.roofMat);roof.castShadow=true;roof.receiveShadow=true;this.roofs.add(roof);
    const shellV=[],shellI=[];for(let i=0;i<=n;i++){const p=track.sample(tunnel.start+(tunnel.end-tunnel.start)*i/n),radius=.72+e+.35*Math.sin(Math.PI*i/n);for(let j=0;j<=steps;j++){const a=j/steps*Math.PI,d=Math.cos(a)*radius;shellV.push(p.x+p.nx*d,p.z+.59+Math.sin(a)*radius,p.y+p.ny*d);if(i<n&&j<steps){const k=i*(steps+1)+j;shellI.push(k,k+1,k+steps+1,k+1,k+steps+2,k+steps+1);}}}
    const shellGeo=new THREE.BufferGeometry();shellGeo.setAttribute('position',new THREE.Float32BufferAttribute(shellV,3));shellGeo.setIndex(shellI);shellGeo.computeVertexNormals();const shell=new THREE.Mesh(shellGeo,this.roofMat);shell.castShadow=true;shell.receiveShadow=true;this.roofs.add(shell);
-   for(const side of [-1,1]){const sideV=[];for(let i=0;i<=n;i++){const p=track.sample(tunnel.start+(tunnel.end-tunnel.start)*i/n);for(const z of [.07,.59])sideV.push(p.x+p.nx*side*(.65+e),p.z+z,p.y+p.ny*side*(.65+e));}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(sideV,3));const idx=[];for(let i=0;i<n;i++){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}g.setIndex(idx);g.computeVertexNormals();if(marine){const uv=[];for(let i=0;i<=n;i++)uv.push(i/15,0,i/15,1);g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));}this.root.add(new THREE.Mesh(g,windowMat));}
+   for(const side of [-1,1]){const sideV=[];for(let i=0;i<=n;i++){const p=track.sample(tunnel.start+(tunnel.end-tunnel.start)*i/n);for(const z of [.07,.59])sideV.push(p.x+p.nx*side*(.65+e),p.z+z,p.y+p.ny*side*(.65+e));}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(sideV,3));const idx=[];for(let i=0;i<n;i++){if(!marine && i%8>=2 && i%8<=5)continue;const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}g.setIndex(idx);g.computeVertexNormals();if(marine){const uv=[];for(let i=0;i<=n;i++)uv.push(i/15,0,i/15,1);g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));}this.root.add(new THREE.Mesh(g,windowMat));}
   }
-  const light=new THREE.InstancedMesh(new THREE.BoxGeometry(.065,.012,.38),new THREE.MeshStandardMaterial({color:'#d7ffff',emissive:'#8be1e7',emissiveIntensity:1.5}),lamps.length);lamps.forEach((p,i)=>{o.position.set(p.x,p.z+1.16,p.y);o.scale.set(1,1,1);o.rotation.set(0,-Math.atan2(p.ty,p.tx),0);o.updateMatrix();light.setMatrixAt(i,o.matrix);});this.root.add(light);
+  // Four concentric bands match the editable After Effects diffuser.
+  const strip=document.createElement('canvas');strip.width=64;strip.height=384;
+  const pen=strip.getContext('2d');
+  for(const [w,h,color] of [[64,384,'#183039'],[45,366,'#45969f'],[30,352,'#95dfe5'],[12,344,'#e2fdff']]){
+   pen.fillStyle=color;pen.fillRect((64-w)/2,(384-h)/2,w,h);
+  }
+  const diffuser=new THREE.CanvasTexture(strip);diffuser.colorSpace=THREE.SRGBColorSpace;
+  const light=new THREE.InstancedMesh(new THREE.BoxGeometry(.065,.012,.38),new THREE.MeshBasicMaterial({map:diffuser}),lamps.length);lamps.forEach((p,i)=>{o.position.set(p.x,p.z+1.16,p.y);o.scale.set(1,1,1);o.rotation.set(0,-Math.atan2(p.ty,p.tx),0);o.updateMatrix();light.setMatrixAt(i,o.matrix);});light.userData.ownTexture=true;this.root.add(light);
  }
- update(dt,mode,active,inside=false){if(active&&!this.reduced.matches)this.time+=dt;const t=this.time;this.roofs.visible=!['top','iso'].includes(mode) && (!inside || mode==='chase' || mode==='macro');
+ update(dt,mode,active,inside=false){if(active&&!this.reduced.matches)this.time+=dt;const t=this.time;this.wind.value=t;this.roofs.visible=!['top','iso'].includes(mode) && (!inside || mode==='chase' || mode==='macro');
   if(this.water)this.water.material.map.offset.set(t*.012,t*.006);
   for(const a of this.animated){if(a.type==='rotor')a.root.rotation.z=t*.65;else if(a.type==='animal'){a.root.position.set(a.x+Math.sin(t*.7+a.phase)*.13,(a.z??0)+Math.abs(Math.sin(t*2+a.phase))*.012,a.y);}else{const r=1.4+a.phase*.22;a.root.position.set(a.x+Math.cos(t*.22+a.phase)*r,2.5+Math.sin(t+a.phase)*.15,a.y+Math.sin(t*.22+a.phase)*r);a.root.rotation.set(0,-t*.22-a.phase+Math.PI/2,.12*Math.sin(t*3+a.phase));}}
  }

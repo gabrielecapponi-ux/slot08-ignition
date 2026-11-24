@@ -1,7 +1,17 @@
 import * as THREE from 'three';
 
+export function windMaterial(material,clock,strength){
+ material.onBeforeCompile=shader=>{
+  shader.uniforms.windTime=clock;
+  shader.vertexShader='uniform float windTime;\n'+shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+   float phase=dot(instanceMatrix[3].xz,vec2(.81,.57));
+   transformed.x+=position.y*${strength.toFixed(3)}*(sin(windTime*1.7+phase)+.27*sin(windTime*3.1+phase*1.6));`);
+ };
+ material.customProgramCacheKey=()=>String(strength);
+ return material;
+}
 // Build one mesh of wood and one of foliage per species, shared across the stand.
-export function plantStand(species,sites,parent,weather){
+export function plantStand(species,sites,parent,weather,clock={value:0}){
  if(!sites?.length)return;
  let seed=species==='oak'?844:species==='pine'?819:812;
  const random=()=>((seed=Math.imul(seed,1664525)+1013904223>>>0)/4294967296);
@@ -49,5 +59,5 @@ export function plantStand(species,sites,parent,weather){
   obj.castShadow=true;obj.receiveShadow=true;obj.name=species;parent.add(obj);
  };
  mesh(wood,null,new THREE.MeshStandardMaterial({color:weather==='rain'?'#514135':'#76604a',side:THREE.DoubleSide,roughness:.93}));
- mesh(leaves,tones,new THREE.MeshStandardMaterial({vertexColors:true,side:THREE.DoubleSide,roughness:weather==='rain'?.48:.84}));
+ mesh(leaves,tones,windMaterial(new THREE.MeshStandardMaterial({vertexColors:true,side:THREE.DoubleSide,roughness:weather==='rain'?.48:.84}),clock,.012));
 }

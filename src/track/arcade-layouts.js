@@ -73,7 +73,7 @@ const features={loop:'Loop verticale e ritorno tecnico',double:'Doppia inversion
 const mountainStages=new Set([2,50,8,57,11,64,16,65,21,70,28,77,33,84,39,85,43,92,46,99]);
 export const courseName=id=>layouts[id][0];
 export const courseFeature=id=>features[layouts[id][2]]+(mountainStages.has(id)?' · Doppio tornante di valico':'');
-export const courseRevision=id=>mountainStages.has(id)?25:[2,11,21,38,46].includes(id)?23:21;
+export const courseRevision=id=>mountainStages.has(id)?25:[2,11,21,38,46].includes(id)?23:id%5===3?29:21;
 export function championshipBase(id){
   const [,code,kind]=layouts[id],world=Math.floor(id%50/5),cross=kind==='cross';
   const step=10+(id%3)+(id>=50?1.5:0)-([65,77].includes(id)?1.8:0),w=(code.length+2)*step,h=12+world*.36;
@@ -103,7 +103,7 @@ export function championshipBase(id){
       [[x,0],[x+7,-d],[w-9,-d]],
       [[x,0],[x+4,-d],[x+8,-d],[x+11,.7],[w-7,.7]],
       [[x,0],[x+4,-d],[w-12,-d*1.8],[w-3,-d]],
-      [[x,0],[x+9,-d*.7],[w-8,-d*1.5]],
+      [[x,0],[x+4,-d],[x+8,-d],[x+12,-d*.35],[w-8,-d*1.5]],
       [[x,0],[x+7,-d],[w-10,-d],[w-6,-d*.4]]
     ];
     points.splice(1,0,...approaches[id%5]);
