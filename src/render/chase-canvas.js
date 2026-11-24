@@ -77,8 +77,11 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
   const laneOffsets=track.lanes.map(lane=>track.laneOffset(lane));
   const wetRail=track.weather==='rain';
   let a=sample(0);
-  for(let i=1;i<=125;i++){
+  for(let i=1;i<=125;){
     const b=sample(i);
+    // Preserve near-field curvature; distant road strips span fewer screen pixels.
+    const stride=i<32||b.tunnel||b.fork||b.loopMetric||b.stuntRoll?1:i<72?2:3;
+    i=i===125?126:Math.min(125,i+stride);
     if(track.jump&&a.s>=track.jump.start&&a.s<track.jump.start+track.jump.length){a=b;continue;}
     for(const sign of [-1,1]){
       const offset=sign*(a.fork?.offset||0)/2;

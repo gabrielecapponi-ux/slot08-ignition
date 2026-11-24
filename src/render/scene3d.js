@@ -15,6 +15,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { installHardware,atelierRoom,reflectionMap } from './atelier.js';
 import { clubRoom } from './club-room.js';
 import { buildModularTrack } from './modular-track.js';
+import {localizeScenery,localizeRails} from './scenery-culling.js';
 import {biomePhoto} from '../track/photo-biomes.js';
 import { MiniatureWorld, THEMES, skyTexture } from './world.js';
 import { lightingProfile } from './atmosphere.js';
@@ -71,7 +72,7 @@ export class Scene3D {
   const map=new THREE.DataTexture(data,edge,edge);map.needsUpdate=true;this.shadowTexture=map;return map;
  }
  fallbackCar(){const root=new THREE.Group();const b=new THREE.Mesh(new THREE.BoxGeometry(.3,.065,.15),new THREE.MeshStandardMaterial({name:'MAT_lime_enamel',color:0xc6f568,roughness:.25}));b.position.y=.06;root.add(b);const r=new THREE.Mesh(new THREE.BoxGeometry(.13,.045,.10),new THREE.MeshStandardMaterial({color:0x152b38}));r.position.y=.11;root.add(r);return root;}
- setTrack(track){this.trackEnvironmentTarget?.dispose();this.trackEnvironmentTarget=null;this.environmentPending=true;this.track=track;if(this.staticRoot){this.scene.remove(this.staticRoot);this.disposeRoot(this.staticRoot);}this.staticRoot=buildModularTrack(track,this.kit);this.precip=precipitation(track);if(this.precip)this.staticRoot.add(this.precip);this.staticRoot.updateMatrixWorld(true);this.staticRoot.traverse(o=>{o.matrixAutoUpdate=false;});this.world=new MiniatureWorld(track,this.kit);this.staticRoot.add(this.world.root);if(track.meeting&&!biomePhoto(track.theme)&&track.theme!=='canyon')this.staticRoot.add(clubRoom(track));this.scene.add(this.staticRoot);
+ setTrack(track){this.trackEnvironmentTarget?.dispose();this.trackEnvironmentTarget=null;this.environmentPending=true;this.track=track;if(this.staticRoot){this.scene.remove(this.staticRoot);this.disposeRoot(this.staticRoot);}this.staticRoot=buildModularTrack(track,this.kit);this.precip=precipitation(track);if(this.precip)this.staticRoot.add(this.precip);this.staticRoot.updateMatrixWorld(true);this.staticRoot.traverse(o=>{o.matrixAutoUpdate=false;});this.world=new MiniatureWorld(track,this.kit);this.staticRoot.add(this.world.root);if(track.meeting&&!biomePhoto(track.theme)&&track.theme!=='canyon')this.staticRoot.add(clubRoom(track));localizeScenery(this.staticRoot);localizeRails(this.staticRoot);this.scene.add(this.staticRoot);
   const theme=THEMES[track.theme]??THEMES.forest;this.sky?.dispose();this.sky=skyTexture(track.theme,track.index,this.mobile,track.meeting?.world);this.scene.background=this.sky;this.raceFog=new THREE.Fog(theme.sky,28,102);this.scene.fog=this.raceFog;this.ground.material.color.set(theme.floor);this.applyLighting();const photo=biomePhoto(track.theme),placeholder=this.sky;
   if(photo)new THREE.TextureLoader().load(photo,texture=>{
     if(this.disposed||this.sky!==placeholder){texture.dispose();return;}
@@ -106,7 +107,7 @@ export class Scene3D {
   this.scene.environmentIntensity=garage?.95:club?.94:.84;
  }
  captureTrackEnvironment(){
-  if(this.quality.id==='race60'||!this.environmentPending||!this.kit||this.garage)return;
+  if(['race60','performance'].includes(this.quality.id)||!this.environmentPending||!this.kit||this.garage)return;
   this.environmentPending=false;
   const target=new THREE.WebGLCubeRenderTarget(this.quality.profile.probe,{type:THREE.HalfFloatType,generateMipmaps:true,minFilter:THREE.LinearMipmapLinearFilter});
   const probe=new THREE.CubeCamera(.08,160,target),b=this.track.bounds;
@@ -142,7 +143,7 @@ export class Scene3D {
     if(!node.geometry.attributes.uv)return;
     m.clearcoatNormalMap=this.lacquer??=lacquerTexture();m.clearcoatNormalScale.setScalar(.055);
    }
-  });installHardware(root,car,source?.userData.hasSeats);installCarMotion(root,source);
+  });if(car.id==='workshop'||!source)installHardware(root,car,source?.userData.hasSeats);installCarMotion(root,source);
   const fins=new THREE.BufferGeometry();fins.setAttribute('position',new THREE.Float32BufferAttribute(diffuserVertices,3));fins.setIndex(diffuserTriangles);fins.computeVertexNormals();
   const diffuser=new THREE.Mesh(fins,new THREE.MeshStandardMaterial({color:'#424950',metalness:.52,roughness:.3,side:THREE.DoubleSide}));
   diffuser.name='Estrattore in carbonio';diffuser.userData.ownMaterial=true;diffuser.userData.ownGeometry=true;root.add(diffuser);
@@ -175,7 +176,9 @@ export class Scene3D {
  }
  resize(){const {width,height}=this.canvas.parentElement.getBoundingClientRect();if(!width||!height)return;
   const size=renderSize({width,height,dpr:devicePixelRatio||1,mobile:this.mobile,profile:this.quality.id,scale:this.quality.scale,maxSize:this.renderer.capabilities.maxTextureSize});
-  this.renderer.setPixelRatio(size.ratio);this.renderer.setSize(width,height,false);this.drawSize=size;
+  if(this.drawSize?.ratio!==size.ratio||this.canvas.width!==size.width||this.canvas.height!==size.height)
+    this.renderer.setDrawingBufferSize(width,height,size.ratio);
+  this.drawSize=size;
   this.rig.mobileRace=width<=650 || (width<=1100 && (this.mobile || height<=550));
   this.camera.aspect=width/height;this.camera.updateProjectionMatrix();this.dirty=true;
  }
@@ -183,7 +186,7 @@ export class Scene3D {
   const frameDelta=this.lastSubmitted===undefined?rawDt:(this.lastTime-this.lastSubmitted)/1000;this.lastSubmitted=this.lastTime;
   if(frameDelta>0&&frameDelta<.2){this.frameSamples.push(frameDelta);if(this.frameSamples.length>180)this.frameSamples.shift();}
   // Contact patches follow each car every frame; refresh the costly scene shadow less often on mobile.
-  this.renderer.shadowMap.enabled=this.garage||this.quality.id!=='race60';
+  this.renderer.shadowMap.enabled=this.garage||!['race60','performance'].includes(this.quality.id);
   this.renderer.shadowMap.autoUpdate=this.garage;
   if(!this.garage && (this.shadowTrack!==this.track || !this.lastShadow || this.lastTime-this.lastShadow>=(this.mobile?125:40))){
     this.renderer.shadowMap.needsUpdate=true;this.lastShadow=this.lastTime;this.shadowTrack=this.track;

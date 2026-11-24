@@ -1,6 +1,10 @@
 import { RacingScore, raceSection } from './score.js';
 const clamp=v=>Math.max(0,Math.min(1,Number(v)||0));
-function smooth(param,value,time,tau=.055){param.setTargetAtTime(value,time,tau);}
+const targets=new WeakMap();
+function smooth(param,value,time,tau=.055){
+ if(targets.get(param)===value)return;
+ targets.set(param,value);param.setTargetAtTime(value,time,tau);
+}
 /** Opt-in local synthesis. Separate motor, tyre and coast layers are driven by
  * actual physics. The score ducks under skids; music and effects have own buses. */
 export class SoundEngine {
