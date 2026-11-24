@@ -22,7 +22,7 @@ const profile=new Profile(local),sound=new SoundEngine();let journey;profile.beg
 const session=new RaceSession({onEvent:e=>{
   if(e.type==='reset')raceEvents=[];
   if(['start','derail','contact','lap','finish'].includes(e.type)&&raceEvents.length<256)raceEvents.push({type:e.type,time:e.type==='start'?0:3+session.elapsed,name:e.car?.name||'GARA'});
-  if(e.type==='lap'&&e.car===session.player&&!session.isLocal){const record=profile.record(session.recordKey,e.lap);session.toast((record?'NUOVO RECORD · ':'GIRO COMPLETATO · ')+formatTime(e.lap)+(e.clean?' · +35 CR':'') );sound.event('lap');}
+  if(e.type==='lap'&&e.car===session.player&&!session.isLocal){const record=profile.record(session.recordKey,e.lap);session.toast((record?'NUOVO RECORD · ':'GIRO COMPLETATO · ')+formatTime(e.lap)+(e.clean?' · GIRO PULITO ×'+e.car.cleanStreak+' · +'+e.lapBonus+' CR':'') );sound.event('lap');}
   if(e.type==='derail'){if(!e.car.ai)input?.clear(session.players.indexOf(e.car));else session.toast(e.car.name.toUpperCase()+' FUORI PISTA · 3 S DI RECUPERO');}
   if(e.type==='respawn'&&!e.car.ai)session.toast('IN PISTA · PREMI DI NUOVO IL GAS');
   if(['pause','reset','finish','tutorial-complete'].includes(e.type))input?.clear();
@@ -84,6 +84,7 @@ function presentResult(){
   if(!r)return;
   $('finish-stars').innerHTML=Array.from({length:3},(_,i)=>`<span class="${i<r.stars?'earned':''}" style="--star-delay:${.25+i*.22}s">★</span>`).join('');
   $('finish-panel').dataset.rank=String(r.rank);
+  if(session.player.cleanCredits)$('finish-reward').textContent+=' · di cui '+session.player.cleanCredits+' CR per i giri puliti';
   const stars=session.meeting?worldStars(profile.data.results,session.meeting.world):r.stars;
   $('finish-progress').innerHTML=session.meeting?`<div><span>MONDO ${session.meeting.world+1} · ${r.gainedStars?`+${r.gainedStars} stelle · +${r.gainedStars*40} CR`:'risultato registrato'}${r.surfaceBonus?' · Podio tecnico +75 CR':''}</span><b>${stars} / ${STAR_GATE}</b></div><meter min="0" max="${STAR_GATE}" value="${Math.min(STAR_GATE,stars)}">${stars} stelle</meter>`:'';
   $('finish-unlock').textContent=r.unlockedCars.length?'SBLOCCATA · '+r.unlockedCars.join(' / '):r.newWorld?'NUOVO MONDO APERTO':r.rank===1?'VITTORIA · IL CLUB SI RICORDERÀ DI QUESTO GIRO.':session.player.crashes?'Un giro più pulito vale una stella in più.':'Torna in pista per conquistare il primo posto.';

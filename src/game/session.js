@@ -176,12 +176,17 @@ export class RaceSession {
         const lap = crossedAt - car.lapStartedAt;
         car.lastLap = lap; car.bestLap = Math.min(car.bestLap, lap);
         car.lapTimes.push(lap); car.lapStartedAt = crossedAt; car.laps++;
-        const clean=!car.ai && this.phase==='race' && this.cars.length===6 && car.crashes===(car.lastLapCrashes||0);
-        if(!car.ai && this.phase==='race' && this.cars.length===6){
+        const eligible=!car.ai && this.phase==='race' && this.cars.length===8;
+        const clean=eligible && car.crashes===(car.lastLapCrashes||0);
+        let lapBonus=0;
+        if(eligible){
+          car.cleanStreak=clean?(car.cleanStreak||0)+1:0;
+          lapBonus=clean?35+15*Math.min(2,car.cleanStreak-1):0;
+          car.cleanCredits=(car.cleanCredits||0)+lapBonus;
           if(clean)car.cleanLaps=(car.cleanLaps||0)+1;
           car.lastLapCrashes=car.crashes;
         }
-        this.onEvent({ type: 'lap', car, lap, clean });
+        this.onEvent({ type: 'lap', car, lap, clean, lapBonus });
         if (this.mode !== 'time' && this.mode!=='elimination' && car.laps >= (this.phase==='qualifying'?2:RACE.laps)) {
           car.finishedAt = crossedAt; car.speed = 0;
           if (!car.ai) {playerFinished = true;if(this.isLocal&&this.localFinishAt===null)this.localFinishAt=crossedAt;}

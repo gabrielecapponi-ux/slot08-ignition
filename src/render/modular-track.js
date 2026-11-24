@@ -31,7 +31,7 @@ export function buildModularTrack(track,kit=null) {
       const pit=random(),grit=random(),striations=.5+.5*Math.cos(wheel*1600+Math.sin(phase*2));
       const tow=carbonTow(x,y);
       const shade=181+tow*2.2+grit*13+dust*8-tread*(52+24*striations)-(pit<.028?24:0);
-      const gloss=199+grit*37-tread*(97+20*striations);
+      const gloss=207+grit*22+Math.min(12,Math.abs(tow)*.3)-tread*(107+19*striations);
       const i=4*(x+y*size);
       pixels[i]=Math.min(255,shade);pixels[i+1]=pixels[i];pixels[i+2]=Math.min(255,shade+dust*2);pixels[i+3]=255;
       // Three.js reads roughness from green and bump from red.
@@ -51,7 +51,7 @@ export function buildModularTrack(track,kit=null) {
   asphalt.roughnessMap=asphalt.bumpMap=roughness;asphalt.bumpScale=.0003;asphalt.clearcoatRoughnessMap=roughness;
   asphalt.anisotropy=.56;asphalt.anisotropyMap=treadTexture(fibres);
   asphalt.addEventListener('dispose',()=>{roughness.dispose();asphalt.anisotropyMap.dispose();});
-  asphalt.color.set('#697078');asphalt.roughness=.32;asphalt.clearcoatRoughness=.095;asphalt.envMapIntensity=1.58;asphalt.name="Carbonio twill sotto trasparente";
+  asphalt.color.set('#697078');asphalt.roughness=.43;asphalt.clearcoatRoughness=.17;asphalt.envMapIntensity=1.58;asphalt.name="Carbonio twill sotto trasparente";
   if(track.weather==='rain'){
     asphalt.color.set('#41525c');asphalt.roughness=.23;asphalt.clearcoatRoughness=.07;asphalt.envMapIntensity=2.0;
     // Broad wet patches break up the reflection; the woven carbon remains visible below the film.
@@ -76,21 +76,34 @@ export function buildModularTrack(track,kit=null) {
   // Deck layers and conductors share stations during mesh construction.
   const samples=new Map();
   const sampled=s=>{let p=samples.get(s);if(!p){p=track.sample(s);samples.set(s,p);}return p;};
+  // Share the same stations across the deck and both steel shoulders. Straight
+  // spans need fewer vertices; bends, banks and stunt transitions need more.
+  const stations=[0];
+  for(let s=0;s<track.length;){
+    const p=sampled(s),q=sampled(Math.min(track.length,s+.28));
+    const busy=p.fork||q.fork||p.bridge||q.bridge||p.loopPitch||q.loopPitch||p.stuntRoll||q.stuntRoll||
+      Math.max(Math.abs(p.curvature),Math.abs(q.curvature))>.06||Math.abs(p.bank-q.bank)>.008;
+    s=Math.min(track.length,s+(busy?(mobile?.095:.065):(mobile?.27:.20)));
+    stations.push(s);
+  }
   const gap=s=>track.jump && s>=track.jump.start && s<track.jump.start+track.jump.length;
   function conductor(center,sample=sampled,start=0,length=track.length,steps=n,base=.077){
+    const full=sample===sampled&&start===0&&length===track.length&&steps===n;
+    if(full)steps=stations.length-1;
+    const at=i=>full?stations[i]:start+i/steps*length;
     const vertices=[],indices=[],colors=[],uv=[];
     // A slightly crowned conductor with a bevel on both shoulders catches grazing light.
     const section=[[-.0062,0],[-.0057,.0023],[-.0039,.0037],[0,.0042],[.0039,.0037],[.0057,.0023],[.0062,0]];
     for(let i=0;i<=steps;i++){
-      const p=sample(start+i/steps*length);
+      const p=sample(at(i));
       for(const [offset,h] of section){
-        vertices.push(...position(p,center+offset,base+h));uv.push((offset+.0062)/.0124,(start+i/steps*length)*2);
+        vertices.push(...position(p,center+offset,base+h));uv.push((offset+.0062)/.0124,at(i)*2);
         // The contact braid polishes the crown. The recessed shoulders retain tarnish.
         const exposed=Math.exp(-((offset/.0049)**4));
         const tone=.42+exposed*.56;
         colors.push(tone*(1.015-exposed*.015),tone,tone*(.93+exposed*.07));
       }
-      if(i<steps&&!gap(start+(i+.5)/steps*length))for(let j=0;j<section.length-1;j++){
+      if(i<steps&&!gap((at(i)+at(i+1))*.5))for(let j=0;j<section.length-1;j++){
         const a=i*section.length+j,b=a+section.length;indices.push(a,a+1,b,b,a+1,b+1);
       }
     }
@@ -100,21 +113,24 @@ export function buildModularTrack(track,kit=null) {
   }
   function ribbon(left, right, height, material, sample = sampled, start = 0, length = track.length, steps = n) {
     if(track.fork&&left<0&&right>0&&sampled===sample){ribbon(left,-.0001,height,material,sample,start,length,steps);ribbon(.0001,right,height,material,sample,start,length,steps);return;}
+    const full=sample===sampled&&start===0&&length===track.length&&steps===n;
+    if(full)steps=stations.length-1;
+    const at=i=>full?stations[i]:start+i/steps*length;
     const vertices = [], indices = [];
     for (let i = 0; i <= steps; i++) {
-      const p = sample(start + i / steps * length);
+      const p = sample(at(i));
       for (const d of [left,right]) vertices.push(...position(p,d,height));
-      if (i < steps && !gap(start+(i+.5)/steps*length)) { const a = i * 2; indices.push(a,a+1,a+2,a+1,a+3,a+2); }
+      if (i < steps && !gap((at(i)+at(i+1))*.5)) { const a = i * 2; indices.push(a,a+1,a+2,a+1,a+3,a+2); }
     }
     const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices,3)); geometry.setIndex(indices); geometry.computeVertexNormals();
     if(material===asphalt){
       const uv=[];
       for(let i=0;i<=steps;i++){
-        const s=start+i/steps*length;
+        const s=at(i);
         // Rear tyres leave a wider line on the outside of bends; sample over one car length.
         const k=(sample(s-.14).curvature+2*sample(s).curvature+sample(s+.14).curvature)/4;
         const drift=.041*Math.tanh(2.4*k)/track.width;
-        const v=i/steps*Math.max(1,Math.round(length/1.48));
+        const v=(s-start)/length*Math.max(1,Math.round(length/1.48));
         uv.push(left/track.width+.5+drift,v,right/track.width+.5+drift,v);
       }
       geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));

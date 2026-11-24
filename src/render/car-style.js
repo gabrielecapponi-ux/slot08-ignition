@@ -41,6 +41,23 @@ export function addCarStyle(root,car,kit){
    root.add(part);
  }
  if(!look.wheels)sidewallPrint(root,true);
+ // Flush black louvres and their satin trailing lips follow the actual bonnet.
+ if(panels.length){
+   const verts=[],colors=[],indices=[];
+   for(const side of [-1,1])for(let slot=0;slot<3;slot++){
+     const x=.053+slot*.008;
+     for(const [dx,tint] of [[0,.027],[.0026,.035],[.0036,.32]]){
+       for(const edge of [0,1]){
+         const px=x+edge*.003+dx,pz=side*(.027+edge*.018);
+         verts.push(px,surface(px,pz,.07)+.0003,pz);colors.push(tint,tint*1.06,tint*1.1);
+       }
+     }
+     const k=verts.length/3-6;indices.push(k,k+1,k+2,k+1,k+3,k+2,k+2,k+3,k+4,k+3,k+5,k+4);
+   }
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();
+   const vents=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,metalness:.45,roughness:.39,side:THREE.DoubleSide}));
+   vents.name='Feritoie cofano';vents.userData.ownGeometry=vents.userData.ownMaterial=true;root.add(vents);
+ }
  // Cast fasteners onto each chassis and align them with the actual bonnet slope.
  if(panels.length){
    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pinVertices,3));geo.setIndex(pinTriangles);geo.computeVertexNormals();

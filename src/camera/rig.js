@@ -57,9 +57,10 @@ export class CameraRig {
       look.set(p.x+tx*lead*.45+(road.x-p.x)*.55,ground+.06+clamp(road.z-p.z,-.55,.7)*.55,p.y+ty*lead*.45+(road.y-p.y)*.55);
       fov=(aspect<1?64:58)+(this.motion.matches?0:pace*4);
     }else if(moving && this.mobileRace && !session.isLocal && this.mode==='drone'){
-      const lookAhead=.53;
+      const lookAhead=.53+.39*clamp(session.player.speed/5,0,1);
+      const bend=this.track.pose(distance+lookAhead,session.player.lane,session.player.change);
       pos.set(p.x-tx*1.04,ground+(aspect<1?1.14:.89),p.y-ty*1.04);
-      look.set(p.x+tx*lookAhead,ground+.05,p.y+ty*lookAhead);
+      look.set(p.x+tx*lookAhead*.35+(bend.x-p.x)*.65,ground+.05+clamp(bend.z-p.z,-.3,.45)*.5,p.y+ty*lookAhead*.35+(bend.y-p.y)*.65);
       fov=aspect<1?57:52;
     }else if(moving&&!session.isLocal&&(this.mode==='macro'||(session.status==='countdown'&&this.mode==='drone'&&!this.motion.matches))){
       // At guide-pin height, a front three-quarter view keeps the grille, the rims and rails together.
