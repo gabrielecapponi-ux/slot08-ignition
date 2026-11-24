@@ -43,20 +43,26 @@ export class SkidEffects {
         }
       }
     }
+    let inkChanged=false, smokeChanged=false;
     this.marks.forEach((p, i) => {
       if(!p.life)return;
-      p.life = Math.max(0, p.life - dt); this.matrix.position.set(p.x || 0, p.y || 0, p.z || 0);
+      const priorLife=p.life;
+      p.life = Math.max(0, p.life - dt);
+      if(priorLife<12 && p.life>=1)return;
+      inkChanged=true; this.matrix.position.set(p.x || 0, p.y || 0, p.z || 0);
       this.matrix.rotation.set(-Math.PI / 2, 0, -(p.angle || 0)); this.matrix.scale.setScalar(Math.min(1, p.life)); this.matrix.updateMatrix(); this.ink.setMatrixAt(i, this.matrix.matrix);
     });
     this.puffs.forEach((p, i) => {
       if(!p.life)return;
       p.life = Math.max(0, p.life - dt);
+      smokeChanged=true;
       if (p.life) { p.x += p.vx * dt; p.z += p.vz * dt; p.y += (.10+.12*(.72-p.life))*dt; }
       this.matrix.position.set(p.x || 0, p.y || 0, p.z || 0); if(camera)this.matrix.quaternion.copy(camera.quaternion);else this.matrix.rotation.set(0, i, i);
       this.matrix.scale.setScalar(p.life ? (.031 + (.72 - p.life) * .19) * Math.min(1, p.life / .18) : 0);
       this.matrix.updateMatrix(); this.smoke.setMatrixAt(i, this.matrix.matrix);
     });
-    this.ink.instanceMatrix.needsUpdate = true; this.smoke.instanceMatrix.needsUpdate = true;
+    if(inkChanged)this.ink.instanceMatrix.needsUpdate=true;
+    if(smokeChanged)this.smoke.instanceMatrix.needsUpdate=true;
   }
   destroy() { this.smokeTexture.dispose();for (const mesh of [this.ink, this.smoke]) { mesh.removeFromParent(); mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); } }
 }

@@ -1,4 +1,5 @@
 export const GRAPHICS_PROFILES=Object.freeze({
+ race60:{name:'Gara fluida',fps:60,adaptive:true,pixels:1600000,mobilePixels:1050000,dpr:1.5,shadow:512,mobileShadow:512,probe:128,anisotropy:4},
  mobile60:{name:'Mobile QHD',fps:60,adaptive:true,pixels:3686400,mobilePixels:3686400,dpr:4,shadow:1024,mobileShadow:768,probe:128,anisotropy:8},
  auto:{name:'Adattiva',fps:120,adaptive:true,pixels:5_000_000,mobilePixels:3_200_000,dpr:2.5,shadow:1536,mobileShadow:1024,probe:256,anisotropy:8},
  performance:{name:'Fluidità',fps:120,adaptive:true,pixels:2_600_000,mobilePixels:1_800_000,dpr:2,shadow:1024,mobileShadow:512,probe:128,anisotropy:4},
@@ -25,12 +26,13 @@ export class QualityGovernor{
   this.seconds+=dt;this.frames++;this.cost+=costMs;
   // React to sustained misses in the mobile 60 fps preset before spending seconds at full resolution.
   const slowMobile=this.id==='mobile60'&&this.frames>=8&&this.seconds/this.frames>1/45;
-  if(this.seconds<(slowMobile?.75:3))return false;
+  const racePriority=this.id==='race60';
+  if(this.seconds<(racePriority?.5:slowMobile?.75:3))return false;
   this.fps=this.frames/this.seconds;this.renderMs=this.cost/this.frames;
   const target=Math.min(this.profile.fps,this.observedHz),budget=1000/target,old=this.scale;
   if(this.profile.adaptive){
-   if(this.fps<target*.82||this.renderMs>budget*.88){this.scale=Math.max(.55,this.scale-.12);this.goodWindows=0;}
-   else if(this.fps>target*.95&&this.renderMs<budget*.55){if(++this.goodWindows>=3){this.scale=Math.min(1,this.scale+.04);this.goodWindows=0;}}
+   if(this.fps<target*(racePriority?.94:.82)||this.renderMs>budget*.88){this.scale=Math.max(.55,this.scale-.12);this.goodWindows=0;}
+   else if(this.fps>target*.95&&this.renderMs<budget*.55){if(++this.goodWindows>=(racePriority?12:3)){this.scale=Math.min(1,this.scale+.04);this.goodWindows=0;}}
    else this.goodWindows=0;
   }
   this.seconds=0;this.frames=0;this.cost=0;return Math.abs(old-this.scale)>.001;

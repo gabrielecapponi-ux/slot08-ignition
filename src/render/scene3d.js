@@ -32,6 +32,7 @@ export class Scene3D {
   this.kind='3d';this.canvas=canvas;this.track=track;this.onStatus=onStatus;this.cars=new Map();this.frameSamples=[];this.disposed=false;this.lastTime=performance.now();this.garage=false;this.garageBackground=new THREE.Color('#111d29');
   this.mobile = window.matchMedia('(pointer: coarse) and (max-width: 1100px)').matches;this.quality=new QualityGovernor();
   this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.75));this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  this.raceFrustum=new THREE.Frustum();this.clipMatrix=new THREE.Matrix4();this.carSphere=new THREE.Sphere(new THREE.Vector3(),1);
   this.scene=new THREE.Scene();this.fallbackEnvironment=reflectionMap();this.scene.environment=this.fallbackEnvironment;
   new THREE.TextureLoader().load(new URL('../../assets/club-light.webp',import.meta.url).href,texture=>{
     if(this.disposed){texture.dispose();return;}
@@ -96,7 +97,7 @@ export class Scene3D {
   this.scene.environmentIntensity=garage?.95:club?.94:.84;
  }
  captureTrackEnvironment(){
-  if(!this.environmentPending||!this.kit||this.garage)return;
+  if(this.quality.id==='race60'||!this.environmentPending||!this.kit||this.garage)return;
   this.environmentPending=false;
   const target=new THREE.WebGLCubeRenderTarget(this.quality.profile.probe,{type:THREE.HalfFloatType,generateMipmaps:true,minFilter:THREE.LinearMipmapLinearFilter});
   const probe=new THREE.CubeCamera(.08,160,target),b=this.track.bounds;
@@ -171,6 +172,7 @@ export class Scene3D {
   const frameDelta=this.lastSubmitted===undefined?rawDt:(this.lastTime-this.lastSubmitted)/1000;this.lastSubmitted=this.lastTime;
   if(frameDelta>0&&frameDelta<.2){this.frameSamples.push(frameDelta);if(this.frameSamples.length>180)this.frameSamples.shift();}
   // Contact patches follow each car every frame; refresh the costly scene shadow less often on mobile.
+  this.renderer.shadowMap.enabled=this.garage||this.quality.id!=='race60';
   this.renderer.shadowMap.autoUpdate=this.garage;
   if(!this.garage && (this.shadowTrack!==this.track || !this.lastShadow || this.lastTime-this.lastShadow>=(this.mobile?125:40))){
     this.renderer.shadowMap.needsUpdate=true;this.lastShadow=this.lastTime;this.shadowTrack=this.track;
@@ -203,7 +205,16 @@ export class Scene3D {
   const lit=session.status==='countdown'?Math.min(5,1+Math.floor((3-session.countdown)*2)):0;
   for(const [i,mat] of (this.staticRoot.userData.startLights??[]).entries())mat.emissiveIntensity=i<lit?2.7:0;
   this.glints.update(session,this.camera,this.sun,session.status==='running'&&!this.rig.motion.matches);
-  for(const car of session.cars){const m=this.modelFor(car),p=car.pose;updateCarMotion(m,car,dt,alpha);m.visible=car.state!=='eliminated';if(m.userData.contactShadow)m.userData.contactShadow.visible=!car.crash;const beacon=m.userData.beacon;if(beacon){beacon.visible=session.isLocal;const size=['top','iso'].includes(this.rig.mode)?Math.max(.65,this.camera.position.y*.022):.5;beacon.position.set(0,.35,0);beacon.scale.set(size,size*2/3,1);}
+  this.camera.updateMatrixWorld();
+  this.raceFrustum.setFromProjectionMatrix(this.clipMatrix.multiplyMatrices(this.camera.projectionMatrix,this.camera.matrixWorldInverse));
+  for(const car of session.cars){
+   const point=car.crash??car.pose;
+   this.carSphere.center.set(point.x,point.z,point.y);
+   if(car.state==='eliminated'||!this.raceFrustum.intersectsSphere(this.carSphere)){
+    const existing=this.cars.get(car.id);if(existing)existing.visible=false;
+    continue;
+   }
+   const m=this.modelFor(car),p=car.pose;updateCarMotion(m,car,dt,alpha);m.visible=car.state!=='eliminated';if(m.userData.contactShadow)m.userData.contactShadow.visible=!car.crash;const beacon=m.userData.beacon;if(beacon){beacon.visible=session.isLocal;const size=['top','iso'].includes(this.rig.mode)?Math.max(.65,this.camera.position.y*.022):.5;beacon.position.set(0,.35,0);beacon.scale.set(size,size*2/3,1);}
    if(car.crash){const c=car.crash;m.position.set(c.x,c.z,c.y);m.rotation.set(c.roll||0,-c.angle,0,"YXZ");}
    else{const body=racePose(car,alpha);const pitch=body.loopPitch??0,shift=.077*Math.sin(pitch),roll=body.stuntRoll||0,side=.077*Math.sin(roll);m.position.set(body.x-body.tx*shift+body.nx*side,body.z+.077*Math.cos(pitch)*Math.cos(roll),body.y-body.ty*shift+body.ny*side);const load=Math.min(1,car.gripRatio||0)*Math.sign(p.curvature||0);
     m.userData.lean=THREE.MathUtils.damp(m.userData.lean||0,load*.034,11,dt);
