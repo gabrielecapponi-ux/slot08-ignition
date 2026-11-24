@@ -19,11 +19,13 @@ export class QualityGovernor{
  setProfile(profile){this.id=GRAPHICS_PROFILES[profile]?profile:'auto';this.profile=profileFor(this.id);this.scale=1;this.reset();}
  reset(){this.seconds=0;this.frames=0;this.cost=0;this.goodWindows=0;this.cadence=[];this.samples=0;this.observedHz=60;}
  sample(dt,costMs){
-  if(!(dt>0&&dt<.1))return false;
+  if(!(dt>0&&dt<.5))return false;
   this.cadence.push(dt);if(this.cadence.length>180)this.cadence.shift();
   if(this.cadence.length>=30&&++this.samples%30===0){const sorted=[...this.cadence].sort((a,b)=>a-b),fast=sorted[Math.floor(sorted.length*.10)];this.observedHz=fast<.00915?120:fast<.01055?100:fast<.014?90:60;}
   this.seconds+=dt;this.frames++;this.cost+=costMs;
-  if(this.seconds<3)return false;
+  // React to sustained misses in the mobile 60 fps preset before spending seconds at full resolution.
+  const slowMobile=this.id==='mobile60'&&this.frames>=8&&this.seconds/this.frames>1/45;
+  if(this.seconds<(slowMobile?.75:3))return false;
   this.fps=this.frames/this.seconds;this.renderMs=this.cost/this.frames;
   const target=Math.min(this.profile.fps,this.observedHz),budget=1000/target,old=this.scale;
   if(this.profile.adaptive){

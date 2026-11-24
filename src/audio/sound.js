@@ -7,7 +7,7 @@ export class SoundEngine {
   constructor(){this.enabled=false;this.context=null;this.voices=new Map();this.section='groove';this.musicVolume=.45;this.effectsVolume=.75;this.lastCue=-10;this.active=false;}
   init(){
     const Context=window.AudioContext||window.webkitAudioContext;if(!Context)return false;
-    const c=this.context=new Context();this.master=c.createGain();this.master.gain.value=.75;
+    const c=this.context=new Context({latencyHint:'interactive'});this.master=c.createGain();this.master.gain.value=.75;
     const limiter=c.createDynamicsCompressor();limiter.threshold.value=-12;limiter.knee.value=12;limiter.ratio.value=6;limiter.attack.value=.004;limiter.release.value=.15;
     this.master.connect(limiter).connect(c.destination);
     this.effects=c.createGain();this.effects.gain.value=this.effectsVolume;this.effects.connect(this.master);

@@ -58,6 +58,8 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
     shapes.push({points,color,depth:(points[0].depth+points[1].depth)/2});
   }
   const sample=roadWindow(track,side?zone.start-2:player.distance),half=.37+track.extraWidth;
+  const laneOffsets=track.lanes.map(lane=>track.laneOffset(lane));
+  const wetRail=track.weather==='rain';
   let a=sample(0);
   for(let i=1;i<=125;i++){
     const b=sample(i);
@@ -94,10 +96,13 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
       const impact=project(x+h*.10,y,z+h);
       if(impact)shapes.push({rain:impact,t,depth:impact.depth-.003});
     }
-    for(const lane of track.lanes){
-      const d=track.laneOffset(lane)+Math.sign(track.laneOffset(lane))*(a.fork?.offset||0)/2;
+    // The bevel catches a broad sky highlight as its bearing turns around a bend.
+    const shine=(a.nx*.64+a.ny*.77)**2;
+    const steel=shine>.78?(wetRail?'#e1f1f7':'#d6dfdf'):shine>.35?'#a9babf':'#91a0a7';
+    for(const offset of laneOffsets){
+      const d=offset+Math.sign(offset)*(a.fork?.offset||0)/2;
       strip(a,b,d-.014,d+.014,'#10151a',.006);
-      strip(a,b,d+.02,d+.033,'#b7bdbb',.008);
+      strip(a,b,d+.02,d+.033,steel,.008);
     }
     a=b;
   }

@@ -48,7 +48,7 @@ export function buildModularTrack(track,kit=null) {
   asphalt.map=treadTexture(pixels);asphalt.map.colorSpace=THREE.SRGBColorSpace;const roughness=treadTexture(finish);
   asphalt.roughnessMap=asphalt.bumpMap=roughness;asphalt.bumpScale=.0003;asphalt.clearcoatRoughnessMap=roughness;
   asphalt.addEventListener('dispose',()=>roughness.dispose());
-  asphalt.color.set('#697078');asphalt.roughness=.39;asphalt.envMapIntensity=1.45;asphalt.name="Carbonio twill sotto trasparente";
+  asphalt.color.set('#697078');asphalt.roughness=.34;asphalt.clearcoatRoughness=.13;asphalt.envMapIntensity=1.58;asphalt.name="Carbonio twill sotto trasparente";
   if(track.weather==='rain'){
     asphalt.color.set('#41525c');asphalt.roughness=.23;asphalt.clearcoatRoughness=.07;asphalt.envMapIntensity=2.0;
     // Broad wet patches break up the reflection; the woven carbon remains visible below the film.

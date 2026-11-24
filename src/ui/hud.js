@@ -19,6 +19,7 @@ export class HUD {
   render(now){if(now-this.last<.065)return;this.last=now;const s=this.session,c=s.player,status=s.status;const menu=status==='ready',finished=['finished','tutorial-complete'].includes(status);
     $('app').dataset.phase=s.phase;$('app').dataset.mode=s.mode;$('app').dataset.players=s.players.length;$('app').dataset.local=String(s.isLocal);for(const i of [2,3])$('controls-'+i).hidden=s.players.length<i;
     $('garage-open').disabled=!menu&&!finished;$('app').dataset.state=status;$('lobby').hidden=!menu;$('race-hud').hidden=menu||finished||status==='qualified';$('pause-panel').hidden=status!=='paused';$('finish-panel').hidden=!finished;$('tutorial').hidden=!s.tutorial||status!=='running';$('countdown').hidden=status!=='countdown';
+    if(menu){this.tutorialStep=-1;return;}
     for(const button of document.querySelectorAll('[data-power]'))button.setAttribute('aria-pressed',String(Number(button.dataset.power)===this.input.power[Number(button.dataset.pilot)]));
     for(const slider of document.querySelectorAll('[data-gas-slider]')){const i=Number(slider.dataset.gasSlider),value=Math.round(this.input.power[i]*100);if(Number(slider.value)!==value)slider.value=value;this.text('gas-value-'+i,value+'%');}
     this.text('touch-gas-hint',this.input.toggleMode?'TOCCA':'TIENI PREMUTO');this.text('countdown-value',Math.ceil(s.countdown));

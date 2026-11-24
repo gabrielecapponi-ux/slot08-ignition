@@ -67,6 +67,9 @@ export class Journey {
   $('chapter-copy').textContent=world!=null?s.track.level.name+' · '+s.track.level.subtitle:MODES.find(m=>m[0]===s.mode)?.[3]||'Scegli il circuito e porta la tua auto in griglia.';
   $('chapter-kicker').textContent=world!=null?'CAPITOLO '+(world+1)+' · GARA '+(s.meeting.round+1)+' / 10':'SESSIONE LIBERA';
   $('start-label').textContent=s.mode==='time'?'ENTRA IN PISTA':'IN GRIGLIA';
+  const previewKey=[s.level,s.track.variant,s.mode,s.track.laneCount].join('/');
+  if(this.previewKey===previewKey)return;
+  this.previewKey=previewKey;
   drawCourse($('circuit-preview'),s.track);
   $('circuit-preview').setAttribute('aria-label','Anteprima isometrica del circuito '+s.track.level.name);
   this.animate('circuit-preview');
