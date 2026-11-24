@@ -15,6 +15,33 @@ export function bodyContact(a,b){
  }
  return result;
 }
+// Sweep both footprints through the last physics tick. The wreck rotates about
+// its tyre-level origin, so its centre moves sideways and down as it overturns.
+export function hitsWreck(wreck,car,dt){
+ const b=bodyPose(car.pose,car.driftAngle), roll=wreck.roll||0;
+ const c=Math.cos(roll),s=Math.sin(roll),height=.061,width=.077;
+ const wx=Math.cos(wreck.angle),wy=Math.sin(wreck.angle);
+ const bx=Math.cos(b.angle),by=Math.sin(b.angle);
+ const dx=b.x-(wreck.x-wy*height*s),dy=b.y-(wreck.y+wx*height*s);
+ const vx=car.pose.tx*car.speed-wreck.vx,vy=car.pose.ty*car.speed-wreck.vy;
+ if(Math.hypot(dx,dy)>PHYSICS.carLength+.18+Math.hypot(vx,vy)*dt)return false;
+ let enter=-dt,exit=0;
+ function overlaps(distance,velocity,radius){
+  if(Math.abs(velocity)<1e-8)return Math.abs(distance)<=radius;
+  const t1=(-radius-distance)/velocity,t2=(radius-distance)/velocity;
+  enter=Math.max(enter,Math.min(t1,t2));exit=Math.min(exit,Math.max(t1,t2));
+  return enter<=exit;
+ }
+ const dz=b.z+.077+height-(wreck.z+height*c);
+ if(!overlaps(dz,(car.pose.grade||0)*car.speed-wreck.vz,height+height*Math.abs(c)+width*Math.abs(s)))return false;
+ const wreckWidth=width*Math.abs(c)+height*Math.abs(s);
+ function axis(x,y){
+  const extent=PHYSICS.carLength*.5*(Math.abs(bx*x+by*y)+Math.abs(wx*x+wy*y))
+   +width*Math.abs(bx*y-by*x)+wreckWidth*Math.abs(wx*y-wy*x);
+  return overlaps(dx*x+dy*y,vx*x+vy*y,extent);
+ }
+ return axis(wx,wy)&&axis(-wy,wx)&&axis(bx,by)&&axis(-by,bx);
+}
 export function resolveContacts(track,cars,physics,onEvent=()=>{},time=0){
  for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){
   const a=cars[i],b=cars[j];if(a.rejoinUntil>time||b.rejoinUntil>time||a.state!=='slotted'||b.state!=='slotted'||a.finishedAt!==null||b.finishedAt!==null)continue;
@@ -32,7 +59,7 @@ export function resolveContacts(track,cars,physics,onEvent=()=>{},time=0){
     const attacker=ahead===a?b:a;
     const victims=aligned?[ahead]:closing>2.3||lateral>.48?[a,b]:[b];
     if(aligned){const velocity=attacker===a?va:vb;attacker.speed=Math.hypot(velocity.x,velocity.y)*.94;attacker.punted=ahead.id;}
-    for(const car of victims){physics.derail(car,car.pose);car.crash.hit=true;car.crash.other=car===a?b.id:a.id;car.contactCrashes=(car.contactCrashes||0)+1;onEvent({type:'derail',car});}
+    for(const car of victims){physics.derail(car,car.pose);if(aligned)car.crash.puntedBy=attacker.id;car.crash.hit=true;car.crash.other=car===a?b.id:a.id;car.contactCrashes=(car.contactCrashes||0)+1;onEvent({type:'derail',car});}
    }
    if(time>Math.max(a.contactUntil??-1,b.contactUntil??-1)){
     a.contactUntil=b.contactUntil=time+.30;onEvent({type:'contact',car:a,other:b,speed:closing});

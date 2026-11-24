@@ -1,6 +1,6 @@
 import {setWeather} from '../track/weather.js';
 import {courseRevision} from '../track/championship.js';
-import { resolveContacts } from '../physics/contacts.js';
+import { hitsWreck, resolveContacts } from '../physics/contacts.js';
 import { MEETINGS, positionClubSwitches, passingLaneClear, trafficAhead } from './club.js';
 import { FLEET } from './tour.js';
 import { SectorClock } from './sector-clock.js';
@@ -192,10 +192,11 @@ export class RaceSession {
       resolveContacts(this.track,this.cars,this.physics,this.onEvent,this.elapsed);
       for(const wreck of this.cars.filter(c=>c.crash && c.recoverIn>0)){
         for(const rival of this.cars){
-          if(rival.state!=='slotted'||rival.finishedAt!==null||rival.rejoinUntil>this.elapsed||rival.speed<.45)continue;
+          if(rival.state!=='slotted'||rival.finishedAt!==null||rival.rejoinUntil>this.elapsed)continue;
           const a=wreck.crash,b=rival.pose;
-          if(a.other===rival.id && rival.punted===wreck.id && wreck.recoverIn>2.4)continue;
-          if(Math.hypot(a.x-b.x,a.y-b.y)<.19 && Math.abs(a.z-b.z-.077)<.13){
+          if(a.puntedBy===rival.id && wreck.recoverIn>2.4)continue;
+          if(Math.hypot(b.tx*rival.speed-a.vx,b.ty*rival.speed-a.vy,a.vz)<.22)continue;
+          if(hitsWreck(a,rival,dt)){
             a.hit=true;
             this.physics.derail(rival,b);
             const impact=rival.crash;
@@ -204,7 +205,7 @@ export class RaceSession {
             rival.contactCrashes=(rival.contactCrashes||0)+1;
             impact.vz+=.18;impact.hit=true;impact.other=wreck.id;a.other=rival.id;
             a.vx*=.78;a.vy*=.78;
-            this.onEvent({type:'derail',car:rival});break;
+            this.onEvent({type:'derail',car:rival});
           }
         }
       }
