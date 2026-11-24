@@ -43,7 +43,21 @@ export class MiniatureWorld {
   }
   finishTerrain(terrain,occupied,track.theme);
   this.root.add(trackVerge(track),apexPanels(track));
-  const ridge=ridgeBackdrop(track,this.theme);
+  if(track.theme==='canyon'){
+   // A low basalt caldera outside the racing envelope; UVs project the actual lake onto its bowl.
+   const rings=[0,.42,.71,.87,1],heights=[.18,.24,.9,1.62,-.1],v=[],uv=[],ix=[];
+   for(let j=0;j<rings.length;j++)for(let i=0;i<=64;i++){
+    const a=i*Math.PI/32,r=rings[j],rim=1+.09*Math.sin(a*5)+.07*Math.cos(a*3);
+    v.push(Math.cos(a)*r*rim*7,heights[j]*(1+.12*Math.sin(a*4)),Math.sin(a)*r*rim*4.5);
+    uv.push(.5+.49*Math.cos(a)*r,.5+.49*Math.sin(a)*r);
+    if(i<64&&j<4){const k=j*65+i;ix.push(k,k+1,k+65,k+1,k+66,k+65);}
+   }
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(ix);g.computeVertexNormals();
+   const mat=new THREE.MeshStandardMaterial({roughness:.87,side:THREE.DoubleSide,color:'#d6c5b6'});
+   if(typeof Image!=='undefined'){mat.map=new THREE.TextureLoader().load(new URL('../../assets/biomes/caldera.webp',import.meta.url).href);mat.map.colorSpace=THREE.SRGBColorSpace;}
+   const cone=new THREE.Mesh(g,mat);cone.userData.ownTexture=true;cone.position.set(cx,0,b.minY-5.8);this.root.add(cone);
+  }
+  const ridge=track.theme==='orion'?null:ridgeBackdrop(track,this.theme);
   if(ridge)this.root.add(ridge);
   const o=new THREE.Object3D();
   if(['forest','alpine','coast'].includes(track.theme)){
@@ -77,7 +91,7 @@ export class MiniatureWorld {
     forest:['pine','oak','fern'],coast:['palm','boulder','flower'],alpine:['pine','boulder','boulder'],
     harbor:['crate','warehouse','streetlamp'],night:['streetlamp','crate','warehouse'],
     desert:['boulder','cactus','boulder']
-  }[track.theme]??['boulder','pine','fern'];
+  }[track.theme]??(track.theme==='orion'?['boulder','boulder','boulder']:['boulder','pine','fern']);
   for(let s=3;s<track.length;s+=8.7){
     const p=track.sample(s);if(Math.abs(p.curvature)<.08)continue;
     const outside=-Math.sign(p.curvature);
@@ -95,11 +109,15 @@ export class MiniatureWorld {
    plantStand(species,detailed?list.filter((_,i)=>i%3===0):list,this.root,track.weather,this.wind);
    groups.set(name,detailed?list.filter((_,i)=>i%3!==0):[]);
   }
+  const lunar=track.theme==='orion';
+  if(lunar){
+   for(const name of ['PROP_fern','PROP_flower','PROP_mushroom','ANIM_bird'])groups.delete(name);
+  }
   if(kit){for(const [name,list]of groups)kit.instance(name,list,this.root);
    const wind=groups.get('PROP_windmill')??[];for(const p of wind.slice(0,4)){const rotor=kit.clone('ANIM_rotor');rotor.position.set(p.x-Math.sin(p.angle)*.19*p.scale,p.scale*1.45,p.y-Math.cos(p.angle)*.19*p.scale);rotor.rotation.order='YXZ';rotor.rotation.y=p.angle;rotor.scale.setScalar(p.scale);this.root.add(rotor);this.animated.push({root:rotor,type:'rotor'});}
    const near=points[Math.floor(points.length*.16)],species=track.theme==='alpine'?'ibex':track.theme==='canyon'||track.theme==='forest'?'fox':'deer';
-   for(let i=0;i<3;i++){const animal=kit.clone('PROP_'+species),x=near.x+near.nx*(1.25+i*.55),y=near.y+near.ny*(1.25+i*.55);if(distance(x,y)<.9+e)continue;animal.position.set(x,field.height(x,y),y);animal.rotation.y=-Math.atan2(near.ty,near.tx);this.root.add(animal);this.animated.push({root:animal,type:'animal',x,y,z:field.height(x,y),phase:i*2});}
-   for(let i=0;i<3;i++){const bird=kit.clone('ANIM_bird');bird.scale.setScalar(1.7);this.root.add(bird);this.animated.push({root:bird,type:'bird',x:near.x,y:near.y,phase:i*2.1});}
+   for(let i=0;!lunar&&i<3;i++){const animal=kit.clone('PROP_'+species),x=near.x+near.nx*(1.25+i*.55),y=near.y+near.ny*(1.25+i*.55);if(distance(x,y)<.9+e)continue;animal.position.set(x,field.height(x,y),y);animal.rotation.y=-Math.atan2(near.ty,near.tx);this.root.add(animal);this.animated.push({root:animal,type:'animal',x,y,z:field.height(x,y),phase:i*2});}
+   for(let i=0;!lunar&&i<3;i++){const bird=kit.clone('ANIM_bird');bird.scale.setScalar(1.7);this.root.add(bird);this.animated.push({root:bird,type:'bird',x:near.x,y:near.y,phase:i*2.1});}
   }
   this.roofs=new THREE.Group();this.root.add(this.roofs);this.roofMat=new THREE.MeshStandardMaterial({color:track.theme==='night'?'#364968':this.theme.hill,roughness:.78,side:THREE.DoubleSide});
   const ribs=[];

@@ -49,10 +49,10 @@ export class SoftwareGarage {
       const shine=Math.pow(Math.max(0,normal.dot(reflection)),10+48*gloss)*gloss;
       const baseColor=g.attributes.color?new THREE.Color().fromBufferAttribute(g.attributes.color,ia-base):m.material.map?texturePigment(m.material,g.attributes.uv,ia-base):color;
       const enamel=m.material.name.startsWith('MAT_lime_enamel');
-      const strip=enamel?Math.pow(Math.max(0,1-Math.abs(normal.dot(reflection)-.72)*11),2)*.24:0;
+      const strip=enamel?Math.pow(Math.max(0,1-Math.abs(normal.dot(reflection)-.72)*11),2)*.33:0;
       const glazing=m.material.name.startsWith('MAT_smoked_glass');
       const shaded=baseColor.clone().multiplyScalar(diffuse).lerp(boxLight,strip+shine*(enamel?.64:.18+.40*(m.material.metalness??0)));
-      if(glazing)shaded.lerp(new THREE.Color('#a9c8d4'),.07+.19*Math.max(0,normal.y)**2);
+      if(glazing)shaded.lerp(new THREE.Color('#a9c8d4'),.08+.27*Math.max(0,normal.y)**2);
       faces.push({ia,ib,ic,opacity,shade:'#'+shaded.getHexString(),depth:0});
     }
   });

@@ -18,7 +18,7 @@ export function buildModularTrack(track,kit=null) {
   const mat = (color, metalness = 0) => new THREE.MeshStandardMaterial({ color, metalness, roughness: metalness ? .32 : .83, side: THREE.DoubleSide });
   const asphalt = new THREE.MeshPhysicalMaterial({color:'#292e35',metalness:.06,roughness:.40,clearcoat:1,clearcoatRoughness:.18,side:THREE.DoubleSide}), rail = mat('#b8c1c3', .85), slot = mat('#090e14'), white = mat('#f4e8cf');
   // The grain spans the full width of the track so the polished tyre paths follow each lane.
-  const size=256,pixels=new Uint8Array(size*size*4),finish=new Uint8Array(pixels.length);
+  const size=256,pixels=new Uint8Array(size*size*4),finish=new Uint8Array(pixels.length),fibres=new Uint8Array(pixels.length);
   let seed=804;
   const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
   for(let y=0;y<size;y++){
@@ -36,6 +36,8 @@ export function buildModularTrack(track,kit=null) {
       pixels[i]=Math.min(255,shade);pixels[i+1]=pixels[i];pixels[i+2]=Math.min(255,shade+dust*2);pixels[i+3]=255;
       // Three.js reads roughness from green and bump from red.
       finish[i]=pit<.028?24:127+tow*1.7+(grit-.5)*28*dust;
+      const warp=((Math.floor(x/8)-Math.floor(y/8)+64)%4)<2;
+      fibres[i]=warp?255:128;fibres[i+1]=warp?128:255;fibres[i+2]=165;fibres[i+3]=255;
       finish[i+1]=gloss;finish[i+2]=0;finish[i+3]=255;
     }
   }
@@ -47,8 +49,9 @@ export function buildModularTrack(track,kit=null) {
   }
   asphalt.map=treadTexture(pixels);asphalt.map.colorSpace=THREE.SRGBColorSpace;const roughness=treadTexture(finish);
   asphalt.roughnessMap=asphalt.bumpMap=roughness;asphalt.bumpScale=.0003;asphalt.clearcoatRoughnessMap=roughness;
-  asphalt.addEventListener('dispose',()=>roughness.dispose());
-  asphalt.color.set('#697078');asphalt.roughness=.34;asphalt.clearcoatRoughness=.13;asphalt.envMapIntensity=1.58;asphalt.name="Carbonio twill sotto trasparente";
+  asphalt.anisotropy=.56;asphalt.anisotropyMap=treadTexture(fibres);
+  asphalt.addEventListener('dispose',()=>{roughness.dispose();asphalt.anisotropyMap.dispose();});
+  asphalt.color.set('#697078');asphalt.roughness=.32;asphalt.clearcoatRoughness=.095;asphalt.envMapIntensity=1.58;asphalt.name="Carbonio twill sotto trasparente";
   if(track.weather==='rain'){
     asphalt.color.set('#41525c');asphalt.roughness=.23;asphalt.clearcoatRoughness=.07;asphalt.envMapIntensity=2.0;
     // Broad wet patches break up the reflection; the woven carbon remains visible below the film.

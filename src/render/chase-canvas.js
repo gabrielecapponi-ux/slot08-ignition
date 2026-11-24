@@ -1,6 +1,13 @@
 import {racePose} from './race-pose.js';
 import { drawSector } from '../track/sectors.js';
 import { THEMES } from '../track/themes.js';
+import {biomePhoto} from '../track/photo-biomes.js';
+const photos=new Map();
+function photoBackdrop(theme){
+ const url=biomePhoto(theme);if(!url||typeof Image==='undefined')return null;
+ if(!photos.has(url)){const image=new Image();image.src=url;photos.set(url,image);}
+ const image=photos.get(url);return image.complete&&image.naturalWidth?image:null;
+}
 const horizons=new Map();
 const sampledRoads=new WeakMap();
 function roadWindow(track,distance){
@@ -42,7 +49,14 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
   const palette=THEMES[track.theme]??THEMES.forest;
   sky.addColorStop(0,palette.sky);sky.addColorStop(.75,palette.accent);sky.addColorStop(1,palette.hill);
   ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);ctx.fillStyle=palette.ground;ctx.fillRect(0,h*.48,w,h*.52);
-  if(session.meeting){
+  const photo=photoBackdrop(track.theme);
+  if(photo){
+    const period=Math.max(w,h*3),shift=((heading/(2*Math.PI)%1+1)%1)*period;
+    ctx.save();ctx.beginPath();ctx.rect(0,0,w,h*.49);ctx.clip();
+    ctx.drawImage(photo,-shift,-h*.35,period,h*1.55);
+    if(period-shift<w)ctx.drawImage(photo,period-shift,-h*.35,period,h*1.55);
+    ctx.restore();
+  }else if(session.meeting){
     const id=session.meeting.world;
     if(!horizons.has(id)){
       const horizon=document.createElement('canvas');horizon.width=768;horizon.height=384;

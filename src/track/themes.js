@@ -9,5 +9,5 @@ export const THEMES={
 };
 
 THEMES.titan={...THEMES.coast,sky:'#a6d9df',ground:'#8f9d9d',hill:'#4e7481',water:'#267a89',props:['lighthouse','boulder','buoy','rock_arch','warehouse']};
-THEMES.orion={...THEMES.alpine,sky:'#7189bb',ground:'#7785a8',hill:'#474d73',water:'#6167ac',props:['boulder','warehouse','windmill','streetlamp']};
+THEMES.orion={...THEMES.alpine,sky:'#29292d',ground:'#8a8885',hill:'#625f60',water:'#6167ac',props:['boulder','warehouse','windmill','streetlamp']};
 THEMES.solar={...THEMES.desert,sky:'#ffbc8b',ground:'#b66a48',hill:'#7e4151',water:'#bb7057',props:['mesa','rock_arch','windmill','boulder']};

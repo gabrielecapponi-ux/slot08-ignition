@@ -54,3 +54,11 @@ Riproduzione: `blender -b -t 4 -P scripts/art/parts-catalogue.py -- /tmp/slot-pa
 - `icons14/*.svg` and `slot-icons.svg`: 16 original vector instrument icons authored in `scripts/art/slot-icons.py`, with a consistent broken circular bezel, rounded strokes, and transparent background. Names: wheel, motor, garage, arcade, chrono, duel, audio, fullscreen, play, pause, trophy, spark, paint, chevron, reset, brake. No external icon library or copied vector paths were used. Individual SVGs have accessible Italian names; symbol IDs use `slot-` followed by the name.
 - `slot-sans-specimen.png`, `slot-icons-specimen.svg`, and `slot-icons-specimen.png` are inspection sheets generated from the original font/vectors. Font inspected at 14, 16 and 20 pixels; icons inspected on a dark tinted circular lens. Preview lens backgrounds are not included in the individual icon assets.
 - Build commands: `/usr/bin/python3 scripts/art/slot-sans.py` (FontTools + Pillow + Brotli), then `/usr/bin/python3 scripts/art/slot-icons.py` (Pillow + Inkscape). Runtime game assets need no build-time libraries.
+
+## Photographic race environments
+
+- Forest Grove, Poly Haven (CC0). Tonemapped from the 1K Radiance panorama. https://polyhaven.com/a/forest_grove
+- Margerie Glacier, National Park Service (NPS Photo). Cropped and mirrored for the race horizon. https://www.nps.gov/places/margerie-glacier.htm
+- Apollo 17 surface panorama, NASA JSC, jsc2004e52776. Reframed for the lunar horizon. https://images.nasa.gov/details/jsc2004e52776
+- Great Observatories' Unique Views of the Milky Way, NASA, ESA, SSC, CXC and STScI, PIA12348. Multiwavelength composite adapted for the fictional solar circuit. https://images.nasa.gov/details/PIA12348
+- Active lava lake at the summit of Kīlauea, USGS (public domain). Adapted as a projected caldera surface. https://www.usgs.gov/media/images/active-lava-lake-summit-kilauea-volcano
