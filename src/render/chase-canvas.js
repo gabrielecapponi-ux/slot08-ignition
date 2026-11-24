@@ -153,9 +153,9 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
       ctx.fillStyle=lacquer;ctx.beginPath();ctx.moveTo(-.52,.06);ctx.lineTo(-.52,-.24);ctx.lineTo(-.36,-.39);ctx.lineTo(.36,-.39);ctx.lineTo(.52,-.24);ctx.lineTo(.52,.06);ctx.fill();
       ctx.fillStyle='#172630';ctx.fillRect(-.52,-.38,1.04,.065);
       }
-      if(s.skid>.29){for(const flank of [-1,1]){const drift=(s.car.distance*.83)%1,r=.22+drift*.16,x=flank*(.43+drift*.12),y=.08-drift*.12;
-        const mist=ctx.createRadialGradient(x,y,0,x,y,r);mist.addColorStop(0,'#e1e5e48a');mist.addColorStop(.48,'#c4c9ca43');mist.addColorStop(1,'#afb8bd00');ctx.fillStyle=mist;ctx.fillRect(x-r,y-r,r*2,r*2);}}
-      if(s.crash?.wallHits || (s.skid>.37 && Math.floor(s.car.distance*22)%3===0)){ctx.strokeStyle='#ffd17c';ctx.lineWidth=.028;ctx.beginPath();for(let i=0;i<6;i++){ctx.moveTo(.44,0);ctx.lineTo(.5+i*.07,-.1-Math.abs(Math.sin(i+(s.crash?.angle||s.car.distance)))*.32);}ctx.stroke();}
+      if(s.skid>.18){for(const flank of [-1,1]){const drift=(s.car.distance*.83)%1,r=.29+drift*.22+s.skid*.10,x=flank*(.43+drift*.12),y=.08-drift*.12;
+        const mist=ctx.createRadialGradient(x,y,0,x,y,r);mist.addColorStop(0,'#eef1efb8');mist.addColorStop(.48,'#c4c9ca43');mist.addColorStop(1,'#afb8bd00');ctx.fillStyle=mist;ctx.fillRect(x-r,y-r,r*2,r*2);}}
+      if(s.crash?.wallHits || (s.skid>.26 && Math.floor(s.car.distance*22)%3<(s.skid>.48?2:1))){ctx.strokeStyle='#ffd17c';ctx.lineWidth=.028;ctx.beginPath();for(let i=0;i<6;i++){ctx.moveTo(.44,0);ctx.lineTo(.5+i*.07,-.1-Math.abs(Math.sin(i+(s.crash?.angle||s.car.distance)))*.32);}ctx.stroke();}
       ctx.restore();
       if(!sprite){ctx.fillStyle='#263641';ctx.fillRect(x-size*.32,y-size*.56,size*.64,size*.23);
       ctx.fillStyle='#ff5448';for(const side of [-.43,.23])ctx.fillRect(x+size*side,y-size*.18,size*.2,size*.09);}

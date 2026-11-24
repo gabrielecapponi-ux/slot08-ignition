@@ -89,8 +89,9 @@ export class PhysicsEngine {
     const straight = clamp(1 - Math.abs(before.curvature || 0) / .18, 0, 1);
     const fullPower = clamp((car.throttle - .65) / .35, 0, 1);
     const drive = (1 + .35 * straight * fullPower) * cfg.motorForce * lowSpeedTorque * car.throttle * Math.max(0, 1 - v / cfg.maxSpeed);
+    const fastLift=clamp((v-4.4)/1.8,0,1)*(1-car.throttle);
     const resistance = cfg.rollingResistance + cfg.aerodynamicDrag * v * v
-      + cfg.engineBrake * (1 - car.throttle) * Math.min(1,v/.65) + cfg.skidDrag * car.skid;
+      + cfg.engineBrake * (1+.48*fastLift) * (1 - car.throttle) * Math.min(1,v/.65) + cfg.skidDrag * car.skid;
     // The stunt modules have a powered magnetic guide for the vertical climb.
     const liftAssist=before.loopMetric && before.pitch>0 ? .78*car.throttle : 0;
     const gravity = (1-liftAssist)*PHYSICS.gravity*Math.sin(before.pitch || 0);

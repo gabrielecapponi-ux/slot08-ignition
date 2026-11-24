@@ -6,13 +6,23 @@ export class SkidEffects {
   constructor(scene) {
     this.matrix = new THREE.Object3D(); this.cursor = 0; this.puffCursor = 0;
     this.last = new Map(); this.marks = Array.from({ length: 320 }, () => ({ life: 0 }));
-    this.puffs = Array.from({ length: 96 }, () => ({ life: 0 }));
+    this.puffs = Array.from({ length: 192 }, () => ({ life: 0 }));
     this.ink = new THREE.InstancedMesh(new THREE.PlaneGeometry(.09, .014),
       new THREE.MeshBasicMaterial({ color: '#0a0c10', transparent: true, opacity: .74, depthWrite: false }), this.marks.length);
-    const pixels=new Uint8Array(32*32*4);for(let y=0;y<32;y++)for(let x=0;x<32;x++){const d=Math.hypot((x-15.5)/15.5,(y-15.5)/15.5);const i=(y*32+x)*4;pixels.set([255,255,255,Math.round(255*Math.max(0,1-d)**1.65*(.75+.15*Math.sin(x*.43+2*Math.sin(y*.31))+.1*Math.cos(y*.58+x*.24)))],i);}
-    this.smokeTexture=new THREE.DataTexture(pixels,32,32);this.smokeTexture.needsUpdate=true;
+    const size=128,pixels=new Uint8Array(size*size*4);
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+      const u=(x+.5)/size*2-1,v=(y+.5)/size*2-1;
+      const folds=Math.sin(u*11+2*Math.sin(v*7))*Math.cos(v*9-u*4);
+      const d=Math.hypot(u+.06*Math.sin(v*8),v+.07*Math.cos(u*7));
+      const density=Math.min(1,Math.max(0,(1-d)*2.7+folds*.16));
+      const shade=Math.round(224+24*folds);
+      pixels.set([shade,shade,Math.min(255,shade+5),Math.round(238*density*density)],4*(y*size+x));
+    }
+    this.smokeTexture=new THREE.DataTexture(pixels,size,size);
+    this.smokeTexture.generateMipmaps=true;this.smokeTexture.minFilter=THREE.LinearMipmapLinearFilter;
+    this.smokeTexture.magFilter=THREE.LinearFilter;this.smokeTexture.needsUpdate=true;
     this.smoke = new THREE.InstancedMesh(new THREE.PlaneGeometry(2,2),
-      new THREE.MeshBasicMaterial({ color: '#d9dce0',map:this.smokeTexture,transparent:true,opacity:.48,depthWrite:false,side:THREE.DoubleSide }), this.puffs.length);
+      new THREE.MeshBasicMaterial({ color: '#d9dce0',map:this.smokeTexture,transparent:true,opacity:.68,depthWrite:false,side:THREE.DoubleSide }), this.puffs.length);
     for (const mesh of [this.ink, this.smoke]) {
       mesh.frustumCulled = false; mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(mesh);
     }
@@ -37,9 +47,9 @@ export class SkidEffects {
       for (const side of [-1, 1]) {
         const x = p.x - tx * .10 - ty * side * .058, z = p.y - ty * .10 + tx * side * .058;
         if(!spray)Object.assign(this.marks[this.cursor++ % this.marks.length], { x, y: p.z + .079, z, angle: p.angle, life: 12 });
-        if (spray || car.skid > .21) {
+        if (spray || car.skid > .16) {
           const i = this.puffCursor++ % this.puffs.length;
-          Object.assign(this.puffs[i], { x, y: p.z + .10, z, vx: spray?-tx*.32-ty*side*.19:-tx*.10+Math.sin(i)*.05, vz: spray?-ty*.32+tx*side*.19:-ty*.10+Math.cos(i)*.05, life: spray?.38:.72 });
+          Object.assign(this.puffs[i], { x, y: p.z + .10, z, vx: spray?-tx*.32-ty*side*.19:-tx*.10+Math.sin(i)*.05, vz: spray?-ty*.32+tx*side*.19:-ty*.10+Math.cos(i)*.05, life: spray?.38:1.05, duration:spray?.38:1.05, size:spray?.036:.048+.026*car.skid });
         }
       }
     }
@@ -58,7 +68,7 @@ export class SkidEffects {
       smokeChanged=true;
       if (p.life) { p.x += p.vx * dt; p.z += p.vz * dt; p.y += (.10+.12*(.72-p.life))*dt; }
       this.matrix.position.set(p.x || 0, p.y || 0, p.z || 0); if(camera)this.matrix.quaternion.copy(camera.quaternion);else this.matrix.rotation.set(0, i, i);
-      this.matrix.scale.setScalar(p.life ? (.031 + (.72 - p.life) * .19) * Math.min(1, p.life / .18) : 0);
+      this.matrix.scale.setScalar(p.life ? (p.size + (p.duration - p.life) * .22) * Math.min(1, p.life / .18) : 0);
       this.matrix.updateMatrix(); this.smoke.setMatrixAt(i, this.matrix.matrix);
     });
     if(inkChanged)this.ink.instanceMatrix.needsUpdate=true;

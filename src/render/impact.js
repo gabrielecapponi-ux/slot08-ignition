@@ -15,7 +15,7 @@ export class ImpactEffects {
       mesh.frustumCulled=false;mesh.visible=false;scene.add(mesh);
       const tails=new Float32Array(14*6),ribbon=new THREE.BufferGeometry();
       ribbon.setAttribute('position',new THREE.BufferAttribute(tails,3).setUsage(THREE.DynamicDrawUsage));
-      const lines=new THREE.LineSegments(ribbon,new THREE.LineBasicMaterial({color:0xffa451,transparent:true,opacity:.7,depthWrite:false,blending:THREE.AdditiveBlending}));
+      const lines=new THREE.LineSegments(ribbon,new THREE.LineBasicMaterial({color:0xffa451,transparent:true,opacity:.95,depthWrite:false,blending:THREE.AdditiveBlending}));
       lines.frustumCulled=false;mesh.add(lines);
       return {mesh,positions,tails,lines,crash:null,burst:-1};
     });
@@ -26,9 +26,9 @@ export class ImpactEffects {
       mesh.visible=false;
       if(!crash){
         emitter.crash=null;
-        if(!enabled||!car||car.skid<.28||car.state!=='slotted')return;
+        if(!enabled||!car||car.skid<.22||car.state!=='slotted')return;
         const p=car.pose,phase=car.distance*5+index;
-        if(Math.floor(phase)%3!==0)return;
+        if(Math.floor(phase)%3>(car.skid>.48?1:0))return;
         const t=(phase%1)*.14;
         for(let i=0;i<14;i++){
           const back=.09+t*(.8+(i%5)*.36),spread=Math.sin(i*2.4)*t*.42;
@@ -60,7 +60,7 @@ export class ImpactEffects {
   streaks(emitter,x,y,z){
     const {positions,tails,lines}=emitter;
     for(let i=0;i<14;i++){
-      const a=i*3,k=i*6,length=.16+(i%4)*.045;
+      const a=i*3,k=i*6,length=.25+(i%4)*.058;
       tails[k]=positions[a];tails[k+1]=positions[a+1];tails[k+2]=positions[a+2];
       tails[k+3]=positions[a]+(x-positions[a])*length;
       tails[k+4]=positions[a+1]+(y-positions[a+1])*length;

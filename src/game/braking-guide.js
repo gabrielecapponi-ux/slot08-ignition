@@ -6,14 +6,14 @@ import { PHYSICS } from '../core/config.js';
  * are model metres; the recommended speed uses the HUD's 1:18 equivalent. */
 export function brakingAdvice(track, car) {
   const cfg = car.setup || PHYSICS, braking = (cfg.engineBrake + cfg.rollingResistance) / cfg.mass * .78;
-  const lookahead = Math.max(12, car.speed * 3), grip = car.maxGrip * (1 - cfg.powerGripLoss * .55);
+  const lookahead = Math.max(12, car.speed * 3, car.speed**2/(2*braking)+car.speed*.65), grip = car.maxGrip * (1 - cfg.powerGripLoss * .55);
   let best = null;
   for (let ahead = 0; ahead <= lookahead; ahead += .15) {
     const p = track.pose(car.distance + ahead, car.lane, car.change);
     if (Math.abs(p.curvature) < .06) continue;
     const limit = safeSpeed(p.curvature, grip*surfaceGrip(track,car.distance+ahead,car.change?null:car.lane,cfg),p.bank||0) * .82;
     const elevationGain=p.z-(car.pose?.z??p.z);
-    const distanceToBrake = ahead - Math.max(0, (car.speed ** 2 - limit ** 2 - 2*PHYSICS.gravity*elevationGain) / (2 * braking)) - car.speed * .25;
+    const distanceToBrake = ahead - Math.max(0, (car.speed ** 2 - limit ** 2 - 2*PHYSICS.gravity*elevationGain) / (2 * braking)) - car.speed * (car.speed>4.4?.55:.25);
     if (!best || distanceToBrake < best.distanceToBrake) best = { distance: ahead, distanceToBrake, limit, point: car.distance + ahead };
   }
   if (!best) return { action: 'go', label: 'ACCELERA · RETTILINEO LIBERO', distance: Infinity, distanceToBrake: Infinity, limit: cfg.maxSpeed, point: null };
