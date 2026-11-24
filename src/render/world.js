@@ -1,3 +1,4 @@
+import {apexPanels} from './apex-panels.js';
 import {grassVertices,grassIndices} from './verge-mesh.js';
 import {plantStand,windMaterial} from './trees.js';
 import {portalVertices,portalTriangles} from './portal-mesh.js';
@@ -41,7 +42,7 @@ export class MiniatureWorld {
    add(type==='bird'?'ANIM_bird':type,{x,y,z:field.height(x,y),scale,angle:random()*Math.PI*2});made++;
   }
   finishTerrain(terrain,occupied,track.theme);
-  this.root.add(trackVerge(track));
+  this.root.add(trackVerge(track),apexPanels(track));
   const ridge=ridgeBackdrop(track,this.theme);
   if(ridge)this.root.add(ridge);
   const o=new THREE.Object3D();

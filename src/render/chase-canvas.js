@@ -1,5 +1,6 @@
 import {racePose} from './race-pose.js';
 import { drawSector } from '../track/sectors.js';
+import { THEMES } from '../track/themes.js';
 const horizons=new Map();
 const sampledRoads=new WeakMap();
 function roadWindow(track,distance){
@@ -38,8 +39,9 @@ export function drawChase(ctx, canvas, session, studio, alpha=1, view='chase') {
   }
   ctx.setTransform(1,0,0,1,0,0);
   const sky=ctx.createLinearGradient(0,0,0,h*.58);
-  sky.addColorStop(0,'#61829b');sky.addColorStop(.75,'#d8d3ba');sky.addColorStop(1,'#658075');
-  ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);ctx.fillStyle='#586854';ctx.fillRect(0,h*.48,w,h*.52);
+  const palette=THEMES[track.theme]??THEMES.forest;
+  sky.addColorStop(0,palette.sky);sky.addColorStop(.75,palette.accent);sky.addColorStop(1,palette.hill);
+  ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);ctx.fillStyle=palette.ground;ctx.fillRect(0,h*.48,w,h*.52);
   if(session.meeting){
     const id=session.meeting.world;
     if(!horizons.has(id)){

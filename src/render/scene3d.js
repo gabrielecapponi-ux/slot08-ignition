@@ -129,6 +129,7 @@ export class Scene3D {
   root.traverse(node=>{
    const m=node.material;
    if(m?.isMeshPhysicalMaterial&&m.name.startsWith('MAT_lime_enamel')&&node.geometry.attributes.uv){
+    m.clearcoat=.98;m.clearcoatRoughness=.14;m.roughness=.27;m.envMapIntensity=1.22;
     m.clearcoatNormalMap=this.lacquer??=lacquerTexture();m.clearcoatNormalScale.setScalar(.055);
    }
   });installHardware(root,car,source?.userData.hasSeats);installCarMotion(root,source);

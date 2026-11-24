@@ -19,6 +19,27 @@ export function skyTexture(theme,variant=0,mobile=false,sector){
  if(theme==='night')for(let i=0;i<260;i++){ctx.globalAlpha=.3+rnd()*.65;ctx.fillStyle='#eff7ff';ctx.beginPath();ctx.arc(rnd()*2048,rnd()*420,.7+rnd()*1.2,0,Math.PI*2);ctx.fill();}
  ctx.globalAlpha=1;const sx=420+variant*61%850,sy=512-1024*lightingProfile(theme,variant).altitude/Math.PI;
  const glow=ctx.createRadialGradient(sx,sy,4,sx,sy,150);glow.addColorStop(0,a.sun+'99');glow.addColorStop(1,a.sun+'00');ctx.fillStyle=glow;ctx.fillRect(sx-150,sy-150,300,300);ctx.fillStyle=a.sun;ctx.beginPath();ctx.arc(sx,sy,theme==='night'?16:25,0,Math.PI*2);ctx.fill();
+ if(['orion','titan','solar'].includes(theme)){
+   // The orbital body is baked once into the world panorama and its reflections.
+   const x=1320+(variant%4)*66,y=244,r=theme==='titan'?105:67;
+   ctx.save();ctx.translate(x,y);ctx.rotate(-.32);
+   const face=ctx.createRadialGradient(-r*.48,-r*.52,1,r*.22,r*.22,r*1.32);
+   face.addColorStop(0,a.sun);face.addColorStop(.49,a.horizon);face.addColorStop(.85,a.top);face.addColorStop(1,a.low);
+   ctx.strokeStyle=a.horizon+'a8';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,0,r*1.86,r*.23,0,Math.PI,Math.PI*2);ctx.stroke();
+   ctx.fillStyle=face;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
+   for(let j=0;j<4;j++){ctx.lineWidth=j===1?4:1.5;ctx.beginPath();ctx.ellipse(0,0,r*(1.73+j*.055),r*(.21+j*.009),0,0,Math.PI);ctx.stroke();}
+   ctx.restore();
+ }else if(theme==='night'||theme==='alpine'){
+   ctx.save();
+   for(let x=0;x<2048;x+=3){
+    const phase=x*Math.PI/1024,base=239+47*Math.sin(phase*2)+21*Math.sin(phase*5+.4);
+    const length=50+36*(1+Math.cos(phase*3));
+    const veil=ctx.createLinearGradient(0,base-length,0,base+9);
+    veil.addColorStop(0,'#75e3ff00');veil.addColorStop(.84,theme==='night'?'#65ffcc54':'#edf8ff2b');veil.addColorStop(1,'#c1ffed00');
+    ctx.fillStyle=veil;ctx.fillRect(x,base-length,3,length+9);
+   }
+   ctx.restore();
+ }
  if(theme!=='night')for(let i=0;i<20;i++){
    const x=rnd()*2048,y=175+rnd()*207,w=45+rnd()*118,stretch=.12+rnd()*.10;
    // Feather overlapping cloud lobes. Wrap both sides of the panorama seam.

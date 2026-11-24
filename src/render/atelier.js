@@ -96,6 +96,14 @@ export function atelierRoom(){
    stamp.position.set(...pos);stamp.rotation.set(...rot);stamp.scale.set(...size);
    stamp.updateMatrix();batches.get(key).push(stamp.matrix.clone());
  }
+ // Recessed amber indexing and a pair of cool inspection strips on the turntable.
+ for(let i=0;i<48;i++){
+   const theta=i*Math.PI/24,r=.369;
+   add(i%6===0?'lamp':'copper',[.003,.002,i%6===0?.023:.011],[r*Math.sin(theta),.005,r*Math.cos(theta)],[0,theta,0]);
+ }
+ for(const side of [-1,1])for(let i=-2;i<=2;i++){
+   add('pane',[.25,.013,.013],[i*.32,.63,side*1.36],[0,0,side*.18]);
+ }
  add('floor',[3,.04,3],[0,-.28,0]);
  add('dark',[.72,.245,.72],[0,-.137,0],[0,0,0],'round');
  add('steel',[.76,.011,.76],[0,-.011,0],[0,0,0],'round');

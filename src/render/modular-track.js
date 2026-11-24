@@ -139,7 +139,11 @@ export function buildModularTrack(track,kit=null) {
   }
   const fleck=new THREE.DataTexture(paintChip,64,64);fleck.wrapS=fleck.wrapT=THREE.RepeatWrapping;
   fleck.generateMipmaps=true;fleck.minFilter=THREE.LinearMipmapLinearFilter;fleck.magFilter=THREE.LinearFilter;fleck.needsUpdate=true;fleck.repeat.set(5,5);
-  const curbRed=mat('#c84430'),curbIvory=mat('#f0dabc');curbRed.map=curbIvory.map=fleck;curbRed.roughness=.62;curbIvory.roughness=.64;
+  const edgePaint={
+    alpine:['#20619e','#f0f8fc'],harbor:['#df692d','#e8e4d4'],night:['#19a9a8','#e0efe8'],
+    orion:['#8058b5','#e6e5f7'],titan:['#17877f','#ddefe9'],solar:['#d85c26','#f5dfae']
+  }[track.theme]??['#c84430','#f0dabc'];
+  const curbRed=mat(edgePaint[0]),curbIvory=mat(edgePaint[1]);curbRed.map=curbIvory.map=fleck;curbRed.roughness=.62;curbIvory.roughness=.64;
   for (let phase=0; phase<2; phase++) {
     const cells=curves.filter((_,i)=>i%2===phase), mesh=new THREE.InstancedMesh(box,phase?curbIvory:curbRed,cells.length*2);let j=0;
     for(const s of cells){
